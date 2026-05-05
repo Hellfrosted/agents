@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reviewable Commits"
+  short_description: "Create focused commits with per-file review"
+  default_prompt: "Use $commit to create focused, reviewable commits for my local changes."

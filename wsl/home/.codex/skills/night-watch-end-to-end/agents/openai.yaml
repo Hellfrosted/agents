@@ -1,0 +1,4 @@
+interface:
+  display_name: "Night Watch End To End"
+  short_description: "Prepare Codex plans for Night Watch"
+  default_prompt: "Use $night-watch-end-to-end to turn this problem into Night Watch-ready work."
