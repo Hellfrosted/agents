@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-':' //; export HOME=/home/crunch USER=crunch; [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1; command -v node >/dev/null 2>&1 || { printf '{"error": "Failed to find node in WSL for user crunch"}\n'; exit 1; }; exec node "$0" "$@"
+':' //; [ -n "${HOME:-}" ] || export HOME="$(getent passwd "$(id -u)" | cut -d: -f6)"; [ -n "${USER:-}" ] || export USER="$(id -un)"; [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1 && { command -v node >/dev/null 2>&1 || nvm use --silent default >/dev/null 2>&1 || true; }; command -v node >/dev/null 2>&1 || { printf '{"error": "Failed to find node in WSL"}\n'; exit 1; }; exec node "$0" "$@"
 
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
@@ -11,7 +11,7 @@ const REAL_CODEX = process.env.CODEX_WSL_PROXY_TARGET || DEFAULT_CODEX;
 const DEBUG_LOG_PATH = process.env.CODEX_WSL_PROXY_DEBUG_LOG || "";
 const ALLOWED_SKILL_SCOPES = new Set(["user", "repo", "system", "admin"]);
 const SKILLS_LIST_FALLBACK_TIMEOUT_MS = Number(process.env.CODEX_WSL_PROXY_SKILLS_TIMEOUT_MS || "2000");
-const WSL_DISTRO_NAME = process.env.CODEX_WSL_PROXY_DISTRO || "Ubuntu";
+const WSL_DISTRO_NAME = process.env.CODEX_WSL_PROXY_DISTRO || process.env.WSL_DISTRO_NAME || "";
 const rawArgv = process.argv.slice(2);
 const normalizedArgv = normalizeArgv(rawArgv);
 const needsAppServer = normalizedArgv.length === 0 && !process.stdin.isTTY;
@@ -83,6 +83,7 @@ function wslPathToWindows(value) {
   if (!direct) {
     const linuxPath = value.match(/^\/(home|tmp|var|etc|usr|opt|srv|root|workspace|mnt\/wsl)(?:\/.*)?$/);
     if (!linuxPath) return value;
+    if (!WSL_DISTRO_NAME) return value;
     return `\\\\wsl.localhost\\${WSL_DISTRO_NAME}${value.replace(/\//g, "\\")}`;
   }
   const drive = direct[1].toUpperCase();
@@ -373,7 +374,7 @@ function debugLog(stream, payload) {
 }
 
 const child = spawn(process.execPath, [REAL_CODEX, ...childArgv], {
-  cwd: windowsPathToWsl(process.env.T3CODE_WINDOWS_CWD) || process.env.HOME || "/home/crunch",
+  cwd: windowsPathToWsl(process.env.T3CODE_WINDOWS_CWD) || os.homedir() || process.env.HOME || "/",
   env: childEnv,
   detached: true,
   stdio: ["pipe", "pipe", "pipe"],
