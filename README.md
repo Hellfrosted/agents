@@ -29,16 +29,6 @@ cp bin/codex-wsl-proxy.js ~/.local/bin/
 chmod +x ~/.local/bin/codex-wsl-proxy-runner.sh ~/.local/bin/codex-wsl-proxy.js
 ```
 
-Install any skills you want with `npx skills add`:
-
-```bash
-npx skills add ./skills/codex-goal-control
-npx skills add ./skills/commit
-npx skills add ./skills/evo-end-to-end
-npx skills add ./skills/goal-maker
-npx skills add ./skills/night-watch-end-to-end
-```
-
 ## Defaults
 
 By default, `codex-wsl.cmd` uses your default WSL distro and that distro's
@@ -59,7 +49,8 @@ Set these environment variables only when your setup is different:
 
 ## Use
 
-Run `codex-wsl` from Windows. Arguments are passed through to Codex after
+Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through to Codex after
 Windows paths are converted to WSL paths.
 
 The WSL side needs `node` available on `PATH` or through nvm.
+
