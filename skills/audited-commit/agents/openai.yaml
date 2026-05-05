@@ -1,0 +1,7 @@
+interface:
+  display_name: "Audited Commits"
+  short_description: "Full commit flow with per-file review"
+  default_prompt: "Use $audited-commit to create focused, reviewed commits for my local changes."
+
+policy:
+  allow_implicit_invocation: false

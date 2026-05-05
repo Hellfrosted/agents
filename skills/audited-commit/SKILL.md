@@ -1,13 +1,13 @@
 ---
-name: commit
-description: Turns completed local changes into focused, reviewable git commits with mandatory read-only per-file review subagents before staging, then asks whether and where to push. Use when the user asks to commit, make reviewable commits, split commits, or wants a post-commit push prompt.
+name: audited-commit
+description: Creates focused, reviewable git commits with mandatory read-only per-file review subagents before staging. Use when the user explicitly invokes $audited-commit; do not use for ordinary, small, or natural-language commit requests.
 ---
 
-# Reviewable Commits
+# Audited Commits
 
 ## Quick Start
 
-Use this when the user asks for reviewable commits after code work.
+Use this only after an exact `$audited-commit` invocation. For any ordinary commit request, use the normal git commit flow instead.
 
 1. Run `git status --short`.
 2. Inspect the diff before staging.
@@ -15,8 +15,6 @@ Use this when the user asks for reviewable commits after code work.
 4. Before each commit, the main agent spawns one read-only review subagent per file in that commit.
 5. Commit only related tracked files or intentional new files.
 6. After committing, ask whether to push and where.
-
-## Workflow
 
 ### 1. Protect Worktree
 
@@ -27,22 +25,18 @@ Use this when the user asks for reviewable commits after code work.
 
 ### 2. Choose Chunks
 
-Prefer these boundaries:
+- Prefer shared primitive or helper extraction before feature usage.
+- Prefer data/model/API contract changes before UI or integration changes.
+- Prefer bug fix and regression test together when the test directly proves the fix.
+- Prefer documentation-only updates separate from code unless they explain that exact code change.
 
-- Shared primitive or helper extraction before feature usage.
-- Data/model/API contract changes before UI or integration changes.
-- Bug fix and regression test together when the test directly proves the fix.
-- Documentation-only updates separate from code unless they explain that exact code change.
-
-Avoid these boundaries:
-
-- "All files I touched" as one commit when there are separable intents.
-- Formatting churn mixed with behavioral changes.
-- A knowingly broken commit unless the user explicitly requested a work-in-progress stack.
+- Avoid "all files I touched" as one commit when there are separable intents.
+- Avoid formatting churn mixed with behavioral changes.
+- Avoid a knowingly broken commit unless the user explicitly requested a work-in-progress stack.
 
 ### 3. Review Files
 
-Before staging each reviewable commit chunk, the main agent must spawn read-only review subagents for the exact files intended for that commit.
+Before staging each commit chunk, spawn read-only review subagents for the exact files intended for that commit.
 
 - Use `git diff -- <paths>` to confirm the tracked-file diff scope first.
 - For intended new untracked files, use `git ls-files --others --exclude-standard -- <paths>` to confirm they are untracked, then review the whole file with `git diff --no-index /dev/null -- <file>` or equivalent full-file context before staging.
@@ -98,8 +92,7 @@ file paths and line references, or state that this file has no blocking issues.
 
 After all requested commits are created, do not push automatically. Ask whether to push to the current branch, a new branch, or `main`. Recommend the current branch when it exists and is not `main`; recommend a new branch when currently on `main`. Only push to `main` after explicit confirmation.
 
-- Prefer gh cli over git
-- Run `git branch --show-current`.
-- Run `git remote -v`.
-- Use a normal push, never force-push unless explicitly requested.
+- Run `git branch --show-current` and `git remote -v`.
+- Use normal `git push`; use `gh` only for GitHub-specific actions such as opening a PR.
+- Never force-push unless explicitly requested.
 - If creating a new branch, ask for the branch name unless the user already gave one.
