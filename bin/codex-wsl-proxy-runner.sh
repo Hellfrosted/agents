@@ -13,6 +13,19 @@ fi
 
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 
+DEFAULT_PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+PATH_PREFIX="$HOME/.local/bin:$HOME/bin"
+NODE_ALIAS_FILE="$HOME/.nvm/alias/default"
+
+if [ -r "$NODE_ALIAS_FILE" ]; then
+  NODE_VERSION="$(tr -d '\r\n' < "$NODE_ALIAS_FILE")"
+  if [ -n "$NODE_VERSION" ]; then
+    PATH_PREFIX="$PATH_PREFIX:$HOME/.nvm/versions/node/v$NODE_VERSION/bin"
+  fi
+fi
+
+export PATH="$PATH_PREFIX:${PATH:-$DEFAULT_PATH}"
+
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROXY_JS="${CODEX_WSL_PROXY_JS:-$SCRIPT_DIR/codex-wsl-proxy.js}"
 
