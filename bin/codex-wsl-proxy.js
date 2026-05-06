@@ -16,8 +16,18 @@ const rawArgv = process.argv.slice(2);
 const normalizedArgv = normalizeArgv(rawArgv);
 const needsAppServer = normalizedArgv.length === 0 && !process.stdin.isTTY;
 const childArgv = needsAppServer ? ["app-server"] : normalizedArgv;
+const childIsAppServer = childArgv[0] === "app-server";
 const childEnv = { ...process.env };
 delete childEnv.T3CODE_WINDOWS_CWD;
+delete childEnv.CODEX_WSL_PROXY_IDLE_TIMEOUT_MS;
+if (typeof childEnv.CODEX_HOME === "string") {
+  childEnv.CODEX_HOME = windowsPathToWsl(childEnv.CODEX_HOME);
+}
+
+const IDLE_TIMEOUT_MS = parseNonNegativeInteger(
+  process.env.CODEX_WSL_PROXY_IDLE_TIMEOUT_MS,
+  0,
+);
 
 const PATH_KEYS = new Set([
   "cwd",
@@ -158,6 +168,22 @@ function normalizeOutboundJsonLine(line) {
     debugLog("stdout", line);
     return line;
   }
+}
+
+function parseNonNegativeInteger(raw, fallback) {
+  if (raw === undefined || raw === "") return fallback;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : fallback;
+}
+
+function readMessageTurnId(message) {
+  const params = message?.params;
+  if (!params || typeof params !== "object") return undefined;
+  if (typeof params.turnId === "string") return params.turnId;
+  if (params.turn && typeof params.turn === "object" && typeof params.turn.id === "string") {
+    return params.turn.id;
+  }
+  return undefined;
 }
 
 function makeSkillsListFallbackResponse(message) {
@@ -382,6 +408,39 @@ const child = spawn(process.execPath, [REAL_CODEX, ...childArgv], {
 
 let shuttingDown = false;
 let childExited = false;
+let lastActivityAt = Date.now();
+const activeTurnIds = new Set();
+
+function recordActivity() {
+  lastActivityAt = Date.now();
+}
+
+function observeProtocolMessage(message) {
+  if (!message || typeof message !== "object") return;
+  recordActivity();
+  if (!childIsAppServer) return;
+
+  if (message.method === "turn/started") {
+    const turnId = readMessageTurnId(message);
+    if (turnId) activeTurnIds.add(turnId);
+    return;
+  }
+
+  if (message.method === "turn/completed") {
+    const turnId = readMessageTurnId(message);
+    if (turnId) activeTurnIds.delete(turnId);
+  }
+}
+
+if (childIsAppServer && IDLE_TIMEOUT_MS > 0) {
+  setInterval(() => {
+    if (shuttingDown || childExited || activeTurnIds.size > 0) return;
+    const idleForMs = Date.now() - lastActivityAt;
+    if (idleForMs < IDLE_TIMEOUT_MS) return;
+    debugLog("idle-reaper", `app-server idle for ${idleForMs}ms; shutting down`);
+    shutdown("SIGTERM");
+  }, Math.min(IDLE_TIMEOUT_MS, 60_000)).unref();
+}
 
 function shutdown(signal = "SIGTERM") {
   if (shuttingDown) return;
@@ -428,6 +487,7 @@ let stdinBuffer = "";
 const pendingSkillsListRequests = new Map();
 process.stdin.setEncoding("utf8");
 process.stdin.on("data", (chunk) => {
+  recordActivity();
   stdinBuffer += chunk;
   let newlineIndex;
   while ((newlineIndex = stdinBuffer.indexOf("\n")) !== -1) {
@@ -436,6 +496,7 @@ process.stdin.on("data", (chunk) => {
     const normalizedLine = normalizeInboundJsonLine(line);
     try {
       const parsed = JSON.parse(normalizedLine);
+      observeProtocolMessage(parsed);
       if (parsed?.method === "skills/list" && parsed?.id !== undefined) {
         registerSkillsListFallback(parsed);
       }
@@ -450,6 +511,7 @@ process.stdin.on("end", () => {
     const normalizedLine = normalizeInboundJsonLine(stdinBuffer);
     try {
       const parsed = JSON.parse(normalizedLine);
+      observeProtocolMessage(parsed);
       if (parsed?.method === "skills/list" && parsed?.id !== undefined) {
         registerSkillsListFallback(parsed);
       }
@@ -469,6 +531,7 @@ process.stdin.on("close", () => {
 let stdoutBuffer = "";
 child.stdout.setEncoding("utf8");
 child.stdout.on("data", (chunk) => {
+  recordActivity();
   stdoutBuffer += chunk;
   let newlineIndex;
   while ((newlineIndex = stdoutBuffer.indexOf("\n")) !== -1) {
@@ -524,6 +587,7 @@ function handleChildJsonLine(line) {
     return false;
   }
 
+  observeProtocolMessage(message);
   const pending = pendingSkillsListRequests.get(message?.id);
   if (!pending) {
     return false;

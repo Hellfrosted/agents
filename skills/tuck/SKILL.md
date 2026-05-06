@@ -1,13 +1,13 @@
 ---
-name: audited-commit
-description: Creates focused, reviewable git commits with mandatory read-only per-file review subagents before staging. Use when the user explicitly invokes $audited-commit; do not use for ordinary, small, or natural-language commit requests.
+name: tuck
+description: Tucks completed local changes into focused, reviewable git commits with mandatory read-only per-file review subagents before staging. Use when the user explicitly invokes $tuck; do not use for ordinary, small, or natural-language commit requests.
 ---
 
-# Audited Commits
+# Tuck
 
 ## Quick Start
 
-Use this only after an exact `$audited-commit` invocation. For any ordinary commit request, use the normal git commit flow instead.
+Use this only after an exact `$tuck` invocation. For any ordinary commit request, use the normal git commit flow instead.
 
 1. Run `git status --short`.
 2. Inspect the diff before staging.

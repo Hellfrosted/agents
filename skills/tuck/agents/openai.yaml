@@ -1,0 +1,7 @@
+interface:
+  display_name: "Tuck"
+  short_description: "Carefully commit with per-file review"
+  default_prompt: "Use $tuck to create focused, reviewed commits for my local changes."
+
+policy:
+  allow_implicit_invocation: false
