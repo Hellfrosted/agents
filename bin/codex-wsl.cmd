@@ -1,5 +1,5 @@
 @echo off
-setlocal EnableExtensions
+setlocal EnableExtensions EnableDelayedExpansion
 
 set "WSL_EXE=%CODEX_WSL_EXE%"
 if not defined WSL_EXE set "WSL_EXE=%SystemRoot%\System32\wsl.exe"
@@ -39,12 +39,12 @@ if not exist "%WSL_EXE%" (
 )
 
 if not defined CODEX_WSL_PROXY (
-    for /f "usebackq delims=" %%A in (`"%WSL_EXE%" %WSL_DISTRO_ARG% %WSL_USER_ARG% --cd / --exec printenv HOME`) do set "CODEX_WSL_HOME=%%A"
+    for /f "usebackq delims=" %%A in (`"%WSL_EXE%" %WSL_DISTRO_ARG% %WSL_USER_ARG% --cd / --exec printenv HOME ^<nul`) do set "CODEX_WSL_HOME=%%A"
     if not defined CODEX_WSL_HOME (
         echo {"error": "Failed to resolve HOME inside WSL"}
         exit /b 1
     )
-    set "CODEX_WSL_PROXY=%CODEX_WSL_HOME%/.local/bin/codex-wsl-proxy-runner.sh"
+    set "CODEX_WSL_PROXY=!CODEX_WSL_HOME!/.local/bin/codex-wsl-proxy-runner.sh"
 )
 
 :: Invoke bash explicitly and let the WSL-side runner resolve the configured
