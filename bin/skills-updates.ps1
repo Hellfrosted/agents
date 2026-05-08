@@ -42,6 +42,7 @@ function Show-Help {
         Write-Host "Install:" -ForegroundColor Cyan
         Write-HelpCommand "$displayName -i" "Install changed skills"
         Write-HelpCommand "$displayName -i [skill1 skill2 ...]" "Install one or more skills"
+        Write-HelpCommand "$displayName -i <source-url>" "Install a skill package URL without wiping the lockfile"
         Write-Host ""
         Write-Host "Uninstall:" -ForegroundColor Cyan
         Write-HelpCommand "$displayName -r <skill1 skill2 ...>" "Uninstall one or more global skills"
@@ -55,8 +56,9 @@ function Show-Help {
         Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
         Write-HelpNote "Source repos are cached locally and fetched in parallel."
         Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-        Write-HelpNote "Installs run: npx skills add <source> -g -y --skill <skill-name>"
-        Write-HelpNote "Uninstalls run: npx skills remove -g -y --skill <skill-name>"
+        Write-HelpNote "Named installs run: npx skills@latest add <source> -g -y --skill <skill-name>"
+        Write-HelpNote "Source installs run: npx skills@latest add <source> -g -y"
+        Write-HelpNote "Uninstalls run: npx skills@latest remove -g -y --skill <skill-name>"
         return
     }
 
@@ -70,6 +72,7 @@ function Show-Help {
     Write-Host "Install:" -ForegroundColor Cyan
     Write-HelpCommand "$displayName --install" "Install changed skills"
     Write-HelpCommand "$displayName --install [skill1 ...]" "Install named skills"
+    Write-HelpCommand "$displayName --install <source-url>" "Install a skill package URL without wiping the lockfile"
     Write-Host ""
     Write-Host "Uninstall:" -ForegroundColor Cyan
     Write-HelpCommand "$displayName --remove <skill1 ...>" "Uninstall named global skills"
@@ -83,8 +86,9 @@ function Show-Help {
     Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
     Write-HelpNote "Source repos are cached locally and fetched in parallel."
     Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-    Write-HelpNote "Installs run: npx skills add <source> -g -y --skill <skill-name>"
-    Write-HelpNote "Uninstalls run: npx skills remove -g -y --skill <skill-name>"
+    Write-HelpNote "Named installs run: npx skills@latest add <source> -g -y --skill <skill-name>"
+    Write-HelpNote "Source installs run: npx skills@latest add <source> -g -y"
+    Write-HelpNote "Uninstalls run: npx skills@latest remove -g -y --skill <skill-name>"
 }
 
 function Write-ColoredLine {
@@ -118,6 +122,17 @@ function Test-TargetMatch {
     param([string]$Name)
 
     return $targets.Count -eq 0 -or $targets.Contains($Name)
+}
+
+function Test-InstallSourceArgument {
+    param([string]$Value)
+
+    return (
+        $Value -match "^(https?|ssh)://" -or
+        $Value -match "^git@" -or
+        $Value -match "\.git($|[#?])" -or
+        $Value -match "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+($|/)"
+    )
 }
 
 foreach ($arg in $args) {
@@ -275,10 +290,51 @@ function Get-CacheKey {
     }
 }
 
-function Install-Skill {
+function Get-SkillLockMutexName {
+    $lockKey = try {
+        [IO.Path]::GetFullPath($lock).ToLowerInvariant()
+    } catch {
+        $lock.ToLowerInvariant()
+    }
+
+    return "Local\skills-updates-lock-$((Get-CacheKey $lockKey).Substring(0, 32))"
+}
+
+function Invoke-WithSkillLockMutex {
     param(
-        [string]$Name,
-        [string]$SourceUrl
+        [scriptblock]$ScriptBlock,
+        [ref]$Completed
+    )
+
+    $mutex = [Threading.Mutex]::new($false, (Get-SkillLockMutexName))
+    $hasLock = $false
+    if ($Completed) {
+        $Completed.Value = $false
+    }
+
+    try {
+        $hasLock = $mutex.WaitOne([TimeSpan]::FromMinutes(10))
+        if (-not $hasLock) {
+            Write-Error "skills-updates: timed out waiting for lockfile guard: $lock"
+            return
+        }
+
+        if ($Completed) {
+            $Completed.Value = $true
+        }
+        & $ScriptBlock
+    } finally {
+        if ($hasLock) {
+            $mutex.ReleaseMutex()
+        }
+        $mutex.Dispose()
+    }
+}
+
+function Invoke-SkillsAdd {
+    param(
+        [string]$SourceUrl,
+        [string]$Name = ""
     )
 
     if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
@@ -286,12 +342,49 @@ function Install-Skill {
         return $false
     }
 
-    Write-StatusLine "INSTALL $Name from $SourceUrl"
-    $lockBeforeInstall = Read-SkillLock
-    & npx skills add $SourceUrl -g -y --skill $Name
-    $ok = $LASTEXITCODE -eq 0
-    Restore-SkillLockEntriesAfterInstall -BeforeState $lockBeforeInstall -Name $Name
-    return $ok
+    if ($Name) {
+        Write-StatusLine "INSTALL $Name from $SourceUrl"
+    } else {
+        Write-StatusLine "INSTALL $SourceUrl"
+    }
+
+    $skillsArgs = New-Object System.Collections.Generic.List[string]
+    $skillsArgs.Add("skills@latest")
+    $skillsArgs.Add("add")
+    $skillsArgs.Add($SourceUrl)
+    $skillsArgs.Add("-g")
+    $skillsArgs.Add("-y")
+    if ($Name) {
+        $skillsArgs.Add("--skill")
+        $skillsArgs.Add($Name)
+    }
+
+    $status = [pscustomobject]@{ Ok = $false }
+    $completed = $false
+    Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
+        $lockBeforeInstall = Read-SkillLockSnapshot
+        Save-SkillLockBackup -Snapshot $lockBeforeInstall
+        & npx @skillsArgs | ForEach-Object { Write-Host $_ }
+        $status.Ok = $LASTEXITCODE -eq 0
+        Restore-SkillLockAfterNpx -BeforeSnapshot $lockBeforeInstall
+        Remove-SkillLockBackup
+    }
+    return $completed -and $status.Ok
+}
+
+function Install-Skill {
+    param(
+        [string]$Name,
+        [string]$SourceUrl
+    )
+
+    return Invoke-SkillsAdd -SourceUrl $SourceUrl -Name $Name
+}
+
+function Install-SkillSource {
+    param([string]$SourceUrl)
+
+    return Invoke-SkillsAdd -SourceUrl $SourceUrl
 }
 
 function Uninstall-Skill {
@@ -303,24 +396,182 @@ function Uninstall-Skill {
     }
 
     Write-StatusLine "UNINSTALL $Name"
-    & npx skills remove -g -y --skill $Name
-    $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
-    if (-not $exitCode) {
-        return $true
+    $status = [pscustomobject]@{ Ok = $false }
+    $completed = $false
+    Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
+        $lockBeforeUninstall = Read-SkillLockSnapshot
+        Save-SkillLockBackup -Snapshot $lockBeforeUninstall
+        & npx skills@latest remove -g -y --skill $Name | ForEach-Object { Write-Host $_ }
+        $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
+        if (-not $exitCode) {
+            $status.Ok = $true
+            Remove-SkillLockBackup
+            return
+        }
+
+        $status.Ok = $exitCode.Value -eq 0
+        if (-not $status.Ok) {
+            Restore-SkillLockAfterNpx -BeforeSnapshot $lockBeforeUninstall
+        }
+        Remove-SkillLockBackup
     }
-    return $exitCode.Value -eq 0
+
+    return $completed -and $status.Ok
 }
 
 function Read-SkillLock {
+    Repair-SkillLockFromBackup | Out-Null
+
     if (-not (Test-Path -LiteralPath $lock -PathType Leaf)) {
         return $null
     }
 
     try {
-        return Get-Content -LiteralPath $lock -Raw | ConvertFrom-Json
+        return Read-RawSkillLock | ConvertFrom-Json
     } catch {
         Write-Error "skills-updates: could not read lockfile: $lock"
         return $null
+    }
+}
+
+function Read-SkillLockSnapshot {
+    Repair-SkillLockFromBackup | Out-Null
+
+    $snapshot = [pscustomobject]@{
+        Exists = $false
+        Raw = $null
+        State = $null
+    }
+
+    if (-not (Test-Path -LiteralPath $lock -PathType Leaf)) {
+        return $snapshot
+    }
+
+    $snapshot.Exists = $true
+    try {
+        $snapshot.Raw = Read-RawSkillLock
+        if ($snapshot.Raw) {
+            $snapshot.State = $snapshot.Raw | ConvertFrom-Json
+        }
+    } catch {
+        Write-Error "skills-updates: could not snapshot lockfile before install: $lock"
+    }
+
+    return $snapshot
+}
+
+function Get-SkillLockWritePath {
+    try {
+        $item = Get-Item -LiteralPath $lock -ErrorAction SilentlyContinue
+        if ($item -and $item.LinkType -eq "SymbolicLink" -and $item.Target -and $item.Target.Count -gt 0) {
+            $target = [string]$item.Target[0]
+            if ([IO.Path]::IsPathRooted($target)) {
+                return $target
+            }
+
+            return Join-Path (Split-Path -Parent $lock) $target
+        }
+    } catch {
+        return $lock
+    }
+
+    return $lock
+}
+
+function Get-SkillLockBackupPath {
+    return "$lock.sk-up-backup"
+}
+
+function Test-RawJsonObject {
+    param([AllowNull()][string]$Raw)
+
+    if ([string]::IsNullOrWhiteSpace($Raw)) {
+        return $false
+    }
+
+    try {
+        $state = $Raw | ConvertFrom-Json
+        return $state -is [pscustomobject]
+    } catch {
+        return $false
+    }
+}
+
+function Read-RawSkillLock {
+    if (-not (Test-Path -LiteralPath $lock -PathType Leaf)) {
+        return $null
+    }
+
+    return Get-Content -LiteralPath $lock -Raw
+}
+
+function Save-SkillLockBackup {
+    param([object]$Snapshot)
+
+    if (-not $Snapshot -or -not $Snapshot.Exists -or -not (Test-RawJsonObject -Raw $Snapshot.Raw)) {
+        return
+    }
+
+    $backupPath = Get-SkillLockBackupPath
+    $backupDir = Split-Path -Parent $backupPath
+    New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
+    $tempBackup = Join-Path $backupDir (".skill-lock.json.sk-up-backup.tmp-{0}" -f [IO.Path]::GetRandomFileName())
+    try {
+        Set-Content -LiteralPath $tempBackup -Value $Snapshot.Raw -Encoding UTF8 -NoNewline
+        Move-Item -LiteralPath $tempBackup -Destination $backupPath -Force
+    } finally {
+        if (Test-Path -LiteralPath $tempBackup -PathType Leaf) {
+            Remove-Item -LiteralPath $tempBackup -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
+function Remove-SkillLockBackup {
+    $backupPath = Get-SkillLockBackupPath
+    if (Test-Path -LiteralPath $backupPath -PathType Leaf) {
+        Remove-Item -LiteralPath $backupPath -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Repair-SkillLockFromBackup {
+    $backupPath = Get-SkillLockBackupPath
+    if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
+        return $false
+    }
+
+    $currentRaw = Read-RawSkillLock
+    if (Test-RawJsonObject -Raw $currentRaw) {
+        return $false
+    }
+
+    $backupRaw = Get-Content -LiteralPath $backupPath -Raw
+    if (-not (Test-RawJsonObject -Raw $backupRaw)) {
+        return $false
+    }
+
+    Write-RawSkillLock -Raw $backupRaw
+    Write-StatusLine "OK      restored lockfile from interrupted sk-up backup"
+    return $true
+}
+
+function Write-RawSkillLock {
+    param([AllowNull()][string]$Raw)
+
+    if ($null -eq $Raw) {
+        $Raw = ""
+    }
+
+    $writePath = Get-SkillLockWritePath
+    $lockDir = Split-Path -Parent $writePath
+    New-Item -ItemType Directory -Path $lockDir -Force | Out-Null
+    $tempLock = Join-Path $lockDir (".skill-lock.json.tmp-{0}" -f [IO.Path]::GetRandomFileName())
+    try {
+        Set-Content -LiteralPath $tempLock -Value $Raw -Encoding UTF8 -NoNewline
+        Move-Item -LiteralPath $tempLock -Destination $writePath -Force
+    } finally {
+        if (Test-Path -LiteralPath $tempLock -PathType Leaf) {
+            Remove-Item -LiteralPath $tempLock -Force -ErrorAction SilentlyContinue
+        }
     }
 }
 
@@ -328,7 +579,7 @@ function Write-SkillLock {
     param([object]$State)
 
     $json = $State | ConvertTo-Json -Depth 20
-    Set-Content -LiteralPath $lock -Value $json -Encoding UTF8
+    Write-RawSkillLock -Raw ($json + [Environment]::NewLine)
 }
 
 function Set-JsonProperty {
@@ -338,11 +589,21 @@ function Set-JsonProperty {
         [object]$Value
     )
 
-    if ($Object.PSObject.Properties.Name -ccontains $Name) {
+    if ((Get-JsonPropertyNames -Object $Object) -ccontains $Name) {
         $Object.$Name = $Value
     } else {
         $Object | Add-Member -NotePropertyName $Name -NotePropertyValue $Value
     }
+}
+
+function Get-JsonPropertyNames {
+    param([object]$Object)
+
+    if (-not $Object) {
+        return @()
+    }
+
+    return @($Object.PSObject.Properties | ForEach-Object { $_.Name })
 }
 
 function Merge-JsonObjectProperties {
@@ -357,7 +618,7 @@ function Merge-JsonObjectProperties {
 
     $addedCount = 0
     foreach ($property in $Source.PSObject.Properties) {
-        if (-not ($Target.PSObject.Properties.Name -ccontains $property.Name)) {
+        if (-not ((Get-JsonPropertyNames -Object $Target) -ccontains $property.Name)) {
             $Target | Add-Member -NotePropertyName $property.Name -NotePropertyValue $property.Value
             $addedCount += 1
         } elseif (
@@ -371,31 +632,37 @@ function Merge-JsonObjectProperties {
     return $addedCount
 }
 
-function Restore-SkillLockEntriesAfterInstall {
+function Restore-SkillLockAfterNpx {
     param(
-        [object]$BeforeState,
-        [string]$Name
+        [object]$BeforeSnapshot
     )
 
-    if (-not $BeforeState -or -not ($BeforeState.PSObject.Properties.Name -ccontains "skills")) {
+    if (-not $BeforeSnapshot -or -not $BeforeSnapshot.Exists) {
         return
     }
 
+    $BeforeState = $BeforeSnapshot.State
     $afterState = Read-SkillLock
     if (-not $afterState) {
-        Write-SkillLock -State $BeforeState
-        Write-StatusLine "OK      restored lockfile after install"
+        Write-RawSkillLock -Raw $BeforeSnapshot.Raw
+        Write-StatusLine "OK      restored lockfile after npx"
         return
     }
 
-    if (-not ($afterState.PSObject.Properties.Name -ccontains "skills") -or -not $afterState.skills) {
+    if (-not $BeforeState -or -not ((Get-JsonPropertyNames -Object $BeforeState) -ccontains "skills")) {
+        return
+    }
+
+    if (-not ((Get-JsonPropertyNames -Object $afterState) -ccontains "skills") -or -not $afterState.skills) {
+        Set-JsonProperty -Object $afterState -Name "skills" -Value ([pscustomobject]@{})
+    } elseif (-not ($afterState.skills -is [pscustomobject])) {
         Set-JsonProperty -Object $afterState -Name "skills" -Value ([pscustomobject]@{})
     }
 
     $restoredCount = 0
     $preservedCount = 0
     foreach ($property in $BeforeState.skills.PSObject.Properties) {
-        if (-not ($afterState.skills.PSObject.Properties.Name -ccontains $property.Name)) {
+        if (-not ((Get-JsonPropertyNames -Object $afterState.skills) -ccontains $property.Name)) {
             $afterState.skills | Add-Member -NotePropertyName $property.Name -NotePropertyValue $property.Value
             $restoredCount += 1
         } elseif ($afterState.skills.$($property.Name) -is [pscustomobject]) {
@@ -408,7 +675,7 @@ function Restore-SkillLockEntriesAfterInstall {
             continue
         }
 
-        if (-not ($afterState.PSObject.Properties.Name -ccontains $property.Name)) {
+        if (-not ((Get-JsonPropertyNames -Object $afterState) -ccontains $property.Name)) {
             $afterState | Add-Member -NotePropertyName $property.Name -NotePropertyValue $property.Value
             $preservedCount += 1
         } elseif (
@@ -438,7 +705,7 @@ function Remove-SkillLockEntry {
         [string]$Name
     )
 
-    if (-not $State -or -not ($State.PSObject.Properties.Name -contains "skills")) {
+    if (-not $State -or -not ((Get-JsonPropertyNames -Object $State) -contains "skills")) {
         return $false
     }
 
@@ -451,6 +718,23 @@ function Remove-SkillLockEntry {
     return $true
 }
 
+function Remove-SkillLockEntryFromFile {
+    param([string]$Name)
+
+    $status = [pscustomobject]@{ Removed = $false }
+    $completed = $false
+    Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
+        $state = Read-SkillLock
+        if (Remove-SkillLockEntry -State $state -Name $Name) {
+            Write-SkillLock -State $state
+            $status.Removed = $true
+            return
+        }
+    }
+
+    return $completed -and $status.Removed
+}
+
 function Read-SkipState {
     if (-not (Test-Path -LiteralPath $skipFile -PathType Leaf)) {
         return [pscustomobject]@{ skips = [pscustomobject]@{} }
@@ -458,7 +742,7 @@ function Read-SkipState {
 
     try {
         $state = Get-Content -LiteralPath $skipFile -Raw | ConvertFrom-Json
-        if (-not ($state.PSObject.Properties.Name -contains "skips")) {
+        if (-not ((Get-JsonPropertyNames -Object $state) -contains "skips")) {
             return [pscustomobject]@{ skips = [pscustomobject]@{} }
         }
         return $state
@@ -551,8 +835,6 @@ if ($mode -eq "unskip") {
 
 if ($mode -eq "uninstall") {
     $skipState = Read-SkipState
-    $lockData = Read-SkillLock
-    $lockChanged = $false
     $skipStateChanged = $false
     $failedCount = 0
 
@@ -562,8 +844,7 @@ if ($mode -eq "uninstall") {
             continue
         }
 
-        if (Remove-SkillLockEntry -State $lockData -Name $name) {
-            $lockChanged = $true
+        if (Remove-SkillLockEntryFromFile -Name $name) {
             Write-StatusLine "OK      removed $name from lockfile"
         } else {
             Write-StatusLine "OK      no lock entry for $name"
@@ -572,10 +853,6 @@ if ($mode -eq "uninstall") {
         if (Remove-SkipEntry -State $skipState -Name $name) {
             $skipStateChanged = $true
         }
-    }
-
-    if ($lockChanged) {
-        Write-SkillLock -State $lockData
     }
 
     if ($skipStateChanged) {
@@ -587,6 +864,39 @@ if ($mode -eq "uninstall") {
     }
 
     exit 0
+}
+
+if ($mode -eq "install" -and $targets.Count -gt 0) {
+    $installSources = New-Object System.Collections.Generic.List[string]
+    $installNames = New-Object System.Collections.Generic.List[string]
+
+    foreach ($requested in $targets) {
+        if (Test-InstallSourceArgument -Value $requested) {
+            $installSources.Add($requested)
+        } else {
+            $installNames.Add($requested)
+        }
+    }
+
+    if ($installSources.Count -gt 0) {
+        if ($installNames.Count -gt 0) {
+            Write-Error "skills-updates: install cannot mix source URLs and lockfile skill names"
+            exit 1
+        }
+
+        $failedCount = 0
+        foreach ($sourceUrl in $installSources) {
+            if (-not (Install-SkillSource -SourceUrl $sourceUrl)) {
+                $failedCount += 1
+            }
+        }
+
+        if ($failedCount -gt 0) {
+            exit 1
+        }
+
+        exit 0
+    }
 }
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
@@ -616,7 +926,7 @@ try {
         }
 
         $value = $entry.Value
-        $sourceUrl = if ($value.PSObject.Properties.Name -contains "sourceUrl" -and $value.sourceUrl) {
+        $sourceUrl = if ((Get-JsonPropertyNames -Object $value) -contains "sourceUrl" -and $value.sourceUrl) {
             $value.sourceUrl
         } else {
             "https://github.com/$($value.source).git"
