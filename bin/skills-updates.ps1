@@ -1,6 +1,22 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Continue"
 
+function Set-Utf8ConsoleEncoding {
+    $utf8NoBom = [Text.UTF8Encoding]::new($false)
+
+    try {
+        [Console]::InputEncoding = $utf8NoBom
+    } catch {}
+
+    try {
+        [Console]::OutputEncoding = $utf8NoBom
+    } catch {}
+
+    $script:OutputEncoding = $utf8NoBom
+}
+
+Set-Utf8ConsoleEncoding
+
 $mode = "help"
 $target = ""
 $targets = New-Object System.Collections.Generic.List[string]
