@@ -32,32 +32,58 @@ const IDLE_TIMEOUT_MS = parseNonNegativeInteger(
 const PATH_KEYS = new Set([
   "cwd",
   "agent_path",
+  "codexHome",
+  "composerIcon",
   "destinationPath",
   "dotCodexFolder",
   "filePath",
+  "grantRoot",
+  "iconLarge",
+  "iconSmall",
   "installedRoot",
+  "localPluginPath",
+  "logo",
+  "managedDir",
   "marketplacePath",
   "move_path",
   "newPath",
   "oldPath",
   "path",
+  "pluginPath",
   "projectCwd",
+  "root",
   "savedPath",
+  "source",
   "sourcePath",
+  "windowsManagedDir",
   "workingDirectory",
+  "working_directory",
   "workspaceRoot",
 ]);
 
 const PATH_ARRAY_KEYS = new Set([
   "changedPaths",
   "cwds",
+  "extraLogFiles",
   "extraUserRoots",
   "files",
   "instructionSources",
+  "preexisting_untracked_dirs",
+  "preexisting_untracked_files",
+  "read",
   "readableRoots",
+  "readable_roots",
+  "roots",
+  "samplePaths",
   "screenshots",
+  "sparsePaths",
+  "upgradedRoots",
+  "write",
   "writableRoots",
+  "writable_roots",
 ]);
+
+const PATH_MAP_KEYS = new Set(["fileChanges"]);
 
 function windowsPathToWsl(value) {
   if (typeof value !== "string") return value;
@@ -138,7 +164,8 @@ function normalizePathFields(value, key, transformPath) {
   if (value && typeof value === "object") {
     const next = {};
     for (const [entryKey, entryValue] of Object.entries(value)) {
-      next[entryKey] = normalizePathFields(entryValue, entryKey, transformPath);
+      const normalizedKey = PATH_MAP_KEYS.has(key) ? transformPath(entryKey) : entryKey;
+      next[normalizedKey] = normalizePathFields(entryValue, entryKey, transformPath);
     }
     return next;
   }
