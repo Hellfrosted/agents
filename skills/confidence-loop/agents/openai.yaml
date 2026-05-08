@@ -1,4 +1,4 @@
 interface:
   display_name: "Confidence Loop"
-  short_description: "Stress-test strategies until evidence is solid"
-  default_prompt: "Use $confidence-loop to audit this strategy until every real loophole has a concrete fix."
+  short_description: "Stress-test strategies, with optional hard-mode second opinions"
+  default_prompt: "Use $confidence-loop to audit this strategy until every real loophole has a concrete fix. Add `hard` when sub-agent second opinions are worth the extra time."
