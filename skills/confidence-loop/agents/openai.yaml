@@ -1,0 +1,4 @@
+interface:
+  display_name: "Confidence Loop"
+  short_description: "Stress-test strategies until evidence is solid"
+  default_prompt: "Use $confidence-loop to audit this strategy until every real loophole has a concrete fix."
