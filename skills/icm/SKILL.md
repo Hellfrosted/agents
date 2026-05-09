@@ -5,32 +5,30 @@ description: Provides the ICM (Infinite Context Memory) persistent-memory rule f
 
 # ICM
 
-Use ICM (Infinite Context Memory) as the persistent memory layer when durable context is likely to matter.
+Use ICM as Codex persistent memory when durable context is likely to matter.
 
-## Recall
+## Recall First
 
-At the start of each task, search for relevant past context.
+At task start, search relevant past context. Prefer the ICM MCP recall tool; otherwise use:
 
 ```bash
 rtk run 'icm recall "query"'
 ```
 
-Prefer the ICM MCP recall tool when it is available in the Codex session; it accesses the same memory store.
-
 ## Store
 
-Store when any of these happens.
+Before replying, store privacy-safe durable facts:
 
-1. Error resolved: `rtk run 'icm store -t errors-resolved -c "description" -i high'`
-2. Architecture decision: `rtk run 'icm store -t decisions-{project} -c "description" -i high'`
-3. User preference discovered: `rtk run 'icm store -t preferences -c "description" -i critical'`
-4. Significant task completed: `rtk run 'icm store -t context-{project} -c "summary" -i high'`
-5. Conversation exceeds about 20 tool calls without a store: store a progress summary.
+- Resolved error: topic `errors-resolved`, importance `high`.
+- Architecture decision: topic `decisions-{project}`, importance `high`.
+- User preference: topic `preferences`, importance `critical`.
+- Significant progress or completion: topic `context-{project}`, importance `high`.
+- Long run without a store: save a concise progress summary.
 
-Do this before responding to the user when the information is durable, useful later, and privacy-safe.
+Prefer ICM MCP store when available. CLI fallback:
 
-## Guardrails
+```bash
+rtk run 'icm store -t "topic" -c "summary" -i high'
+```
 
-Never store secrets, tokens, passwords, recovery codes, private personal data, or raw session exports.
-
-When cleaning integrations, keep ICM Codex-facing unless the user says otherwise. Do not add ICM setup for other agent harnesses, and do not touch agent install directories for this purpose.
+Never store secrets, tokens, passwords, recovery codes, private personal data, or raw session exports. Keep ICM Codex-facing unless the user says otherwise; do not add other harness setup or touch install directories for ICM cleanup.

@@ -5,14 +5,10 @@ description: Stores information in ICM persistent memory from Codex. Use when th
 
 # ICM Remember
 
-Store the user's provided content in ICM memory.
-
-If using the CLI, replace `<content>` with the user's content and run:
+Store the user's provided content in ICM. Prefer the ICM MCP store tool. Use topic `note` unless the user specifies a better topic. CLI fallback:
 
 ```bash
 rtk run 'icm store -t "note" -c "<content>"'
 ```
-
-When the ICM MCP store tool is available, use it instead of the CLI. Preserve the same default behavior: store the user's provided content under the `note` topic unless the user specifies a more precise topic.
 
 Never store secrets, tokens, passwords, recovery codes, private personal data, or raw session exports.

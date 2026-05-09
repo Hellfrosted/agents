@@ -1,88 +1,59 @@
 ---
 name: confidence-loop
-description: Stress-tests a strategy, plan, implementation approach, or answer until remaining uncertainty is explicit and evidence-backed. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, or invokes confidence-loop hard for sub-agent second opinions.
+description: Stress-tests a strategy, plan, implementation approach, or answer until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, or invokes confidence-loop hard for up to four sub-agent second opinions.
 ---
 
 # Confidence Loop
 
-## Rule
+Adversarially verify a strategy, plan, implementation, or answer. Treat "100% confident" as a request for evidence, not reassurance.
 
-Treat "100% confident" as a demand for adversarial verification, not reassurance. Do not claim certainty unless every material assumption has been checked against evidence available in the current context or through allowed tools.
+## Standard
 
-## Modes
-
-- **Standard**: run the loop yourself with available evidence.
-- **Hard**: when the user explicitly says `$confidence-loop hard`, `confidence-loop hard`, or asks to use sub-agents for second opinions, spawn read-only sub-agents to independently challenge the strategy before the final revision.
-
-Use hard mode only when the user explicitly asks for it. If sub-agents are unavailable, state that blocker and continue with the standard loop.
-
-## Loop
-
-1. State the current strategy in concrete terms.
-2. List the success criteria and constraints.
-3. Identify assumptions, dependencies, edge cases, loopholes, and ways the strategy can fail.
-4. For each risk, decide whether it is disproven, accepted with rationale, or needs a fix.
-5. Revise the strategy to close real loopholes.
-6. Verify the revised strategy with the smallest relevant checks, source reads, tests, searches, or reasoning proofs available.
-7. Repeat until no material unresolved loopholes remain, or until a blocker prevents factual certainty.
+1. State the strategy and success criteria.
+2. List material assumptions, dependencies, edge cases, and failure modes.
+3. Mark each risk as disproven, accepted, blocked, or needing a fix.
+4. Revise the strategy to close real loopholes.
+5. Run the smallest relevant verification: source read, command, test, search, or reasoning proof.
+6. Repeat until no material unresolved loopholes remain.
 
 ## Hard Mode
 
-Hard mode adds independent review before the final revision:
+Use only when the user says `confidence-loop hard` or asks for sub-agent second opinions.
 
-1. Prepare a short evidence pack: current strategy, success criteria, constraints, known facts, and open questions.
-2. Spawn two or three read-only sub-agents with distinct review angles. Useful angles are:
-   - **Skeptic**: find false assumptions, missing cases, and ways the plan fails.
-   - **Verifier**: identify the smallest checks that would prove or disprove the plan.
-   - **Domain reviewer**: inspect code, docs, APIs, or product constraints for domain-specific gaps.
-3. Keep each sub-agent task bounded. Give it the evidence pack, the exact question to answer, and a requirement to separate evidence-backed findings from speculation.
-4. Do not ask sub-agents to edit files, spawn more sub-agents, or make the final decision.
-5. Wait for the second opinions before claiming high or 100% confidence.
-6. Integrate the results yourself: dedupe findings, reject unsupported objections, fix valid loopholes, then run the smallest relevant verification.
+Spawn two to four read-only reviewers with distinct angles. Use only as many as the uncertainty justifies:
 
-Use this prompt shape for each hard-mode sub-agent:
+- **Skeptic**: false assumptions, loopholes, and failure modes.
+- **Verifier**: smallest checks that would prove or disprove the strategy.
+- **Domain reviewer**: code, docs, APIs, product constraints, or domain-specific gaps.
+- **Implementability reviewer**: hidden execution, sequencing, ownership, or integration risks.
 
-```text
-You are a read-only second-opinion reviewer for a confidence-loop hard pass.
+Give each reviewer the strategy, criteria, evidence, and open questions. They must not edit files, spawn agents, or decide the final answer.
 
-Review angle: {skeptic | verifier | domain reviewer}
-Current strategy: {strategy}
-Success criteria and constraints: {criteria}
-Evidence available: {facts, files, commands, sources, or prior results}
+Prompt shape:
+
+```
+Read-only confidence-loop reviewer. Angle: {skeptic|verifier|domain|implementability}.
+Strategy: {strategy}
+Criteria: {criteria}
+Evidence: {facts}
 Open questions: {unknowns}
-
-Do not edit files. Do not spawn sub-agents.
-Return only:
-- Material loopholes or false assumptions, with evidence.
-- Verification checks that would close uncertainty.
-- Objections that are speculative or non-blocking, clearly labeled as such.
-- A confidence recommendation: 100%, high, or not confident.
+Return material loopholes with evidence, verification checks, speculative objections labeled as such, and confidence: 0-100.
 ```
 
-## Confidence Standard
+Integrate results yourself. Accept evidence-backed issues, reject unsupported ones, fix valid gaps, then verify.
 
-Use these labels precisely:
+## Confidence Score
 
-- **100% confident**: all material assumptions are verified, tests or checks pass where relevant, and no unresolved blocker remains.
-- **High confidence**: evidence supports the strategy, but at least one non-material uncertainty remains.
-- **Not confident**: material uncertainty remains, evidence is missing, or verification failed.
+Use a numeric score from 0 to 100, not broad labels. Calibrate it this way:
 
-If 100% confidence is impossible, say exactly why and what evidence would close the gap.
+- **100**: all material assumptions verified; relevant checks pass; no blocker remains.
+- **90-99**: evidence strongly supports the answer, with only minor non-material uncertainty left.
+- **70-89**: likely correct, but meaningful uncertainty, incomplete coverage, or unverified assumptions remain.
+- **40-69**: plausible but materially uncertain; more evidence or revision is needed.
+- **0-39**: weak, contradicted, missing core evidence, or verification failed.
+
+If 100% is impossible, say why and what evidence would close the gap.
 
 ## Output
 
-Keep the response compact:
-
-- **Strategy**: the revised strategy.
-- **Loopholes found**: real failure modes and fixes.
-- **Second opinions**: hard mode only; sub-agent findings accepted, rejected, or still unresolved.
-- **Verification**: checks performed and results.
-- **Confidence**: 100%, high, or not confident, with the reason.
-
-Do not hide uncertainty. Do not pad the answer with hypothetical risks that do not apply to the actual strategy.
-
-## Quick Start
-
-Use `$confidence-loop` for a standard adversarial audit.
-
-Use `$confidence-loop hard` when the user wants sub-agent second opinions before the final answer.
+Keep it compact: Strategy, Loopholes found, Second opinions if hard mode, Verification, Confidence score. Do not pad with hypothetical risks that do not apply.
