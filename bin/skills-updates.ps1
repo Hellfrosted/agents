@@ -49,6 +49,8 @@ function Show-Help {
     Write-Host "Usage:" -ForegroundColor Cyan
     if ($displayName -eq "sk-up") {
         Write-HelpCommand $displayName "Show help"
+        Write-HelpCommand "$displayName -h" "Show help"
+        Write-HelpCommand "$displayName -l" "List installed skills without checking upstream"
         Write-Host ""
         Write-Host "Check:" -ForegroundColor Cyan
         Write-HelpCommand "$displayName -g" "List global skill status"
@@ -79,6 +81,8 @@ function Show-Help {
     }
 
     Write-HelpCommand $displayName "Show help"
+    Write-HelpCommand "$displayName --help" "Show help"
+    Write-HelpCommand "$displayName --list" "List installed skills without checking upstream"
     Write-Host ""
     Write-Host "Check:" -ForegroundColor Cyan
     Write-HelpCommand "$displayName --global" "List global skill status"
@@ -159,6 +163,10 @@ foreach ($arg in $args) {
             if ($mode -eq "help") {
                 $mode = "summary"
             }
+            continue
+        }
+        { $_ -in @("--list", "-l") } {
+            $mode = "list"
             continue
         }
         { $_ -in @("--diff", "-d") } {
@@ -243,7 +251,7 @@ if ($globalOptionUsed -and $mode -eq "summary" -and $targets.Count -gt 0) {
     exit 1
 }
 
-if (-not $scope -and $mode -notin @("install", "install-all", "uninstall", "skip", "unskip", "skips")) {
+if (-not $scope -and $mode -notin @("list", "install", "install-all", "uninstall", "skip", "unskip", "skips")) {
     Write-Error "skills-updates: use -g to check global skills"
     Write-Output ""
     Show-Help
@@ -291,9 +299,27 @@ $stateRoot = if ($env:LOCALAPPDATA) {
 }
 $skipFile = Join-Path $stateRoot "skips.json"
 $repoRoot = Join-Path $stateRoot "repos"
-$maxRepoJobs = 10
+$maxRepoJobs = 24
 $compareTempPaths = New-Object System.Collections.Generic.List[string]
 $compareTempFiles = New-Object System.Collections.Generic.List[string]
+$repoRunspacePool = $null
+
+function Show-InstalledSkills {
+    if (-not (Test-Path -LiteralPath $skillsDir -PathType Container)) {
+        Write-StatusLine "OK      no installed skills found"
+        return
+    }
+
+    $skillDirs = @(Get-ChildItem -LiteralPath $skillsDir -Directory -ErrorAction SilentlyContinue | Sort-Object -Property Name)
+    if ($skillDirs.Count -eq 0) {
+        Write-StatusLine "OK      no installed skills found"
+        return
+    }
+
+    foreach ($skillDir in $skillDirs) {
+        Write-Output $skillDir.Name
+    }
+}
 
 function Get-CacheKey {
     param([string]$Value)
@@ -956,6 +982,16 @@ if ($mode -eq "install" -and $targets.Count -gt 0) {
     }
 }
 
+if ($mode -eq "list") {
+    if ($targets.Count -gt 0) {
+        Write-Error "skills-updates: list mode does not accept skill names"
+        exit 1
+    }
+
+    Show-InstalledSkills
+    exit 0
+}
+
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
     Write-Error "skills-updates: git is required"
     exit 1
@@ -998,7 +1034,7 @@ try {
         $installedDir = Join-Path $skillsDir $name
 
         if (-not (Test-Path -LiteralPath $installedDir -PathType Container)) {
-            $results[$name] = [pscustomobject]@{
+            $results[$name] = @{
                 Status = "MISSING"
                 Message = "MISSING $name`: installed directory not found at $installedDir"
             }
@@ -1021,6 +1057,55 @@ try {
     $sourceUrls = @($groups.Keys | Sort-Object)
     $sourceIndex = 0
     $repoJobs = New-Object System.Collections.Generic.List[object]
+    $repoUpdateScript = {
+        param(
+            [string]$SourceUrl,
+            [string]$Repo,
+            [string[]]$RemoteDirs
+        )
+
+        try {
+            if (Test-Path -LiteralPath (Join-Path $Repo ".git") -PathType Container) {
+                git -c core.autocrlf=false -C $Repo remote set-url origin $SourceUrl 2>$null
+                git -c core.autocrlf=false -C $Repo fetch --quiet --depth 1 --filter=blob:none origin HEAD 2>$null
+                if ($LASTEXITCODE -ne 0) {
+                    throw "git fetch failed"
+                }
+
+                git -c core.autocrlf=false -C $Repo reset --quiet --hard FETCH_HEAD 2>$null
+                if ($LASTEXITCODE -ne 0) {
+                    throw "git reset failed"
+                }
+            } else {
+                if (Test-Path -LiteralPath $Repo) {
+                    Remove-Item -LiteralPath $Repo -Recurse -Force -ErrorAction SilentlyContinue
+                }
+
+                git -c core.autocrlf=false clone --quiet --depth 1 --filter=blob:none --sparse $SourceUrl $Repo 2>$null
+                if ($LASTEXITCODE -ne 0) {
+                    throw "git clone failed"
+                }
+            }
+
+            git -c core.autocrlf=false -C $Repo sparse-checkout set @RemoteDirs 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                throw "git sparse-checkout failed"
+            }
+
+            [pscustomobject]@{
+                Ok = $true
+                Message = ""
+            }
+        } catch {
+            [pscustomobject]@{
+                Ok = $false
+                Message = $_.Exception.Message
+            }
+        }
+    }
+
+    $repoRunspacePool = [runspacefactory]::CreateRunspacePool($maxRepoJobs, $maxRepoJobs)
+    $repoRunspacePool.Open()
     foreach ($sourceUrl in $sourceUrls) {
         $sourceIndex += 1
         $groupItems = $groups[$sourceUrl]
@@ -1041,56 +1126,10 @@ try {
             }
         }
 
-        while (@($repoJobs | Where-Object { $_.Job.State -eq "Running" }).Count -ge $maxRepoJobs) {
-            Wait-Job -Job @($repoJobs | ForEach-Object { $_.Job }) -Any | Out-Null
-        }
-
-        $job = Start-Job -ArgumentList $sourceUrl, $repo, $remoteDirs -ScriptBlock {
-            param(
-                [string]$SourceUrl,
-                [string]$Repo,
-                [string[]]$RemoteDirs
-            )
-
-            try {
-                if (Test-Path -LiteralPath (Join-Path $Repo ".git") -PathType Container) {
-                    git -c core.autocrlf=false -C $Repo remote set-url origin $SourceUrl 2>$null
-                    git -c core.autocrlf=false -C $Repo fetch --quiet --depth 1 --filter=blob:none origin HEAD 2>$null
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "git fetch failed"
-                    }
-
-                    git -c core.autocrlf=false -C $Repo reset --quiet --hard FETCH_HEAD 2>$null
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "git reset failed"
-                    }
-                } else {
-                    if (Test-Path -LiteralPath $Repo) {
-                        Remove-Item -LiteralPath $Repo -Recurse -Force -ErrorAction SilentlyContinue
-                    }
-
-                    git -c core.autocrlf=false clone --quiet --depth 1 --filter=blob:none --sparse $SourceUrl $Repo 2>$null
-                    if ($LASTEXITCODE -ne 0) {
-                        throw "git clone failed"
-                    }
-                }
-
-                git -c core.autocrlf=false -C $Repo sparse-checkout set @RemoteDirs 2>$null
-                if ($LASTEXITCODE -ne 0) {
-                    throw "git sparse-checkout failed"
-                }
-
-                [pscustomobject]@{
-                    Ok = $true
-                    Message = ""
-                }
-            } catch {
-                [pscustomobject]@{
-                    Ok = $false
-                    Message = $_.Exception.Message
-                }
-            }
-        }
+        $job = [powershell]::Create()
+        $job.RunspacePool = $repoRunspacePool
+        [void]$job.AddScript($repoUpdateScript.ToString()).AddArgument($sourceUrl).AddArgument($repo).AddArgument($remoteDirs)
+        $asyncResult = $job.BeginInvoke()
 
         $repoJobs.Add([pscustomobject]@{
             SourceUrl = $sourceUrl
@@ -1098,25 +1137,34 @@ try {
             GroupItems = $groupItems
             Repo = $repo
             Job = $job
+            AsyncResult = $asyncResult
         })
     }
 
-    if ($repoJobs.Count -gt 0) {
-        Wait-Job -Job @($repoJobs | ForEach-Object { $_.Job }) | Out-Null
-    }
-
-    foreach ($repoJob in $repoJobs) {
+    while ($repoJobs.Count -gt 0) {
+        $waitHandles = @($repoJobs | ForEach-Object { $_.AsyncResult.AsyncWaitHandle })
+        $completedIndex = [Threading.WaitHandle]::WaitAny($waitHandles)
+        $repoJob = $repoJobs[$completedIndex]
+        $repoJobs.RemoveAt($completedIndex)
         $sourceUrl = $repoJob.SourceUrl
         $sourceLabel = $repoJob.SourceLabel
         $groupItems = $repoJob.GroupItems
         $repo = $repoJob.Repo
-        $jobResult = Receive-Job -Job $repoJob.Job
-        Remove-Job -Job $repoJob.Job -Force
+        try {
+            $jobResult = @($repoJob.Job.EndInvoke($repoJob.AsyncResult))[0]
+        } catch {
+            $jobResult = [pscustomobject]@{
+                Ok = $false
+                Message = $_.Exception.Message
+            }
+        } finally {
+            $repoJob.Job.Dispose()
+        }
 
         if (-not $jobResult -or -not $jobResult.Ok) {
             $errorDetail = if ($jobResult -and $jobResult.Message) { ": $($jobResult.Message)" } else { "" }
             foreach ($item in $groupItems) {
-                $results[$item.Name] = [pscustomobject]@{
+                $results[$item.Name] = @{
                     Status = "ERROR"
                     Message = "ERROR   $($item.Name)`: could not update local clone for $sourceUrl$errorDetail"
                 }
@@ -1131,32 +1179,32 @@ try {
         foreach ($item in $groupItems) {
             $remotePath = New-RemoteComparePath -Repo $repo -RemoteDir $item.RemoteDir
             if (-not $remotePath) {
-                $results[$item.Name] = [pscustomobject]@{
+                $results[$item.Name] = @{
                     Status = "ERROR"
                     Message = "ERROR   $($item.Name)`: could not export upstream compare tree"
                 }
                 continue
             }
-            $remoteHash = ""
-            git -c core.autocrlf=false -C $repo rev-parse "HEAD:$($item.RemoteDir)" 2>$null | ForEach-Object {
-                $remoteHash = $_.Trim()
-            }
             git -c core.autocrlf=false diff --quiet --ignore-cr-at-eol --no-index -- $item.InstalledDir $remotePath 2>$null
             $diffExit = $LASTEXITCODE
 
             if ($diffExit -eq 0) {
-                $results[$item.Name] = [pscustomobject]@{
+                $results[$item.Name] = @{
                     Status = "OK"
                     Message = "OK      $($item.Name)"
                     InstalledDir = $item.InstalledDir
                     RemotePath = $remotePath
                     SourceUrl = $item.SourceUrl
-                    RemoteHash = $remoteHash
+                    RemoteHash = ""
                 }
             } else {
+                $remoteHash = ""
+                git -c core.autocrlf=false -C $repo rev-parse "HEAD:$($item.RemoteDir)" 2>$null | ForEach-Object {
+                    $remoteHash = $_.Trim()
+                }
                 $skipEntry = Get-SkipEntry -State $skipState -Name $item.Name
                 if ($skipEntry -and $skipEntry.remoteHash -eq $remoteHash) {
-                    $results[$item.Name] = [pscustomobject]@{
+                    $results[$item.Name] = @{
                         Status = "SKIP"
                         Message = "SKIP    $($item.Name)"
                         InstalledDir = $item.InstalledDir
@@ -1165,7 +1213,7 @@ try {
                         RemoteHash = $remoteHash
                     }
                 } else {
-                    $results[$item.Name] = [pscustomobject]@{
+                    $results[$item.Name] = @{
                         Status = "UPDATE"
                         Message = "UPDATE  $($item.Name)"
                         InstalledDir = $item.InstalledDir
@@ -1332,6 +1380,10 @@ try {
         }
     }
 } finally {
+    if ($repoRunspacePool) {
+        $repoRunspacePool.Close()
+        $repoRunspacePool.Dispose()
+    }
     foreach ($tempFile in $compareTempFiles) {
         if (Test-Path -LiteralPath $tempFile) {
             Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
