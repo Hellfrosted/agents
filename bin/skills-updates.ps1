@@ -72,9 +72,9 @@ function Show-Help {
         Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
         Write-HelpNote "Source repos are cached locally and fetched in parallel."
         Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-        Write-HelpNote "Named installs run: npx skills@latest add <source> -g -y --skill <skill-name>"
-        Write-HelpNote "Source installs run: npx skills@latest add <source> -g -y"
-        Write-HelpNote "Uninstalls run: npx skills@latest remove -g -y --skill <skill-name>"
+        Write-HelpNote "Named installs run: pnpx skills@latest add <source> -g -y --skill <skill-name>"
+        Write-HelpNote "Source installs run: pnpx skills@latest add <source> -g -y"
+        Write-HelpNote "Uninstalls run: pnpx skills@latest remove -g -y --skill <skill-name>"
         return
     }
 
@@ -102,9 +102,9 @@ function Show-Help {
     Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
     Write-HelpNote "Source repos are cached locally and fetched in parallel."
     Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-    Write-HelpNote "Named installs run: npx skills@latest add <source> -g -y --skill <skill-name>"
-    Write-HelpNote "Source installs run: npx skills@latest add <source> -g -y"
-    Write-HelpNote "Uninstalls run: npx skills@latest remove -g -y --skill <skill-name>"
+    Write-HelpNote "Named installs run: pnpx skills@latest add <source> -g -y --skill <skill-name>"
+    Write-HelpNote "Source installs run: pnpx skills@latest add <source> -g -y"
+    Write-HelpNote "Uninstalls run: pnpx skills@latest remove -g -y --skill <skill-name>"
 }
 
 function Write-ColoredLine {
@@ -353,8 +353,8 @@ function Invoke-SkillsAdd {
         [string]$Name = ""
     )
 
-    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-        Write-Error "skills-updates: npx is required to install skills"
+    if (-not (Get-Command pnpx -ErrorAction SilentlyContinue)) {
+        Write-Error "skills-updates: pnpx is required to install skills"
         return $false
     }
 
@@ -380,9 +380,9 @@ function Invoke-SkillsAdd {
     Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
         $lockBeforeInstall = Read-SkillLockSnapshot
         Save-SkillLockBackup -Snapshot $lockBeforeInstall
-        & npx @skillsArgs | ForEach-Object { Write-Host $_ }
+        & pnpx @skillsArgs | ForEach-Object { Write-Host $_ }
         $status.Ok = $LASTEXITCODE -eq 0
-        Restore-SkillLockAfterNpx -BeforeSnapshot $lockBeforeInstall
+        Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeInstall
         Remove-SkillLockBackup
     }
     return $completed -and $status.Ok
@@ -406,8 +406,8 @@ function Install-SkillSource {
 function Uninstall-Skill {
     param([string]$Name)
 
-    if (-not (Get-Command npx -ErrorAction SilentlyContinue)) {
-        Write-Error "skills-updates: npx is required to uninstall skills"
+    if (-not (Get-Command pnpx -ErrorAction SilentlyContinue)) {
+        Write-Error "skills-updates: pnpx is required to uninstall skills"
         return $false
     }
 
@@ -417,7 +417,7 @@ function Uninstall-Skill {
     Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
         $lockBeforeUninstall = Read-SkillLockSnapshot
         Save-SkillLockBackup -Snapshot $lockBeforeUninstall
-        & npx skills@latest remove -g -y --skill $Name | ForEach-Object { Write-Host $_ }
+        & pnpx skills@latest remove -g -y --skill $Name | ForEach-Object { Write-Host $_ }
         $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
         if (-not $exitCode) {
             $status.Ok = $true
@@ -427,7 +427,7 @@ function Uninstall-Skill {
 
         $status.Ok = $exitCode.Value -eq 0
         if (-not $status.Ok) {
-            Restore-SkillLockAfterNpx -BeforeSnapshot $lockBeforeUninstall
+            Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeUninstall
         }
         Remove-SkillLockBackup
     }
@@ -648,7 +648,7 @@ function Merge-JsonObjectProperties {
     return $addedCount
 }
 
-function Restore-SkillLockAfterNpx {
+function Restore-SkillLockAfterPnpx {
     param(
         [object]$BeforeSnapshot
     )
@@ -661,7 +661,7 @@ function Restore-SkillLockAfterNpx {
     $afterState = Read-SkillLock
     if (-not $afterState) {
         Write-RawSkillLock -Raw $BeforeSnapshot.Raw
-        Write-StatusLine "OK      restored lockfile after npx"
+        Write-StatusLine "OK      restored lockfile after pnpx"
         return
     }
 
