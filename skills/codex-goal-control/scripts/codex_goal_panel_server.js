@@ -161,9 +161,9 @@ function writeClaim(threadId, source = "api") {
 function resolveThreadId(url, options) {
   const explicit = url.searchParams.get("threadId");
   if (explicit) return { threadId: explicit, source: "query" };
+  if (options.threadId) return { threadId: options.threadId, source: "server" };
   const claim = readClaim();
   if (claim) return { threadId: claim.threadId, source: claim.source, updatedAt: claim.updatedAt };
-  if (options.threadId) return { threadId: options.threadId, source: "server" };
   return { threadId: null, source: "none" };
 }
 
