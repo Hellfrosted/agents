@@ -33,4 +33,4 @@ Do this before responding to the user when the information is durable, useful la
 
 Never store secrets, tokens, passwords, recovery codes, private personal data, or raw session exports.
 
-When cleaning integrations on this workstation, keep ICM Codex-facing unless the user says otherwise. Do not add ICM setup for other agent harnesses, and do not touch `.agents` for this purpose because Codex can use it.
+When cleaning integrations, keep ICM Codex-facing unless the user says otherwise. Do not add ICM setup for other agent harnesses, and do not touch agent install directories for this purpose.

@@ -4,13 +4,11 @@ const { spawn } = require("child_process");
 
 function createCodexAppServer(options = {}) {
   const {
-    codexHome = process.env.CODEX_HOME || null,
     clientInfo = {},
     capabilities = { experimentalApi: true },
   } = options;
 
   const env = { ...process.env };
-  if (codexHome) env.CODEX_HOME = codexHome;
 
   const child = spawn("codex", ["app-server"], {
     stdio: ["pipe", "pipe", "pipe"],

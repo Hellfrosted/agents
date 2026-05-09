@@ -284,6 +284,10 @@ function collectSkillRoots(params, cwd) {
     if (fs.existsSync(extraRoot)) roots.add(extraRoot);
   }
 
+  for (const extraRoot of getEnvSkillRoots()) {
+    if (fs.existsSync(extraRoot)) roots.add(extraRoot);
+  }
+
   const pluginCacheRoot = path.join(home, ".codex", "plugins", "cache");
   if (fs.existsSync(pluginCacheRoot)) {
     for (const skillsDir of findNestedSkillsDirs(pluginCacheRoot, 4)) {
@@ -292,6 +296,23 @@ function collectSkillRoots(params, cwd) {
   }
 
   return roots;
+}
+
+function getEnvSkillRoots() {
+  return [
+    ...splitPathListEnv(process.env.CODEX_SKILLS_DIRS),
+    ...splitPathListEnv(process.env.CODEX_SKILL_ROOTS),
+  ]
+    .map((root) => windowsPathToWsl(root))
+    .filter((root) => typeof root === "string" && root.trim().length > 0);
+}
+
+function splitPathListEnv(value) {
+  if (typeof value !== "string" || value.trim().length === 0) return [];
+  const trimmed = value.trim();
+  if (trimmed.includes(";")) return trimmed.split(";").map((entry) => entry.trim()).filter(Boolean);
+  if (/^[A-Za-z]:[\\/]/.test(trimmed)) return [trimmed];
+  return trimmed.split(path.delimiter).map((entry) => entry.trim()).filter(Boolean);
 }
 
 function getExtraUserRoots(params, cwd) {

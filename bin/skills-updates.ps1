@@ -292,6 +292,8 @@ $stateRoot = if ($env:LOCALAPPDATA) {
 $skipFile = Join-Path $stateRoot "skips.json"
 $repoRoot = Join-Path $stateRoot "repos"
 $maxRepoJobs = 10
+$compareTempPaths = New-Object System.Collections.Generic.List[string]
+$compareTempFiles = New-Object System.Collections.Generic.List[string]
 
 function Get-CacheKey {
     param([string]$Value)
@@ -809,6 +811,45 @@ function Set-SkipEntry {
     }
 }
 
+function New-RemoteComparePath {
+    param(
+        [string]$Repo,
+        [string]$RemoteDir
+    )
+
+    $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("skills-updates-compare-{0}" -f [IO.Path]::GetRandomFileName())
+    New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+    $compareTempPaths.Add($tempRoot)
+
+    $archiveArgs = @("-C", $Repo, "archive", "--format=tar")
+    $archiveFile = Join-Path ([IO.Path]::GetTempPath()) ("skills-updates-compare-{0}.tar" -f [IO.Path]::GetRandomFileName())
+    $compareTempFiles.Add($archiveFile)
+    $archiveArgs += "--output=$archiveFile"
+    $archiveArgs += "HEAD"
+    if ($RemoteDir -and $RemoteDir -ne ".") {
+        $archiveArgs += $RemoteDir
+    }
+
+    & git @archiveArgs
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "skills-updates: could not export clean compare tree for $RemoteDir"
+        return $null
+    }
+
+    tar -xf $archiveFile -C $tempRoot
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "skills-updates: could not extract clean compare tree for $RemoteDir"
+        return $null
+    }
+    Remove-Item -LiteralPath $archiveFile -Force -ErrorAction SilentlyContinue
+
+    if ($RemoteDir -and $RemoteDir -ne ".") {
+        return Join-Path $tempRoot ($RemoteDir -replace "/", [IO.Path]::DirectorySeparatorChar)
+    }
+
+    return $tempRoot
+}
+
 function Remove-SkipEntry {
     param(
         [object]$State,
@@ -1088,7 +1129,14 @@ try {
         }
 
         foreach ($item in $groupItems) {
-            $remotePath = Join-Path $repo ($item.RemoteDir -replace "/", [IO.Path]::DirectorySeparatorChar)
+            $remotePath = New-RemoteComparePath -Repo $repo -RemoteDir $item.RemoteDir
+            if (-not $remotePath) {
+                $results[$item.Name] = [pscustomobject]@{
+                    Status = "ERROR"
+                    Message = "ERROR   $($item.Name)`: could not export upstream compare tree"
+                }
+                continue
+            }
             $remoteHash = ""
             git -c core.autocrlf=false -C $repo rev-parse "HEAD:$($item.RemoteDir)" 2>$null | ForEach-Object {
                 $remoteHash = $_.Trim()
@@ -1283,4 +1331,15 @@ try {
             exit 1
         }
     }
-} finally {}
+} finally {
+    foreach ($tempFile in $compareTempFiles) {
+        if (Test-Path -LiteralPath $tempFile) {
+            Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
+        }
+    }
+    foreach ($tempPath in $compareTempPaths) {
+        if (Test-Path -LiteralPath $tempPath) {
+            Remove-Item -LiteralPath $tempPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}

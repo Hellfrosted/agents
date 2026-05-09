@@ -6,8 +6,8 @@ const path = require("path");
 const { URL } = require("url");
 const { runGoalCommand } = require("./codex_goal");
 
-const SKILL_ROOT = path.resolve(__dirname, "..");
-const PANEL_ROOT = path.join(SKILL_ROOT, "assets", "panel");
+const INSTALLED_SKILL_DIR = path.resolve(__dirname, "..");
+const PANEL_ROOT = path.join(INSTALLED_SKILL_DIR, "assets", "panel");
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 43873;
 const DEFAULT_IDLE_SHUTDOWN_MS = 15 * 60 * 1000;
@@ -73,7 +73,7 @@ function usage(exitCode = 1) {
     "  node scripts/codex_goal_panel_server.js [--thread <thread-id>] [--host 127.0.0.1] [--port 43873]",
     "",
     "Serves a local Codex Goal panel for the current thread.",
-    "The server binds to 127.0.0.1 by default. When --thread is omitted, it uses the latest claimed thread.",
+    "The server binds to 127.0.0.1 by default. Prefer --thread or CODEX_THREAD_ID for the target thread.",
     "",
   ].join("\n");
   const stream = exitCode === 0 ? process.stdout : process.stderr;
@@ -295,7 +295,7 @@ function contentTypeFor(filePath) {
 
 function resolveWorkspaceRoot(options) {
   const claim = readClaim();
-  const root = claim?.workspaceRoot || options.workspaceRoot || process.cwd();
+  const root = options.workspaceRoot || claim?.workspaceRoot || process.cwd();
   return path.resolve(root);
 }
 
