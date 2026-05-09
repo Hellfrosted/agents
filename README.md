@@ -52,5 +52,4 @@ Set these environment variables only when your setup is different:
 Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through to Codex after
 Windows paths are converted to WSL paths.
 
-The WSL side needs `node` available on `PATH` or through nvm.
-
+The WSL side needs `node` available on `PATH`.

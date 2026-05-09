@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-':' //; [ -n "${HOME:-}" ] || export HOME="$(getent passwd "$(id -u)" | cut -d: -f6)"; [ -n "${USER:-}" ] || export USER="$(id -un)"; [ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1 && { command -v node >/dev/null 2>&1 || nvm use --silent default >/dev/null 2>&1 || true; }; command -v node >/dev/null 2>&1 || { printf '{"error": "Failed to find node in WSL"}\n'; exit 1; }; exec node "$0" "$@"
+':' //; [ -n "${HOME:-}" ] || export HOME="$(getent passwd "$(id -u)" | cut -d: -f6)"; [ -n "${USER:-}" ] || export USER="$(id -un)"; export PATH="$HOME/.local/share/pnpm/bin:$HOME/.local/share/pnpm:$HOME/.bun/bin:$HOME/.local/bin:$HOME/bin:${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}"; command -v node >/dev/null 2>&1 || { printf '{"error": "Failed to find node in WSL"}\n'; exit 1; }; exec node "$0" "$@"
 
 const { spawn } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
 
-const DEFAULT_CODEX = path.join(path.dirname(process.execPath), "codex");
+const DEFAULT_CODEX = resolveExecutableOnPath("codex") || path.join(path.dirname(process.execPath), "codex");
 const REAL_CODEX = process.env.CODEX_WSL_PROXY_TARGET || DEFAULT_CODEX;
 const DEBUG_LOG_PATH = process.env.CODEX_WSL_PROXY_DEBUG_LOG || "";
 const ALLOWED_SKILL_SCOPES = new Set(["user", "repo", "system", "admin"]);
@@ -111,6 +111,21 @@ function windowsPathToWsl(value) {
   }
 
   return value;
+}
+
+function resolveExecutableOnPath(name) {
+  const pathEnv = process.env.PATH || "";
+  for (const entry of pathEnv.split(path.delimiter)) {
+    if (!entry) continue;
+    const candidate = path.join(entry, name);
+    try {
+      fs.accessSync(candidate, fs.constants.X_OK);
+      return candidate;
+    } catch {
+      // Keep searching.
+    }
+  }
+  return "";
 }
 
 function wslPathToWindows(value) {
@@ -426,7 +441,7 @@ function debugLog(stream, payload) {
   }
 }
 
-const child = spawn(process.execPath, [REAL_CODEX, ...childArgv], {
+const child = spawn(REAL_CODEX, childArgv, {
   cwd: windowsPathToWsl(process.env.T3CODE_WINDOWS_CWD) || os.homedir() || process.env.HOME || "/",
   env: childEnv,
   detached: true,

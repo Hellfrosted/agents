@@ -14,30 +14,15 @@ fi
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 
 DEFAULT_PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-PATH_PREFIX="$HOME/.local/bin:$HOME/bin"
-NODE_ALIAS_FILE="$HOME/.nvm/alias/default"
-
-if [ -r "$NODE_ALIAS_FILE" ]; then
-  NODE_VERSION="$(tr -d '\r\n' < "$NODE_ALIAS_FILE")"
-  if [ -n "$NODE_VERSION" ]; then
-    PATH_PREFIX="$PATH_PREFIX:$HOME/.nvm/versions/node/v$NODE_VERSION/bin"
-  fi
-fi
+PATH_PREFIX="$HOME/.local/share/pnpm/bin:$HOME/.local/share/pnpm:$HOME/.bun/bin:$HOME/.local/bin:$HOME/bin"
 
 export PATH="$PATH_PREFIX:${PATH:-$DEFAULT_PATH}"
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROXY_JS="${CODEX_WSL_PROXY_JS:-$SCRIPT_DIR/codex-wsl-proxy.js}"
 
-if ! command -v node >/dev/null 2>&1 && [ -s "$HOME/.nvm/nvm.sh" ]; then
-  . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1
-  if ! command -v node >/dev/null 2>&1 && command -v nvm >/dev/null 2>&1; then
-    nvm use --silent default >/dev/null 2>&1 || true
-  fi
-fi
-
 if ! command -v node >/dev/null 2>&1; then
-  printf '{"error":"Failed to find node in WSL. Install node or make it available through nvm."}\n'
+  printf '{"error":"Failed to find node in WSL. Install node or add it to PATH."}\n'
   exit 1
 fi
 
