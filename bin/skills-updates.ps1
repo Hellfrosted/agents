@@ -74,9 +74,9 @@ function Show-Help {
         Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
         Write-HelpNote "Source repos are cached locally and fetched in parallel."
         Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-        Write-HelpNote "Named installs run: pnpx skills@latest add <source> -g -y --skill <skill-name>"
-        Write-HelpNote "Source installs run: pnpx skills@latest add <source> -g -y"
-        Write-HelpNote "Uninstalls run: pnpx skills@latest remove -g -y --skill <skill-name>"
+        Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --skill <skill-name>"
+        Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y"
+        Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --skill <skill-name>"
         return
     }
 
@@ -106,9 +106,9 @@ function Show-Help {
     Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
     Write-HelpNote "Source repos are cached locally and fetched in parallel."
     Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-    Write-HelpNote "Named installs run: pnpx skills@latest add <source> -g -y --skill <skill-name>"
-    Write-HelpNote "Source installs run: pnpx skills@latest add <source> -g -y"
-    Write-HelpNote "Uninstalls run: pnpx skills@latest remove -g -y --skill <skill-name>"
+    Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --skill <skill-name>"
+    Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y"
+    Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --skill <skill-name>"
 }
 
 function Write-ColoredLine {
@@ -381,8 +381,8 @@ function Invoke-SkillsAdd {
         [string]$Name = ""
     )
 
-    if (-not (Get-Command pnpx -ErrorAction SilentlyContinue)) {
-        Write-Error "skills-updates: pnpx is required to install skills"
+    if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+        Write-Error "skills-updates: pnpm is required to install skills"
         return $false
     }
 
@@ -408,7 +408,7 @@ function Invoke-SkillsAdd {
     Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
         $lockBeforeInstall = Read-SkillLockSnapshot
         Save-SkillLockBackup -Snapshot $lockBeforeInstall
-        & pnpx @skillsArgs | ForEach-Object { Write-Host $_ }
+        & pnpm dlx @skillsArgs | ForEach-Object { Write-Host $_ }
         $status.Ok = $LASTEXITCODE -eq 0
         Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeInstall
         Remove-SkillLockBackup
@@ -434,8 +434,8 @@ function Install-SkillSource {
 function Uninstall-Skill {
     param([string]$Name)
 
-    if (-not (Get-Command pnpx -ErrorAction SilentlyContinue)) {
-        Write-Error "skills-updates: pnpx is required to uninstall skills"
+    if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+        Write-Error "skills-updates: pnpm is required to uninstall skills"
         return $false
     }
 
@@ -445,7 +445,7 @@ function Uninstall-Skill {
     Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
         $lockBeforeUninstall = Read-SkillLockSnapshot
         Save-SkillLockBackup -Snapshot $lockBeforeUninstall
-        & pnpx skills@latest remove -g -y --skill $Name | ForEach-Object { Write-Host $_ }
+        & pnpm dlx skills@latest remove -g -y --skill $Name | ForEach-Object { Write-Host $_ }
         $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
         if (-not $exitCode) {
             $status.Ok = $true
@@ -689,7 +689,7 @@ function Restore-SkillLockAfterPnpx {
     $afterState = Read-SkillLock
     if (-not $afterState) {
         Write-RawSkillLock -Raw $BeforeSnapshot.Raw
-        Write-StatusLine "OK      restored lockfile after pnpx"
+        Write-StatusLine "OK      restored lockfile after skills command"
         return
     }
 

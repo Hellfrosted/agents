@@ -1,0 +1,140 @@
+# Codex companion tools
+
+This page lists companion tools installed on this machine for Codex workflows.
+It is not a reference for the agent runtime or repo-local wrappers.
+
+## Main list
+
+- Evo: experiment runner for optimization work.
+- RTK: command wrapper agents use for shell commands.
+- ICM: persistent memory for durable Codex context.
+- Serena: semantic code navigation and editing.
+- Codex Security: security review plugin from `openai-curated`.
+- OpenAI Developer Docs MCP: official OpenAI docs server for API and product
+  docs lookup.
+
+## Adjacent utilities
+
+- `react-doctor`: React diagnostics and cleanup checks.
+- `tokscale`: token counting and scale checks.
+- `actionlint`: GitHub Actions workflow linting.
+
+These are useful during agent work, but they are narrower than the main tools
+above.
+
+## Evo
+
+Evo runs experiments for performance, architecture, flaky-test, slow-build, and
+code-quality work.
+
+Before running it:
+
+- Check `evo --version`. It should report `evo-hq-cli`, not the unrelated SLAM
+  package named `evo`.
+- Do not install or upgrade it unless the user asks.
+- Write a short experiment brief first: goal, metric, baseline, gate, editable
+  scope, read-only context, forbidden changes, backend, runtime/env, budget,
+  stall rule, and merge rule.
+- Get approval before Evo changes production behavior, APIs, persistence,
+  auth/security, tests, packaging, dependencies, deployment, or user-visible
+  behavior.
+
+Useful commands:
+
+```bash
+evo init --host codex
+evo host show
+evo host set codex
+evo config show
+evo config backend show
+evo config runtime show
+evo env show
+evo run --check
+evo direct "<text>"
+evo gc
+```
+
+Run discovery before optimization. Optimize only after the workspace has a
+baseline and the editable scope is approved.
+
+## RTK
+
+RTK is the workstation command wrapper for agent-run shell commands. Use it for
+searches, verification, package-manager commands, and one-off scripts.
+
+Examples:
+
+```bash
+rtk rg --files
+rtk pnpm test
+rtk run 'icm recall "query"'
+```
+
+RTK is a wrapper convention. It does not replace understanding the command being
+wrapped.
+
+## ICM
+
+ICM stores durable Codex context. Prefer the ICM MCP tools when they are
+available. Use the CLI through `rtk` when MCP is not available.
+
+Examples:
+
+```bash
+rtk run 'icm recall "query"'
+rtk run 'icm store -t "topic" -c "summary" -i high'
+```
+
+Store resolved errors, architecture decisions, user preferences, and meaningful
+project progress. Do not store secrets, tokens, passwords, recovery codes,
+private personal data, or raw session exports.
+
+## Serena
+
+Serena provides semantic codebase tools: project activation, onboarding checks,
+symbol overview, symbol search, reference lookup, diagnostics, and symbol-level
+edits.
+
+Use Serena when code structure matters:
+
+- Activate the current project before project work.
+- Check onboarding after activation.
+- Prefer symbol overview and symbol lookup before reading large source files.
+- Use reference lookup before changing public or shared symbols.
+- Use symbol-level edits for whole functions, classes, or methods when possible.
+
+Use `rtk rg` for broad text discovery, non-code files, or cases where the symbol
+name is not known yet.
+
+## Codex Security
+
+Codex Security is installed as the `codex-security@openai-curated` plugin. Use
+it for security scans, diff reviews, validation, attack-path analysis, threat
+models, and security fixes.
+
+Keep its output focused on exploitable behavior. Security review should lead
+with findings and include file and line references when possible.
+
+## OpenAI Developer Docs MCP
+
+The OpenAI Developer Docs MCP server is configured as `openaiDeveloperDocs`. Use
+it for current OpenAI API, SDK, platform, and product docs.
+
+Prefer it over web search for OpenAI-specific questions. Fetch the exact doc
+page before quoting or summarizing details.
+
+## Quick checks
+
+```bash
+evo --version
+rtk --help
+icm --help
+serena --help
+actionlint --version
+react-doctor --version
+tokscale --version
+```
+
+Some tools are exposed through MCP or plugins rather than plain CLI commands.
+For those, verify them through the Codex config or the tool list in the running
+session.
