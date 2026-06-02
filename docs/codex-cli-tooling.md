@@ -8,7 +8,6 @@ It is not a reference for the agent runtime or repo-local wrappers.
 - Evo: experiment runner for optimization work.
 - RTK: command wrapper agents use for shell commands.
 - ICM: persistent memory for durable Codex context.
-- Serena: semantic code navigation and editing.
 - Codex Security: security review plugin from `openai-curated`.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
@@ -89,23 +88,6 @@ Store resolved errors, architecture decisions, user preferences, and meaningful
 project progress. Do not store secrets, tokens, passwords, recovery codes,
 private personal data, or raw session exports.
 
-## Serena
-
-Serena provides semantic codebase tools: project activation, onboarding checks,
-symbol overview, symbol search, reference lookup, diagnostics, and symbol-level
-edits.
-
-Use Serena when code structure matters:
-
-- Activate the current project before project work.
-- Check onboarding after activation.
-- Prefer symbol overview and symbol lookup before reading large source files.
-- Use reference lookup before changing public or shared symbols.
-- Use symbol-level edits for whole functions, classes, or methods when possible.
-
-Use `rtk rg` for broad text discovery, non-code files, or cases where the symbol
-name is not known yet.
-
 ## Codex Security
 
 Codex Security is installed as the `codex-security@openai-curated` plugin. Use
@@ -129,7 +111,6 @@ page before quoting or summarizing details.
 evo --version
 rtk --help
 icm --help
-serena --help
 actionlint --version
 react-doctor --version
 tokscale --version

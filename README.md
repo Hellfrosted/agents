@@ -12,7 +12,7 @@ WSL paths in both directions, then hands off to the real `codex` binary.
 - `bin/codex-wsl-proxy.js` translates paths and forwards traffic to Codex.
 - `skills/` contains Codex skills that can be installed with the Skills CLI.
 - `docs/codex-cli-tooling.md` documents companion tools used around Codex:
-  Evo, RTK, ICM, Serena, Codex Security, OpenAI Developer Docs MCP, and adjacent
+  Evo, RTK, ICM, Codex Security, OpenAI Developer Docs MCP, and adjacent
   utilities.
 
 ## Install
