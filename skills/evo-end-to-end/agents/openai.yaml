@@ -1,4 +1,4 @@
 interface:
   display_name: "Evo End To End"
-  short_description: "Plan and launch scoped Evo v0.4.4+ runs"
+  short_description: "Plan and launch scoped Evo v0.4.5+ runs"
   default_prompt: "Use $evo-end-to-end to turn this optimization idea into an Evo-ready brief."

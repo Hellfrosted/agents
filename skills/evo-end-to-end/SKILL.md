@@ -1,13 +1,13 @@
 ---
 name: evo-end-to-end
-description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.4.4+. Use when the user wants to start from a vague performance, architecture, refactor, flaky-test, slow-build, or code-quality problem; optionally use grill-me/grill-with-docs/improve-codebase-architecture; produce an Evo-ready experiment brief; then hand the brief to `$evo discover`, `$evo optimize`, and, when needed, Evo backend/runtime setup with safe scope, metric, gate, backend, host, budget, stall rule, and merge rules.
+description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.4.5+. Use when the user wants to start from a vague performance, architecture, refactor, flaky-test, slow-build, or code-quality problem; optionally use grill-me/grill-with-docs/improve-codebase-architecture; produce an Evo-ready experiment brief; then hand the brief to `$evo discover`, `$evo optimize`, and, when needed, Evo backend/runtime setup with safe scope, metric, gate, backend, host, budget, stall rule, and merge rules.
 ---
 
 # Evo End To End
 
 Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only after approval.
 
-Target Evo release line: `evo-hq/evo` v0.4.4 or newer.
+Target Evo release line: `evo-hq/evo` v0.4.5 or newer.
 
 ## Flow
 
@@ -17,7 +17,7 @@ Target Evo release line: `evo-hq/evo` v0.4.4 or newer.
 4. Inspect the repo for manifests, tests, docs, benchmarks, and likely editable scope.
 5. Verify Evo is installable and version-aligned before running plugin skills:
    - Run `evo --version`; it must report `evo-hq-cli`, not the unrelated `evo` SLAM package.
-   - Compare the CLI version to the installed evo plugin skill version. If the plugin skill is tagged `evo_version: 0.4.4`, `evo --version` must print exactly `evo-hq-cli 0.4.4`.
+   - Compare the CLI version to the installed evo plugin skill version. If the plugin skill is tagged `evo_version: 0.4.5`, `evo --version` must print exactly `evo-hq-cli 0.4.5`.
    - Do not auto-install or upgrade the CLI unless the user explicitly asks.
 6. Draft an Evo brief with: goal, metric, baseline command/data, pass gate, editable scope, read-only context, forbidden changes, host, backend, runtime/env needs, budget, stall rule, merge rule.
 7. Stop for approval before Evo edits production behavior, APIs, persistence, auth/security, tests, packaging, dependencies, deployment, user-visible behavior, dependency manifests, or remote/cloud infrastructure.
@@ -69,6 +69,12 @@ Subagents-only: on | off
 Optimize preset:
 Merge rule:
 ```
+
+## Evo v0.4.5 Notes
+
+- v0.4.5 fixes Codex hook installation for Codex 0.130+ by registering and staging the plugin under the owner-name path Codex resolves (`evo@evo-hq`) and by validating the resolved `evo-hook-drain` binary in `evo doctor codex`.
+- Existing Codex installs with exit-127 hook failures do not self-heal with `evo update`. Recover with `uv tool install --force evo-hq-cli && evo install codex --force`.
+- `evo install codex --force` stages `evo-hook-drain` into the Codex plugin cache and removes stale legacy registrations. It may leave hooks untrusted; trust them through `/hooks` or run `evo install codex --trust-hooks` only when the user explicitly approves skipping the hook review.
 
 ## Evo v0.4.4 Notes
 

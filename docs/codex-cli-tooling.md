@@ -30,6 +30,10 @@ Before running it:
 
 - Check `evo --version`. It should report `evo-hq-cli`, not the unrelated SLAM
   package named `evo`.
+- On Codex installs that hit exit-127 hook failures, recover with
+  `uv tool install --force evo-hq-cli && evo install codex --force`; v0.4.5
+  fixes the plugin cache path and doctor check, but a broken Codex install does
+  not self-heal through `evo update`.
 - Do not install or upgrade it unless the user asks.
 - Write a short experiment brief first: goal, metric, baseline, gate, editable
   scope, read-only context, forbidden changes, backend, runtime/env, budget,
