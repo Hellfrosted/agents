@@ -303,6 +303,7 @@ $maxRepoJobs = 24
 $compareTempPaths = New-Object System.Collections.Generic.List[string]
 $compareTempFiles = New-Object System.Collections.Generic.List[string]
 $repoRunspacePool = $null
+$preserveCompareTempPaths = $false
 
 function Show-InstalledSkills {
     if (-not (Test-Path -LiteralPath $skillsDir -PathType Container)) {
@@ -1372,8 +1373,13 @@ try {
                 Write-StatusLine "OK      all skills are up to date"
             }
         } elseif (Get-Command zed -ErrorAction SilentlyContinue) {
-            Write-ColoredLine "Opening $changedCount diff(s) in Zed. Close the Zed diff window to clean up temp files." Cyan
-            & zed --wait @zedArgs
+            Write-ColoredLine "Opening $changedCount diff(s) in Zed." Cyan
+            & zed @zedArgs
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error "skills-updates: zed failed to open diff viewer"
+                exit 1
+            }
+            $preserveCompareTempPaths = $true
         } else {
             Write-Error "skills-updates: zed command not found"
             exit 1
@@ -1389,9 +1395,11 @@ try {
             Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
         }
     }
-    foreach ($tempPath in $compareTempPaths) {
-        if (Test-Path -LiteralPath $tempPath) {
-            Remove-Item -LiteralPath $tempPath -Recurse -Force -ErrorAction SilentlyContinue
+    if (-not $preserveCompareTempPaths) {
+        foreach ($tempPath in $compareTempPaths) {
+            if (Test-Path -LiteralPath $tempPath) {
+                Remove-Item -LiteralPath $tempPath -Recurse -Force -ErrorAction SilentlyContinue
+            }
         }
     }
 }
