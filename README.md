@@ -5,6 +5,10 @@ Run Codex from Windows while the real process lives in WSL.
 The Windows shim starts a small WSL-side proxy. The proxy translates Windows and
 WSL paths in both directions, then hands off to the real `codex` binary.
 
+This workstation also installs LazyCodex as the `omo@sisyphuslabs` Codex
+plugin. The WSL runner keeps that plugin enabled, but disables its telemetry,
+auto-update, and config-migration startup paths for T3code app-server sessions.
+
 ## Layout
 
 - `bin/codex-wsl.cmd` is the Windows entry point.
@@ -49,6 +53,17 @@ Set these environment variables only when your setup is different:
   `\\wsl.localhost\...` paths. WSL usually sets this itself.
 - `CODEX_WSL_PROXY_TARGET`: WSL path to the real `codex` binary.
 - `CODEX_HOME`: Codex home directory inside WSL.
+
+LazyCodex startup defaults in the WSL runner:
+
+- `OMO_CODEX_DISABLE_POSTHOG=1`
+- `OMO_CODEX_SEND_ANONYMOUS_TELEMETRY=0`
+- `OMO_DISABLE_POSTHOG=1`
+- `OMO_SEND_ANONYMOUS_TELEMETRY=0`
+- `LAZYCODEX_AUTO_UPDATE_DISABLED=1`
+- `OMO_CODEX_AUTO_UPDATE_DISABLED=1`
+- `LAZYCODEX_CONFIG_MIGRATION_DISABLED=1`
+- `OMO_CODEX_CONFIG_MIGRATION_DISABLED=1`
 
 ## Use
 

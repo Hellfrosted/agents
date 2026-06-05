@@ -13,6 +13,19 @@ fi
 
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 
+# LazyCodex works as a Codex plugin, but its startup hooks can emit anonymous
+# telemetry, spawn a detached self-updater, and migrate Codex config. The shim
+# disables those network/background mutation paths for T3code's long-lived
+# app-server sessions while leaving the plugin itself enabled.
+export LAZYCODEX_AUTO_UPDATE_DISABLED="${LAZYCODEX_AUTO_UPDATE_DISABLED:-1}"
+export OMO_CODEX_AUTO_UPDATE_DISABLED="${OMO_CODEX_AUTO_UPDATE_DISABLED:-1}"
+export LAZYCODEX_CONFIG_MIGRATION_DISABLED="${LAZYCODEX_CONFIG_MIGRATION_DISABLED:-1}"
+export OMO_CODEX_CONFIG_MIGRATION_DISABLED="${OMO_CODEX_CONFIG_MIGRATION_DISABLED:-1}"
+export OMO_CODEX_DISABLE_POSTHOG="${OMO_CODEX_DISABLE_POSTHOG:-1}"
+export OMO_CODEX_SEND_ANONYMOUS_TELEMETRY="${OMO_CODEX_SEND_ANONYMOUS_TELEMETRY:-0}"
+export OMO_DISABLE_POSTHOG="${OMO_DISABLE_POSTHOG:-1}"
+export OMO_SEND_ANONYMOUS_TELEMETRY="${OMO_SEND_ANONYMOUS_TELEMETRY:-0}"
+
 DEFAULT_PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 PATH_PREFIX="$HOME/.local/share/pnpm/bin:$HOME/.local/share/pnpm:$HOME/.bun/bin:$HOME/.local/bin:$HOME/bin"
 

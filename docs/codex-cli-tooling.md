@@ -11,6 +11,7 @@ It is not a reference for the agent runtime or repo-local wrappers.
 - Codex Security: security review plugin from `openai-curated`.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
+- LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
 
 ## Adjacent utilities
 
@@ -109,12 +110,36 @@ it for current OpenAI API, SDK, platform, and product docs.
 Prefer it over web search for OpenAI-specific questions. Fetch the exact doc
 page before quoting or summarizing details.
 
+## LazyCodex
+
+LazyCodex is installed as the `omo@sisyphuslabs` Codex plugin. Keep it enabled
+unless the user explicitly asks to remove it.
+
+For T3code sessions launched through `bin/codex-wsl.cmd`, the WSL runner
+disables LazyCodex telemetry, auto-update, and config migration by default while
+leaving the plugin available:
+
+```bash
+OMO_CODEX_DISABLE_POSTHOG=1
+OMO_CODEX_SEND_ANONYMOUS_TELEMETRY=0
+OMO_DISABLE_POSTHOG=1
+OMO_SEND_ANONYMOUS_TELEMETRY=0
+LAZYCODEX_AUTO_UPDATE_DISABLED=1
+OMO_CODEX_AUTO_UPDATE_DISABLED=1
+LAZYCODEX_CONFIG_MIGRATION_DISABLED=1
+OMO_CODEX_CONFIG_MIGRATION_DISABLED=1
+```
+
+Serena is not part of the current installed Codex toolchain on this workstation;
+it has already been uninstalled.
+
 ## Quick checks
 
 ```bash
 evo --version
 rtk --help
 icm --help
+codex plugin list
 actionlint --version
 react-doctor --version
 tokscale --version

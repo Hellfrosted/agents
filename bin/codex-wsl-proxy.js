@@ -512,29 +512,21 @@ function shutdown(signal = "SIGTERM") {
 
   if (!child.killed) {
     try {
-      process.kill(-child.pid, signal);
+      child.kill(signal);
     } catch {
-      try {
-        child.kill(signal);
-      } catch {
-        // The child may already be gone.
-      }
+      // The child may already be gone.
     }
   }
 
   setTimeout(() => {
     if (!childExited) {
       try {
-        process.kill(-child.pid, "SIGKILL");
+        child.kill("SIGKILL");
       } catch {
-        try {
-          child.kill("SIGKILL");
-        } catch {
-          // Best effort cleanup on process shutdown.
-        }
+        // Best effort cleanup on process shutdown.
       }
     }
-  }, 1500).unref();
+  }, 5000).unref();
 }
 
 process.once("SIGINT", () => shutdown("SIGINT"));
