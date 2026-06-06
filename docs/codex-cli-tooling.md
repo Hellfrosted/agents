@@ -1,7 +1,7 @@
 # Codex companion tools
 
-This page lists companion tools installed on this machine for Codex workflows.
-It is not a reference for the agent runtime or repo-local wrappers.
+This page lists companion tools installed on this machine for Codex workflows,
+plus repo-local wrappers that maintain those tools.
 
 ## Main list
 
@@ -12,6 +12,8 @@ It is not a reference for the agent runtime or repo-local wrappers.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
 - LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
+- Skills updater: Windows wrappers for checking and updating globally installed
+  Codex skills.
 
 ## Adjacent utilities
 
@@ -31,29 +33,42 @@ Before running it:
 
 - Check `evo --version`. It should report `evo-hq-cli`, not the unrelated SLAM
   package named `evo`.
-- On Codex installs that hit exit-127 hook failures, recover with
-  `uv tool install --force evo-hq-cli && evo install codex --force`; v0.4.5
-  fixes the plugin cache path and doctor check, but a broken Codex install does
-  not self-heal through `evo update`.
+- Keep the CLI and Codex plugin bundle in lockstep. Use
+  `evo update codex --version 0.5.0` for the v0.5.0 line, then verify with
+  `evo doctor codex`.
+- If Codex is pinned to a stale local `evo-hq` marketplace, remove that
+  marketplace source and add `evo-hq/evo --ref v0.5.0` before reinstalling.
 - Do not install or upgrade it unless the user asks.
 - Write a short experiment brief first: goal, metric, baseline, gate, editable
-  scope, read-only context, forbidden changes, backend, runtime/env, budget,
-  stall rule, and merge rule.
+  scope, read-only context, forbidden changes, backend, runtime/env,
+  per-experiment timeout, task skills, budget, stall rule, and merge rule.
 - Get approval before Evo changes production behavior, APIs, persistence,
   auth/security, tests, packaging, dependencies, deployment, or user-visible
   behavior.
+- For fine-tuning, post-training, reward design, or weight updates, use
+  `$evo finetuning` before training-code edits. Keep held-out eval data out of
+  training and run a smoke validation before spending the full budget.
+- Before passing `subagents=N`, size the round from the binding resource:
+  exclusive GPU/port/DB/shared mutable fixture means width 1 unless the harness
+  isolates it; pool mode caps at slot count; remote mode caps at provider quota
+  and cost.
 
 Useful commands:
 
 ```bash
 evo init --host codex
+evo init --per-exp-timeout 600
 evo host show
 evo host set codex
 evo config show
+evo config get task-skills
 evo config backend show
 evo config runtime show
 evo env show
-evo run --check
+evo run <exp_id> --check
+evo run <exp_id> --timeout 600
+evo wait --for ideators
+evo abort <exp_id>
 evo direct "<text>"
 evo gc
 ```
@@ -93,6 +108,47 @@ Store resolved errors, architecture decisions, user preferences, and meaningful
 project progress. Do not store secrets, tokens, passwords, recovery codes,
 private personal data, or raw session exports.
 
+## Skills Updater
+
+The repo includes Windows wrappers for installed skill maintenance:
+
+- `bin/sk-up.cmd`: short command names and flags.
+- `bin/skills-updates.cmd`: long command names and flags.
+- `bin/skills-updates.ps1`: implementation.
+
+Common commands:
+
+```bat
+sk-up -l
+sk-up -g
+sk-up -d confidence-loop
+sk-up -z confidence-loop evo-end-to-end
+sk-up -i
+sk-up -i confidence-loop
+sk-up -i owner/repo
+sk-up -s confidence-loop
+sk-up -u confidence-loop
+sk-up -S
+sk-up -r confidence-loop
+```
+
+Use `-l` to list installed skills without checking upstream. Use `-g` to check
+global skill status. Diff one skill with `-d`, or open one or more Zed diffs
+with `-z`. Install all changed or missing skills with `-i`, install specific
+lockfile skills with `-i <skill>`, or install a source URL/repo with
+`-i <source>`. Remove a global skill with `-r`.
+
+Skips are saved with `-s`, removed with `-u`, and listed with `-S`. They are
+tied to the current upstream tree hash, so a new upstream tree makes the update
+visible again.
+
+The updater reads global skills from `%AGENTS_HOME%` when set, otherwise from
+`%USERPROFILE%\.agents`. It caches upstream repositories and skip state under
+`%LOCALAPPDATA%\skills-updates` when available, otherwise in a temp state
+directory. Install and uninstall operations require `pnpm` and run
+`pnpm dlx skills@latest`; the script protects `.skill-lock.json` with a mutex
+and preserves existing lockfile fields around those operations.
+
 ## Codex Security
 
 Codex Security is installed as the `codex-security@openai-curated` plugin. Use
@@ -129,6 +185,16 @@ OMO_CODEX_AUTO_UPDATE_DISABLED=1
 LAZYCODEX_CONFIG_MIGRATION_DISABLED=1
 OMO_CODEX_CONFIG_MIGRATION_DISABLED=1
 ```
+
+Other T3code shim knobs:
+
+- `CODEX_WSL_PROXY_IDLE_TIMEOUT_MS`: app-server idle timeout. The Windows shim
+  defaults this to `1800000` milliseconds.
+- `CODEX_WSL_PROXY_SKILLS_TIMEOUT_MS`: timeout before the WSL proxy returns a
+  fallback `skills/list` response. The proxy defaults this to `2000`
+  milliseconds.
+- `CODEX_WSL_PROXY_DEBUG_LOG`: WSL path for proxy debug logs.
+- `CODEX_WSL_SHIM_DEBUG`: print the Windows shim launch arguments.
 
 Serena is not part of the current installed Codex toolchain on this workstation;
 it has already been uninstalled.
