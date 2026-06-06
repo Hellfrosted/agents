@@ -1,6 +1,6 @@
 interface:
   display_name: "Tuck"
-  short_description: "Carefully commit with per-file review"
+  short_description: "Commit with batched subagent review"
   default_prompt: "Use $tuck to create focused, reviewed commits for my local changes."
 
 policy:

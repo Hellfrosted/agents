@@ -1,45 +1,59 @@
 ---
 name: tuck
-description: Tucks completed local changes into focused, reviewable git commits with mandatory read-only per-file review subagents before staging. Use when the user explicitly invokes $tuck; do not use for ordinary, small, or natural-language commit requests.
+description: Tucks local changes into focused commits with token-aware subagent review. Use only for exact $tuck, not ordinary commit requests.
 ---
 
 # Tuck
 
-Use only after exact `$tuck`. Ordinary commit requests use the normal git flow.
+Use only after exact `$tuck`. Keep review out of the main context: use subagents,
+but batch them so review stays token-aware.
 
 ## Flow
 
 1. Run `git status --short`.
-2. Inspect diffs before staging; treat unrelated modified or untracked files as user work.
-3. Split commits by reviewer-facing intent. Do not mix formatting churn, unrelated docs, or separable behavior.
-4. Before staging each commit, spawn one read-only reviewer per file in that commit.
-5. Fix valid blocking findings, then stage only intended paths or hunks.
-6. Re-check `git diff --cached`, commit with a concise imperative message, and run the smallest relevant check.
-7. After all commits, ask whether to push and where. Never push or force-push without explicit confirmation.
+2. Inspect intended diffs before staging. Treat unrelated modified/untracked files as user work.
+3. Split commits by reviewer-facing intent; separate formatting, docs, and behavior when practical.
+4. Main agent only scopes commits with `git diff --stat -- <paths>` and minimal
+   path checks; do not deep-review diffs in main context.
+5. Before staging each commit, spawn batched read-only subagent reviewers.
+6. Fix blocking findings, then stage only intended paths or hunks.
+7. Re-check `git diff --cached`, commit with a concise imperative message, then run the smallest relevant check.
+8. Ask before pushing. Never push or force-push without explicit confirmation.
 
-## Review
+## Subagent Review
 
-For each intended commit, confirm scope with `git diff -- <paths>`. For intentional new files, confirm with `git ls-files --others --exclude-standard -- <paths>` and review full content.
+Always use at least one reviewer per commit. Prefer one batched reviewer for
+small, familiar, docs-only, formatting-only, or obvious mechanical changes.
+Split reviewers by risk area for larger or mixed commits.
 
-Use one subagent per file, ideally in parallel. Prefer `explorer` when available. If subagents are unavailable, state the blocker and continue only with user approval.
+Add targeted reviewers for:
 
-Prompt:
+- Security, credentials, auth, persistence, paths, process execution,
+  install/update logic, or public APIs.
+- Large, unfamiliar, highly coupled, or generated diffs.
+- A suspected blocker needing independent scrutiny.
+- Explicit user request for deep/exhaustive review.
+
+Use at most 3 reviewers per commit unless the user asks for exhaustive review.
+Use per-file review only when one file is the risk boundary.
+
+Short reviewer prompt:
 
 ```text
-You are a read-only reviewer for one file in an intended git commit.
+Read-only tuck reviewer.
 Commit scope: {COMMIT_SCOPE}
-Assigned file: {FILE}
-Review only this file's changed diff, plus nearby context needed to understand it.
-Look for correctness bugs, regressions, missing tests, security/privacy risk,
-broken docs, or maintainability problems that should block this commit.
-Do not edit files. Do not spawn subagents. Return only actionable findings with
-file paths and line references, or state that this file has no blocking issues.
+Assigned paths: {PATHS}
+Focus: {RISK_OR_QUESTION}
+Review only changed diff plus minimal nearby context.
+Return blocking findings only with file paths and line references.
+If none, say: no blocking findings.
 ```
 
-Do not stage a commit until all reviewers for that commit return. Re-run review when a material fix changes the diff. For docs-only commits, review accuracy and clarity.
+Do not stage until reviewers return. Re-run review only when a material fix
+changes reviewed risk. If subagents are unavailable, stop and ask the user.
 
 ## Git Safety
 
-Do not stage untracked files by default. Use `git add <specific paths>` or non-interactive patch staging. Do not use destructive commands such as `git reset --hard` or `git checkout --`.
+Do not stage untracked files by default. Use `git add <specific paths>` or non-interactive patch staging. No destructive commands.
 
 For push, run `git branch --show-current` and `git remote -v`. Recommend the current branch when it exists and is not `main`; otherwise recommend a new branch.
