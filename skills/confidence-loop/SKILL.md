@@ -1,6 +1,6 @@
 ---
 name: confidence-loop
-description: Stress-tests a strategy, plan, implementation approach, or answer with sub-agent second opinions until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, invokes $confident-loop or $confidence-loop, or invokes $confident-loop/$confidence-loop normal/hard/extreme.
+description: Stress-tests a strategy, plan, implementation approach, or answer with sub-agent second opinions until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, invokes $confident-loop or $confidence-loop, or invokes $confident-loop/$confidence-loop normal/hard/extreme/1/2/3.
 ---
 
 # Confidence Loop
@@ -11,11 +11,11 @@ Adversarially verify a strategy, plan, implementation, or answer. Treat "100% co
 
 If the user invokes bare `$confident-loop` or `$confidence-loop`, ask which mode to use before running:
 
-- **normal**: default mode; use one sub-agent reviewer.
-- **hard**: use two to four sub-agent reviewers.
-- **extreme**: use as many sub-agent reviewers as the uncertainty, scope, and risk justify.
+- **normal** or **1**: default mode; use one sub-agent reviewer.
+- **hard** or **2**: use two to four sub-agent reviewers.
+- **extreme** or **3**: use as many sub-agent reviewers as the uncertainty, scope, and risk justify.
 
-If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default` as `normal`.
+If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, `$confident-loop 1`, `$confident-loop 2`, `$confident-loop 3`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default` as `normal`, `1` as `normal`, `2` as `hard`, and `3` as `extreme`.
 
 ## Standard Loop
 
@@ -30,9 +30,9 @@ If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confiden
 
 Always use sub-agent reviewers. The mode controls only how many reviewers to use:
 
-- **normal/default**: spawn one read-only reviewer.
-- **hard**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
-- **extreme**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
+- **normal/default/1**: spawn one read-only reviewer.
+- **hard/2**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
+- **extreme/3**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
 
 Choose reviewer angles that match the problem. Common angles:
 
