@@ -1,6 +1,6 @@
 ---
 name: evo-end-to-end
-description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.0+. Use when the user wants to start from a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem; optionally use grill-me/grill-with-docs/improve-codebase-architecture; produce an Evo-ready experiment brief; then hand the brief to `$evo discover`, `$evo optimize`, `$evo finetuning`, and, when needed, Evo backend/runtime setup with safe scope, metric, gate, backend, host, timeout, budget, stall rule, and merge rules.
+description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.0+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as $grill-me, $grill-with-docs, and $improve-codebase-architecture when needed.
 ---
 
 # Evo End To End
@@ -8,6 +8,19 @@ description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.0+. Use wh
 Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only after approval.
 
 Target Evo release line: `evo-hq/evo` v0.5.0 or newer.
+
+## Companion Skills
+
+Names written as `$skill-name` are agent skills, not shell commands or prose labels. Load and follow the named skill when its trigger applies; if the skill is not installed, tell the user which source provides it before continuing with the best available fallback.
+
+| Skill | Use in this workflow | GitHub source if missing |
+| --- | --- | --- |
+| `$grill-me` | Clarify an ambiguous goal, constraint set, non-goal list, success metric, or forbidden change. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grill-me/SKILL.md` |
+| `$grill-with-docs` | Challenge a plan against project terminology, `CONTEXT.md`, or ADRs, and update those docs as decisions crystallize. | `https://github.com/mattpocock/skills.git` at `skills/engineering/grill-with-docs/SKILL.md` |
+| `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
+| `$evo discover`, `$evo optimize`, `$evo finetuning`, `$evo infra-setup` | Evo plugin skills installed by `evo install <host>`; use the installed evo plugin bundle whose `evo_version` matches `evo --version`. | `https://github.com/evo-hq/evo.git` under `plugins/evo/skills/` |
+
+For any other `$xxx` reference encountered while executing this skill, first check the host's installed skill list. If absent, check the user's skill lockfile (usually `%USERPROFILE%\.agents\.skill-lock.json` or `/mnt/c/Users/nguco/.agents/.skill-lock.json` on this workstation) for `sourceUrl` and `skillPath`, then cite that source to the user.
 
 ## Flow
 
