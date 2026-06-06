@@ -55,7 +55,7 @@ function Show-Help {
         Write-Host "Check:" -ForegroundColor Cyan
         Write-HelpCommand "$displayName -g" "List global skill status"
         Write-HelpCommand "$displayName -d <skill>" "Show terminal diff for one skill"
-        Write-HelpCommand "$displayName -z [skill]" "Open Zed diff viewer"
+        Write-HelpCommand "$displayName -z [skill1 skill2 ...]" "Open Zed diff viewer"
         Write-Host ""
         Write-Host "Install:" -ForegroundColor Cyan
         Write-HelpCommand "$displayName -i" "Install changed skills"
@@ -87,7 +87,7 @@ function Show-Help {
     Write-Host "Check:" -ForegroundColor Cyan
     Write-HelpCommand "$displayName --global" "List global skill status"
     Write-HelpCommand "$displayName --diff <skill>" "Show terminal diff for one skill"
-    Write-HelpCommand "$displayName --zed [skill]" "Open Zed diff viewer"
+    Write-HelpCommand "$displayName --zed [skill1 ...]" "Open Zed diff viewer"
     Write-Host ""
     Write-Host "Install:" -ForegroundColor Cyan
     Write-HelpCommand "$displayName --install" "Install changed skills"
@@ -274,11 +274,6 @@ if ($mode -eq "uninstall" -and $targets.Count -eq 0) {
 
 if ($mode -in @("skip", "unskip") -and $targets.Count -ne 1) {
     Write-Error "skills-updates: $mode requires exactly one skill name"
-    exit 1
-}
-
-if ($mode -eq "zed" -and $targets.Count -gt 1) {
-    Write-Error "skills-updates: zed mode accepts one skill name"
     exit 1
 }
 
@@ -1348,7 +1343,7 @@ try {
                 }
             }
         } elseif ($result.Status -eq "OK") {
-            if ($mode -eq "summary" -or $target) {
+            if ($mode -eq "summary" -or $targets.Count -gt 0) {
                 if ($mode -eq "summary" -and -not $target) {
                     $statusIndex += 1
                     Write-StatusLine ("{0,2}. {1}" -f $statusIndex, $result.Message)
@@ -1357,7 +1352,7 @@ try {
                 }
             }
         } elseif ($result.Status -eq "SKIP") {
-            if ($target) {
+            if ($targets.Count -gt 0) {
                 Write-StatusLine $result.Message
             }
         } else {
@@ -1369,6 +1364,8 @@ try {
         if ($changedCount -eq 0) {
             if ($target) {
                 Write-StatusLine "OK      $target"
+            } elseif ($targets.Count -gt 0) {
+                Write-StatusLine "OK      requested skills are up to date"
             } else {
                 Write-StatusLine "OK      all skills are up to date"
             }
