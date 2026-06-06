@@ -92,6 +92,36 @@ rtk run 'icm recall "query"'
 RTK is a wrapper convention. It does not replace understanding the command being
 wrapped.
 
+Codex also has a local `PreToolUse` shell hook at
+`/home/crunch/.codex/hooks/rtk_pretooluse.py`. Despite the historical filename,
+the hook is not a blanket Python or RTK requirement. Its current purpose is to
+keep Python package management on `uv`.
+
+The hook blocks direct `pip` package management, including:
+
+```bash
+pip install rich
+pip3 install rich
+python -m pip install rich
+python3 -m pip install rich
+rtk run 'python3 -m pip install rich'
+bash -lc 'pip install rich'
+```
+
+Use these forms instead:
+
+```bash
+uv add rich
+uv sync
+uv run --with rich python -c 'import rich'
+uv pip install --system rich
+```
+
+Plain Python execution is allowed. Skill validators, one-off scripts, and
+commands such as `python3 script.py` or `python3 -c 'print(1)'` should not be
+blocked by this hook. Keep it that way when editing the hook; the intended guard
+is `uv` over `pip`, not "no Python".
+
 ## ICM
 
 ICM stores durable Codex context. Prefer the ICM MCP tools when they are
