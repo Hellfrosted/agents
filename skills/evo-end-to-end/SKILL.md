@@ -1,13 +1,13 @@
 ---
 name: evo-end-to-end
-description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.4.5+. Use when the user wants to start from a vague performance, architecture, refactor, flaky-test, slow-build, or code-quality problem; optionally use grill-me/grill-with-docs/improve-codebase-architecture; produce an Evo-ready experiment brief; then hand the brief to `$evo discover`, `$evo optimize`, and, when needed, Evo backend/runtime setup with safe scope, metric, gate, backend, host, budget, stall rule, and merge rules.
+description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.0+. Use when the user wants to start from a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem; optionally use grill-me/grill-with-docs/improve-codebase-architecture; produce an Evo-ready experiment brief; then hand the brief to `$evo discover`, `$evo optimize`, `$evo finetuning`, and, when needed, Evo backend/runtime setup with safe scope, metric, gate, backend, host, timeout, budget, stall rule, and merge rules.
 ---
 
 # Evo End To End
 
 Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only after approval.
 
-Target Evo release line: `evo-hq/evo` v0.4.5 or newer.
+Target Evo release line: `evo-hq/evo` v0.5.0 or newer.
 
 ## Flow
 
@@ -17,25 +17,29 @@ Target Evo release line: `evo-hq/evo` v0.4.5 or newer.
 4. Inspect the repo for manifests, tests, docs, benchmarks, and likely editable scope.
 5. Verify Evo is installable and version-aligned before running plugin skills:
    - Run `evo --version`; it must report `evo-hq-cli`, not the unrelated `evo` SLAM package.
-   - Compare the CLI version to the installed evo plugin skill version. If the plugin skill is tagged `evo_version: 0.4.5`, `evo --version` must print exactly `evo-hq-cli 0.4.5`.
+   - Compare the CLI version to the installed evo plugin skill version. If a loaded evo skill is tagged `evo_version: 0.5.0`, `evo --version` must print exactly `evo-hq-cli 0.5.0`.
+   - If the CLI and plugin drift, use Evo's lockstep updater (`evo update <host> --version <version>`). If Codex is pinned to a stale local marketplace, refresh that marketplace source before reinstalling the plugin.
    - Do not auto-install or upgrade the CLI unless the user explicitly asks.
-6. Draft an Evo brief with: goal, metric, baseline command/data, pass gate, editable scope, read-only context, forbidden changes, host, backend, runtime/env needs, budget, stall rule, merge rule.
+6. Draft an Evo brief with: goal, metric, baseline command/data, pass gate, editable scope, read-only context, forbidden changes, host, backend, runtime/env needs, per-experiment timeout, budget, stall rule, task skills, merge rule.
 7. Stop for approval before Evo edits production behavior, APIs, persistence, auth/security, tests, packaging, dependencies, deployment, user-visible behavior, dependency manifests, or remote/cloud infrastructure.
-8. Run `$evo discover` with the approved brief; optimize only after discovery records a baseline.
-9. If using an existing Evo workspace from before v0.4.0, silently migrate host metadata with `evo host show`; if it prints `<not set>`, run `evo host set codex`.
-10. For remote, pool, or non-default runtime setup, configure Evo explicitly before optimizing:
+8. If the task involves fine-tuning, post-training, reward design, or weight updates, use `$evo finetuning` before writing or changing training code. Require literature research before the first train experiment, keep held-out eval data out of training, and set a smoke-run gate.
+9. Run `$evo discover` with the approved brief; optimize only after discovery records a baseline and the benchmark reviewer gate has passed.
+10. If using an existing Evo workspace from before v0.4.0, silently migrate host metadata with `evo host show`; if it prints `<not set>`, run `evo host set codex`.
+11. For remote, pool, or non-default runtime setup, configure Evo explicitly before optimizing:
    - Local default: worktree backend.
    - Faster local reuse: pool backend with a fixed workspace list.
    - Remote: configure the provider first, using Evo's `infra-setup` guidance for Modal, E2B, Daytona, AWS, Azure, SSH, manual, or custom providers.
    - Runtime commands/env belong in `evo config runtime ...` and `evo env ...`, not hard-coded into benchmark scripts.
-11. Run `evo run <exp_id> --check` when wiring risk is material and a non-mutating validation is available.
-12. Before optimizing, resolve run behavior the same way `$evo optimize` does:
+12. Set or confirm `--per-exp-timeout` / `evo config set per-exp-timeout <seconds>` for long benchmarks or training runs. Use `evo run <exp_id> --timeout <seconds>` only as a per-call override.
+13. Run `evo run <exp_id> --check` when wiring risk is material and a non-mutating validation is available.
+14. Before optimizing, resolve run behavior the same way `$evo optimize` does:
    - `autonomous` defaults on unless the user or stored defaults turn it off.
    - `subagents-only` defaults on unless the user or stored defaults turn it off.
    - Arm the resolved state with `evo autonomous on|off` and `evo subagents-only on|off`.
-13. Run `$evo optimize subagents=<n> budget=<n> stall=<n>` within the approved scope. Size the round from benchmark/backend resources first; use the presets below only as fallbacks or user-facing shorthand.
-14. Use `evo direct "<text>"` only for mid-run steering of an already-running Evo session. If an agent receives an `[EVO DIRECTIVE id=...]` banner, it must run `evo ack <event_id>` before proceeding.
-15. Manually review Evo output before merging behavior, API, persistence, security, packaging, deployment, or user-visible changes.
+15. Before choosing `subagents=<n>`, read Evo's sizing guidance and size width from the binding resource: exclusive GPU/port/DB implies width 1 unless the harness isolates it; pool caps at slot count; remote caps at quota/cost.
+16. Run `$evo optimize subagents=<n> budget=<n> stall=<n>` within the approved scope. Size the round from benchmark/backend resources first; use the presets below only as fallbacks or user-facing shorthand.
+17. Use `evo direct "<text>"` only for mid-run steering of an already-running Evo session. If an agent receives an `[EVO DIRECTIVE id=...]` banner, it must run `evo ack <event_id>` before proceeding.
+18. Manually review Evo output before merging behavior, API, persistence, security, packaging, deployment, or user-visible changes.
 
 ## Optimize Presets
 
@@ -62,13 +66,27 @@ Forbidden changes:
 Host: codex
 Backend: worktree | pool | remote:<provider>
 Runtime/env:
+Per-exp timeout:
 Budget:
 Stall rule:
 Autonomous: on | off
 Subagents-only: on | off
+Task skills:
 Optimize preset:
 Merge rule:
 ```
+
+## Evo v0.5.0 Notes
+
+- v0.5.0 adds a first-class `$evo finetuning` path for SFT, LoRA, preference optimization, RFT, and RL training moves. Use it before writing or changing `train.py`, reward code, or model-weight update recipes.
+- Training runs must keep the held-out benchmark out of training data, perform literature research before the first training experiment, and use smoke-run validation before spending full budget.
+- New Evo workspaces should set a realistic per-experiment timeout at init with `--per-exp-timeout <seconds>` or later with `evo config set per-exp-timeout <seconds>`. Override individual calls with `evo run <exp_id> --timeout <seconds>`.
+- `task-skills` config lets discovery record task-category skills, such as `finetuning`, that subagents should load on demand. Inspect it with `evo config get task-skills`.
+- `$evo optimize` requires resource-bound round sizing. Read Evo's `sizing-the-round.md` before passing a concrete `subagents=N`; use width 1 for exclusive GPUs, ports, singleton services, shared mutable fixtures, or unknown timing-sensitive benchmarks.
+- `evo wait` now has process, log, GPU, and ideator selectors for waiting on long-running work without burning context.
+- `evo abort` stops the experiment subprocess tree cross-platform, including detached benchmark or training children that would otherwise survive the driver.
+- The dashboard now supports live log tailing, per-experiment annotations, and `EVO_DASHBOARD_HOST` for binding on cloud or Modal hosts.
+- The installed `evo-hq-agent`, `@evo-hq/evo-agent`, and `@evo-hq/pi-evo` SDK packages should match the 0.5.0 line when SDK instrumentation is used.
 
 ## Evo v0.4.5 Notes
 
