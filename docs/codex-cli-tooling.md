@@ -12,6 +12,7 @@ plus repo-local wrappers that maintain those tools.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
 - LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
+- OMO CLI: local `omo` entrypoint for LazyCodex-specific helpers.
 - Skills updater: Windows wrappers for checking and updating globally installed
   Codex skills.
 
@@ -201,6 +202,9 @@ page before quoting or summarizing details.
 LazyCodex is installed as the `omo@sisyphuslabs` Codex plugin. Keep it enabled
 unless the user explicitly asks to remove it.
 
+The local CLI entrypoint is `omo`. It does not expose a `--version` flag, so
+use `omo help` as the basic availability check.
+
 For T3code sessions launched through `bin/codex-wsl.cmd`, the WSL runner
 disables LazyCodex telemetry, auto-update, and config migration by default while
 leaving the plugin available:
@@ -239,6 +243,7 @@ codex plugin list
 actionlint --version
 react-doctor --version
 tokscale --version
+omo help
 ```
 
 Some tools are exposed through MCP or plugins rather than plain CLI commands.
