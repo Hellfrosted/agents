@@ -150,6 +150,7 @@ lockfile hashes. Repository clones and skip state live under
 directory.
 
 Installs and uninstalls require `pnpm`. The updater uses
-`pnpm dlx skills@latest`, guards lockfile writes with a mutex, and preserves
+`pnpm dlx skills@latest`, forces global operations to the universal
+`.agents/skills` target, guards lockfile writes with a mutex, and preserves
 existing lockfile entries around Skills CLI operations. Saved skips are tied to
 the current upstream tree hash and expire when upstream changes.

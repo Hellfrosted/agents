@@ -177,7 +177,8 @@ The updater reads global skills from `%AGENTS_HOME%` when set, otherwise from
 `%USERPROFILE%\.agents`. It caches upstream repositories and skip state under
 `%LOCALAPPDATA%\skills-updates` when available, otherwise in a temp state
 directory. Install and uninstall operations require `pnpm` and run
-`pnpm dlx skills@latest`; the script protects `.skill-lock.json` with a mutex
+`pnpm dlx skills@latest`; global operations are forced to the universal
+`.agents/skills` target. The script protects `.skill-lock.json` with a mutex
 and preserves existing lockfile fields around those operations.
 
 ## Codex Security

@@ -74,9 +74,9 @@ function Show-Help {
         Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
         Write-HelpNote "Source repos are cached locally and fetched in parallel."
         Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-        Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --skill <skill-name>"
-        Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y"
-        Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --skill <skill-name>"
+        Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>"
+        Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y --agent universal"
+        Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>"
         return
     }
 
@@ -106,9 +106,9 @@ function Show-Help {
     Write-HelpNote "Checks compare installed skill folders against upstream content, not just lockfile hashes."
     Write-HelpNote "Source repos are cached locally and fetched in parallel."
     Write-HelpNote "Skips are tied to the current upstream tree hash and expire when upstream changes."
-    Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --skill <skill-name>"
-    Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y"
-    Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --skill <skill-name>"
+    Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>"
+    Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y --agent universal"
+    Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>"
 }
 
 function Write-ColoredLine {
@@ -394,6 +394,8 @@ function Invoke-SkillsAdd {
     $skillsArgs.Add($SourceUrl)
     $skillsArgs.Add("-g")
     $skillsArgs.Add("-y")
+    $skillsArgs.Add("--agent")
+    $skillsArgs.Add("universal")
     if ($Name) {
         $skillsArgs.Add("--skill")
         $skillsArgs.Add($Name)
@@ -441,7 +443,7 @@ function Uninstall-Skill {
     Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
         $lockBeforeUninstall = Read-SkillLockSnapshot
         Save-SkillLockBackup -Snapshot $lockBeforeUninstall
-        & pnpm dlx skills@latest remove -g -y --skill $Name | ForEach-Object { Write-Host $_ }
+        & pnpm dlx skills@latest remove -g -y --agent universal --skill $Name | ForEach-Object { Write-Host $_ }
         $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
         if (-not $exitCode) {
             $status.Ok = $true
