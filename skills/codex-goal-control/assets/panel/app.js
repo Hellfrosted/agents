@@ -6,6 +6,7 @@ let iconVersion = 0;
 let refreshInFlight = null;
 let heartbeatTimer = null;
 let goalRefreshTimer = null;
+let csrfToken = "";
 
 const els = {
   objective: document.getElementById("goal-objective"),
@@ -107,13 +108,18 @@ function renderGoal(goal) {
 }
 
 async function request(path, options = {}) {
+  const method = options.method || "GET";
+  const headers = {
+    "content-type": "application/json",
+    ...(method === "GET" ? {} : { "x-codex-goal-csrf": csrfToken }),
+    ...(options.headers || {}),
+  };
   const response = await fetch(apiPath(path), {
     cache: "no-store",
-    headers: {
-      "content-type": "application/json",
-      ...(options.headers || {}),
-    },
     ...options,
+    headers: {
+      ...headers,
+    },
   });
   const data = await response.json();
   if (!response.ok || data.error) {
@@ -132,15 +138,14 @@ async function sendHeartbeat() {
 function closeSession() {
   const body = JSON.stringify({ clientId });
   const url = apiPath("/api/session/close");
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
-    return;
-  }
   fetch(url, {
     method: "POST",
     body,
     cache: "no-store",
-    headers: { "content-type": "application/json" },
+    headers: {
+      "content-type": "application/json",
+      "x-codex-goal-csrf": csrfToken,
+    },
     keepalive: true,
   }).catch(() => {});
 }
@@ -154,6 +159,7 @@ function startHeartbeat() {
 
 async function loadConfig() {
   const config = await request("/api/config");
+  csrfToken = config.csrfToken || "";
   if (!pinnedThreadId) {
     threadId = config.threadId || "";
     if (threadId) {

@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const http = require("http");
+const crypto = require("crypto");
 const path = require("path");
 const { URL } = require("url");
 const { runGoalCommand } = require("./codex_goal");
@@ -61,6 +62,8 @@ const GOAL_STAGE_BADGES = {
   none: { fill: "#545454", icon: "dash" },
   unknown: { fill: "#8A8A8A", icon: "unknown" },
 };
+const MUTATING_API_METHODS = new Set(["POST", "DELETE"]);
+const CSRF_HEADER = "x-codex-goal-csrf";
 
 function envPositiveInteger(name, fallback) {
   const value = Number(process.env[name]);
@@ -185,6 +188,23 @@ function sendJson(res, statusCode, payload) {
   res.end(body);
 }
 
+function isValidJsonContentType(value) {
+  return String(value || "")
+    .split(";")[0]
+    .trim()
+    .toLowerCase() === "application/json";
+}
+
+function verifyMutationRequest(req, csrfToken) {
+  if (req.headers[CSRF_HEADER] !== csrfToken) {
+    return { statusCode: 403, payload: { error: "Invalid CSRF token" } };
+  }
+  if (!isValidJsonContentType(req.headers["content-type"])) {
+    return { statusCode: 415, payload: { error: "Request content-type must be application/json" } };
+  }
+  return null;
+}
+
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let body = "";
@@ -214,6 +234,7 @@ function readBody(req) {
 function createLifecycleState() {
   return {
     clients: new Map(),
+    csrfToken: crypto.randomBytes(32).toString("base64url"),
     idleShutdownMs: envPositiveInteger("CODEX_GOAL_PANEL_IDLE_SHUTDOWN_MS", DEFAULT_IDLE_SHUTDOWN_MS),
     idleSweepMs: envPositiveInteger("CODEX_GOAL_PANEL_IDLE_SWEEP_MS", DEFAULT_IDLE_SWEEP_MS),
     lastActivityAt: Date.now(),
@@ -543,8 +564,16 @@ async function serveStatic(req, res, options) {
 async function handleApi(req, res, options, state) {
   const url = new URL(req.url, `http://${options.host}:${options.port}`);
 
+  if (MUTATING_API_METHODS.has(req.method)) {
+    const failure = verifyMutationRequest(req, state.csrfToken);
+    if (failure) {
+      sendJson(res, failure.statusCode, failure.payload);
+      return;
+    }
+  }
+
   if (url.pathname === "/api/config" && req.method === "GET") {
-    sendJson(res, 200, resolveThreadId(url, options));
+    sendJson(res, 200, { ...resolveThreadId(url, options), csrfToken: state.csrfToken });
     return;
   }
 
@@ -679,3 +708,8 @@ function main() {
 if (require.main === module) {
   main();
 }
+
+module.exports = {
+  isValidJsonContentType,
+  verifyMutationRequest,
+};
