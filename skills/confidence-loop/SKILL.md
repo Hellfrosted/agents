@@ -1,13 +1,23 @@
 ---
 name: confidence-loop
-description: Stress-tests a strategy, plan, implementation approach, or answer until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, or invokes confidence-loop hard for up to four sub-agent second opinions.
+description: Stress-tests a strategy, plan, implementation approach, or answer with sub-agent second opinions until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, invokes $confident-loop or $confidence-loop, or invokes $confident-loop/$confidence-loop normal/hard/extreme.
 ---
 
 # Confidence Loop
 
 Adversarially verify a strategy, plan, implementation, or answer. Treat "100% confident" as a request for evidence, not reassurance.
 
-## Standard
+## Invocation
+
+If the user invokes bare `$confident-loop` or `$confidence-loop`, ask which mode to use before running:
+
+- **normal**: default mode; use one sub-agent reviewer.
+- **hard**: use two to four sub-agent reviewers.
+- **extreme**: use as many sub-agent reviewers as the uncertainty, scope, and risk justify.
+
+If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default` as `normal`.
+
+## Standard Loop
 
 1. State the strategy and success criteria.
 2. List material assumptions, dependencies, edge cases, and failure modes.
@@ -16,23 +26,30 @@ Adversarially verify a strategy, plan, implementation, or answer. Treat "100% co
 5. Run the smallest relevant verification: source read, command, test, search, or reasoning proof.
 6. Repeat until no material unresolved loopholes remain.
 
-## Hard Mode
+## Sub-Agent Review
 
-Use only when the user says `confidence-loop hard` or asks for sub-agent second opinions.
+Always use sub-agent reviewers. The mode controls only how many reviewers to use:
 
-Spawn two to four read-only reviewers with distinct angles. Use only as many as the uncertainty justifies:
+- **normal/default**: spawn one read-only reviewer.
+- **hard**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
+- **extreme**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
+
+Choose reviewer angles that match the problem. Common angles:
 
 - **Skeptic**: false assumptions, loopholes, and failure modes.
 - **Verifier**: smallest checks that would prove or disprove the strategy.
 - **Domain reviewer**: code, docs, APIs, product constraints, or domain-specific gaps.
 - **Implementability reviewer**: hidden execution, sequencing, ownership, or integration risks.
+- **Security reviewer**: abuse cases, data exposure, authorization, or unsafe execution risks.
+- **UX reviewer**: user workflow, copy, accessibility, and interaction gaps.
+- **Maintenance reviewer**: future breakage, dependency, operational, or handoff risks.
 
 Give each reviewer the strategy, criteria, evidence, and open questions. They must not edit files, spawn agents, or decide the final answer.
 
 Prompt shape:
 
 ```
-Read-only confidence-loop reviewer. Angle: {skeptic|verifier|domain|implementability}.
+Read-only confidence-loop reviewer. Angle: {reviewer angle}.
 Strategy: {strategy}
 Criteria: {criteria}
 Evidence: {facts}
@@ -56,4 +73,4 @@ If 100% is impossible, say why and what evidence would close the gap.
 
 ## Output
 
-Keep it compact: Strategy, Loopholes found, Second opinions if hard mode, Verification, Confidence score. Do not pad with hypothetical risks that do not apply.
+Keep it compact: Strategy, Loopholes found, Second opinions, Verification, Confidence score. Do not pad with hypothetical risks that do not apply.
