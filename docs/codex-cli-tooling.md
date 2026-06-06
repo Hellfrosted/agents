@@ -93,10 +93,10 @@ rtk run 'icm recall "query"'
 RTK is a wrapper convention. It does not replace understanding the command being
 wrapped.
 
-Codex also has a local `PreToolUse` shell hook at
-`/home/crunch/.codex/hooks/rtk_pretooluse.py`. Despite the historical filename,
-the hook is not a blanket Python or RTK requirement. Its current purpose is to
-keep Python package management on `uv`.
+Codex may also have a local `PreToolUse` shell hook under
+`$CODEX_HOME/hooks/`. Despite historical RTK-oriented filenames, that hook is
+not a blanket Python or RTK requirement. Its current purpose is to keep Python
+package management on `uv`.
 
 The hook blocks direct `pip` package management, including:
 

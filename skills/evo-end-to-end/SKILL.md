@@ -20,7 +20,7 @@ Names written as `$skill-name` are agent skills, not shell commands or prose lab
 | `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
 | `$evo discover`, `$evo optimize`, `$evo finetuning`, `$evo infra-setup` | Evo plugin skills installed by `evo install <host>`; use the installed evo plugin bundle whose `evo_version` matches `evo --version`. | `https://github.com/evo-hq/evo.git` under `plugins/evo/skills/` |
 
-For any other `$xxx` reference encountered while executing this skill, first check the host's installed skill list. If absent, check the user's skill lockfile (usually `%USERPROFILE%\.agents\.skill-lock.json` or `/mnt/c/Users/nguco/.agents/.skill-lock.json` on this workstation) for `sourceUrl` and `skillPath`, then cite that source to the user.
+For any other `$xxx` reference encountered while executing this skill, first check the host's installed skill list. If absent, check the user's skill lockfile (usually `%USERPROFILE%\.agents\.skill-lock.json` on Windows or `/mnt/c/Users/<user>/.agents/.skill-lock.json` from WSL) for `sourceUrl` and `skillPath`, then cite that source to the user.
 
 ## Flow
 

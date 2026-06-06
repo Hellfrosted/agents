@@ -46,14 +46,12 @@ if not exist "%WSL_EXE%" (
     exit /b 1
 )
 
-if not defined CODEX_WSL_PROXY (
-    set "CODEX_WSL_PROXY=/home/crunch/.local/bin/codex-wsl-proxy-runner.sh"
-)
+if not defined CODEX_WSL_PROXY set "CODEX_WSL_PROXY="
 
 :: Invoke bash explicitly and let the WSL-side runner resolve the configured
 :: node binary before launching the proxy. T3code keeps Codex app-server
 :: sessions open, so the WSL proxy also enforces an idle reaper.
-if defined CODEX_WSL_SHIM_DEBUG echo codex-wsl.cmd: launching "%WSL_EXE%" %WSL_DISTRO_ARG% %WSL_USER_ARG% --cd / --exec env CODEX_WSL_PROXY="%CODEX_WSL_PROXY%" bash "%CODEX_WSL_PROXY%" %*
-"%WSL_EXE%" %WSL_DISTRO_ARG% %WSL_USER_ARG% --cd / --exec env "CODEX_HOME=%CODEX_HOME%" "CODEX_WSL_PROXY=%CODEX_WSL_PROXY%" "CODEX_WSL_PROXY_DISTRO=%CODEX_WSL_PROXY_DISTRO%" "CODEX_WSL_PROXY_IDLE_TIMEOUT_MS=%CODEX_WSL_PROXY_IDLE_TIMEOUT_MS%" "T3CODE_WINDOWS_CWD=%T3CODE_SHIM_CWD%" /bin/bash "%CODEX_WSL_PROXY%" %*
+if defined CODEX_WSL_SHIM_DEBUG echo codex-wsl.cmd: launching "%WSL_EXE%" %WSL_DISTRO_ARG% %WSL_USER_ARG% --cd / --exec env CODEX_WSL_PROXY="%CODEX_WSL_PROXY%" bash -lc "exec \"${CODEX_WSL_PROXY:-$HOME/.local/bin/codex-wsl-proxy-runner.sh}\" \"$@\"" codex-wsl-proxy %*
+"%WSL_EXE%" %WSL_DISTRO_ARG% %WSL_USER_ARG% --cd / --exec env "CODEX_HOME=%CODEX_HOME%" "CODEX_WSL_PROXY=%CODEX_WSL_PROXY%" "CODEX_WSL_PROXY_DISTRO=%CODEX_WSL_PROXY_DISTRO%" "CODEX_WSL_PROXY_IDLE_TIMEOUT_MS=%CODEX_WSL_PROXY_IDLE_TIMEOUT_MS%" "T3CODE_WINDOWS_CWD=%T3CODE_SHIM_CWD%" /bin/bash -lc "exec \"${CODEX_WSL_PROXY:-$HOME/.local/bin/codex-wsl-proxy-runner.sh}\" \"$@\"" codex-wsl-proxy %*
 
 exit /b %ERRORLEVEL%
