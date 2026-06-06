@@ -1,12 +1,12 @@
 ---
 name: tuck
-description: Tucks local changes into focused commits with token-aware subagent review. Use only for exact $tuck, not ordinary commit requests.
+description: Tucks local changes into focused commits with token-aware subagent review. Use when the user says $tuck or tuck, not for ordinary commit requests.
 ---
 
 # Tuck
 
-Use only after exact `$tuck`. Keep review out of the main context: use subagents,
-but batch them so review stays token-aware.
+Use after `$tuck` or a plain `tuck` request. Keep review out of the main context:
+use subagents, but batch them so review stays token-aware.
 
 ## Flow
 
