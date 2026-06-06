@@ -1,9 +1,9 @@
 ---
-name: icm-remember
-description: Stores information in ICM persistent memory from Codex. Use when the user invokes `icm-remember`, asks to remember something, asks to store/save a note in ICM, or provides durable context that should be kept for future sessions.
+name: icm-store
+description: Stores information in ICM persistent memory from Codex. Use when the user invokes `icm-store`, asks to store/save a note in ICM, or provides durable context that should be kept for future sessions.
 ---
 
-# ICM Remember
+# ICM Store
 
 Store the user's provided content in ICM. Prefer the ICM MCP store tool. Use topic `note` unless the user specifies a better topic. CLI fallback:
 

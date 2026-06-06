@@ -1,0 +1,4 @@
+interface:
+  display_name: "ICM Store"
+  short_description: "Store notes in ICM persistent memory"
+  default_prompt: "Use $icm-store to store durable context in ICM memory."
