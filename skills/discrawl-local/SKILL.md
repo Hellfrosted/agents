@@ -22,6 +22,7 @@ discrawl messages --channel "channel-name" --last 50
 For current setup and archive size:
 
 ```bash
+discrawl check-update
 discrawl doctor --json
 discrawl status --json
 ```
@@ -72,6 +73,7 @@ For setup or troubleshooting, run:
 
 ```bash
 discrawl --version
+discrawl check-update
 discrawl doctor --json
 discrawl status --json
 rg -n '^(token_source|source|path|full_cache) =' /home/crunch/.config/discrawl/config.toml
@@ -85,6 +87,8 @@ cache path stops working, inspect the Vesktop data directories under
 
 - Do not configure bot tokens, user tokens, selfbots, share/publish, cloud, or
   remote sync unless the user explicitly asks.
+- Treat `remote`, `cloud`, and `subscribe-cloud` commands as opt-in publishing
+  or remote-read features, not part of normal local wiretap search.
 - Never record token values in docs, examples, commits, or agent notes.
 - Do not dump long private conversations. Summarize only what is needed.
 

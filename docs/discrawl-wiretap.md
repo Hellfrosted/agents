@@ -48,6 +48,7 @@ discrawl sync
 Inspect archive health:
 
 ```bash
+discrawl check-update
 discrawl doctor --json
 discrawl status --json
 discrawl channels list
@@ -79,19 +80,24 @@ discrawl messages --dm --last 50
   then, never record token values in docs, examples, commits, or agent notes.
 - Do not enable share/publish behavior unless the user explicitly wants to back
   up non-DM server archive data.
+- Do not configure `remote`, `cloud`, or `subscribe-cloud` unless the user
+  explicitly wants a Cloudflare-backed remote archive.
 
 ## Verification
 
-The setup was verified on 2026-06-06:
+The setup was verified on 2026-06-07:
 
 ```text
 discrawl --version
-0.8.0
+0.10.0
+
+discrawl check-update
+discrawl: up to date (0.10.0)
 
 discrawl doctor --json
 discord_token: "discord token disabled by config"
 
-discrawl sync
+discrawl sync --source wiretap
 messages=26
 guild_messages=26
 dm_messages=0
