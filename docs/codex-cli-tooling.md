@@ -13,6 +13,7 @@ plus repo-local wrappers that maintain those tools.
   docs lookup.
 - LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
 - OMO CLI: local `omo` entrypoint for LazyCodex-specific helpers.
+- Discrawl: local Discord cache archive/search for Vesktop wiretap-only use.
 - Skills updater: Windows wrappers for checking and updating globally installed
   Codex skills.
 
@@ -24,6 +25,13 @@ plus repo-local wrappers that maintain those tools.
 
 These are useful during agent work, but they are narrower than the main tools
 above.
+
+## Discrawl
+
+Discrawl is installed in WSL as a local Discord archive/search tool. This
+workstation uses it in Vesktop wiretap-only mode, with Discord bot tokens
+disabled. See [Discrawl Vesktop Wiretap](discrawl-wiretap.md) for paths,
+configuration, verification, and normal search commands.
 
 ## Evo
 
