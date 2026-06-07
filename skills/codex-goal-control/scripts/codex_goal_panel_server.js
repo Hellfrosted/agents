@@ -2,20 +2,16 @@
 
 const fs = require("fs");
 const http = require("http");
-const crypto = require("crypto");
 const path = require("path");
 const { URL } = require("url");
 const { runGoalCommand } = require("./codex_goal");
+const { createGoalPanelSession } = require("./goal_panel_session");
 
 const INSTALLED_SKILL_DIR = path.resolve(__dirname, "..");
 const PANEL_ROOT = path.join(INSTALLED_SKILL_DIR, "assets", "panel");
 const DEFAULT_HOST = "127.0.0.1";
 const DEFAULT_PORT = 43873;
-const DEFAULT_IDLE_SHUTDOWN_MS = 15 * 60 * 1000;
-const DEFAULT_IDLE_SWEEP_MS = 30 * 1000;
 const FORCE_EXIT_MS = 1000;
-const CLAIM_DIR = path.join(require("os").tmpdir(), "codex-goal-panel");
-const CLAIM_FILE = path.join(CLAIM_DIR, "current-thread.json");
 const ICON_MAX_BYTES = 512 * 1024;
 const ICON_CANDIDATES = [
   "favicon.ico",
@@ -64,11 +60,7 @@ const GOAL_STAGE_BADGES = {
 };
 const MUTATING_API_METHODS = new Set(["POST", "DELETE"]);
 const CSRF_HEADER = "x-codex-goal-csrf";
-
-function envPositiveInteger(name, fallback) {
-  const value = Number(process.env[name]);
-  return Number.isInteger(value) && value > 0 ? value : fallback;
-}
+const goalPanelSession = createGoalPanelSession();
 
 function usage(exitCode = 1) {
   const text = [
@@ -121,61 +113,6 @@ function parseArgs(argv) {
     throw new Error("Refusing to bind Codex Goal panel outside localhost.");
   }
   return options;
-}
-
-function readClaim() {
-  try {
-    const raw = fs.readFileSync(CLAIM_FILE, "utf8");
-    const claim = JSON.parse(raw);
-    const threadId = typeof claim.threadId === "string" ? claim.threadId.trim() : "";
-    if (!threadId) return null;
-    return {
-      threadId,
-      updatedAt: claim.updatedAt || null,
-      source: claim.source || "claim",
-      workspaceRoot:
-        typeof claim.workspaceRoot === "string" && claim.workspaceRoot.trim()
-          ? claim.workspaceRoot.trim()
-          : null,
-      workspaceCwd:
-        typeof claim.workspaceCwd === "string" && claim.workspaceCwd.trim()
-          ? claim.workspaceCwd.trim()
-          : null,
-      workspaceSource: claim.workspaceSource || null,
-    };
-  } catch {
-    return null;
-  }
-}
-
-function writeClaim(threadId, source = "api") {
-  const cleanThreadId = String(threadId || "").trim();
-  if (!cleanThreadId) throw new Error("Missing thread id for claim.");
-  fs.mkdirSync(CLAIM_DIR, { recursive: true });
-  const claim = {
-    threadId: cleanThreadId,
-    source,
-    updatedAt: new Date().toISOString(),
-  };
-  fs.writeFileSync(CLAIM_FILE, `${JSON.stringify(claim, null, 2)}\n`, "utf8");
-  return claim;
-}
-
-function resolveThreadId(url, options) {
-  const explicit = url.searchParams.get("threadId");
-  if (explicit) return { threadId: explicit, source: "query" };
-  if (options.threadId) return { threadId: options.threadId, source: "server" };
-  const claim = readClaim();
-  if (claim) return { threadId: claim.threadId, source: claim.source, updatedAt: claim.updatedAt };
-  return { threadId: null, source: "none" };
-}
-
-function requireThreadId(url, options) {
-  const resolved = resolveThreadId(url, options);
-  if (!resolved.threadId) {
-    throw new Error("No Codex thread selected. Claim a thread first or pass ?threadId=<id>.");
-  }
-  return resolved.threadId;
 }
 
 function sendJson(res, statusCode, payload) {
@@ -231,45 +168,6 @@ function readBody(req) {
   });
 }
 
-function createLifecycleState() {
-  return {
-    clients: new Map(),
-    csrfToken: crypto.randomBytes(32).toString("base64url"),
-    idleShutdownMs: envPositiveInteger("CODEX_GOAL_PANEL_IDLE_SHUTDOWN_MS", DEFAULT_IDLE_SHUTDOWN_MS),
-    idleSweepMs: envPositiveInteger("CODEX_GOAL_PANEL_IDLE_SWEEP_MS", DEFAULT_IDLE_SWEEP_MS),
-    lastActivityAt: Date.now(),
-    server: null,
-    sweepTimer: null,
-    shuttingDown: false,
-  };
-}
-
-function pruneClients(state, now = Date.now()) {
-  for (const [clientId, seenAt] of state.clients) {
-    if (now - seenAt > state.idleShutdownMs) state.clients.delete(clientId);
-  }
-}
-
-function markClientSeen(state, clientId) {
-  const cleanClientId = String(clientId || "").trim();
-  if (!cleanClientId) throw new Error("Missing dashboard client id.");
-  const now = Date.now();
-  state.clients.set(cleanClientId, now);
-  state.lastActivityAt = now;
-  return {
-    clientId: cleanClientId,
-    activeClients: state.clients.size,
-    idleShutdownSeconds: Math.round(state.idleShutdownMs / 1000),
-  };
-}
-
-function forgetClient(state, clientId) {
-  const cleanClientId = String(clientId || "").trim();
-  if (cleanClientId) state.clients.delete(cleanClientId);
-  if (state.clients.size === 0) state.lastActivityAt = Date.now();
-  return { clientId: cleanClientId || null, activeClients: state.clients.size };
-}
-
 function shutdownServer(state, reason) {
   if (state.shuttingDown) return;
   state.shuttingDown = true;
@@ -293,7 +191,7 @@ function shutdownServer(state, reason) {
 function startIdleShutdownTimer(state) {
   state.sweepTimer = setInterval(() => {
     const now = Date.now();
-    pruneClients(state, now);
+    goalPanelSession.pruneClients(state, now);
     if (state.clients.size === 0 && now - state.lastActivityAt >= state.idleShutdownMs) {
       shutdownServer(state, "idle-timeout");
     }
@@ -312,12 +210,6 @@ function contentTypeFor(filePath) {
   if (filePath.endsWith(".jpg") || filePath.endsWith(".jpeg")) return "image/jpeg";
   if (filePath.endsWith(".webp")) return "image/webp";
   return "application/octet-stream";
-}
-
-function resolveWorkspaceRoot(options) {
-  const claim = readClaim();
-  const root = options.workspaceRoot || claim?.workspaceRoot || process.cwd();
-  return path.resolve(root);
 }
 
 function isInsidePath(childPath, parentPath) {
@@ -492,7 +384,7 @@ function panelIcon(workspaceRoot, threadId, goalStatus, repoIcon) {
 }
 
 function pageHtml(data, url, options) {
-  const resolved = resolveThreadId(url, options);
+  const resolved = goalPanelSession.resolveThreadId(url, options);
   if (!resolved.threadId) return data;
 
   const iconQuery = `?threadId=${encodeURIComponent(resolved.threadId)}`;
@@ -508,9 +400,9 @@ function pageHtml(data, url, options) {
 
 async function serveRepoIcon(req, res, options) {
   const url = new URL(req.url, `http://${options.host}:${options.port}`);
-  const workspaceRoot = resolveWorkspaceRoot(options);
+  const workspaceRoot = goalPanelSession.resolveWorkspaceRoot(options);
   const iconPath = findRepoIcon(workspaceRoot);
-  const resolved = resolveThreadId(url, options);
+  const resolved = goalPanelSession.resolveThreadId(url, options);
   const threadId = resolved.threadId || "";
   const goalStatus = await goalStatusForIcon(url, options, threadId);
   const repoIcon = repoIconData(iconPath);
@@ -573,50 +465,50 @@ async function handleApi(req, res, options, state) {
   }
 
   if (url.pathname === "/api/config" && req.method === "GET") {
-    sendJson(res, 200, { ...resolveThreadId(url, options), csrfToken: state.csrfToken });
+    sendJson(res, 200, { ...goalPanelSession.resolveThreadId(url, options), csrfToken: state.csrfToken });
     return;
   }
 
   if (url.pathname === "/api/claim" && req.method === "POST") {
     const body = await readBody(req);
-    sendJson(res, 200, writeClaim(body.threadId, "api"));
+    sendJson(res, 200, goalPanelSession.writeClaim(body.threadId, "api"));
     return;
   }
 
   if (url.pathname === "/api/session/heartbeat" && req.method === "POST") {
     const body = await readBody(req);
-    sendJson(res, 200, markClientSeen(state, body.clientId));
+    sendJson(res, 200, goalPanelSession.markClientSeen(state, body.clientId));
     return;
   }
 
   if (url.pathname === "/api/session/close" && (req.method === "POST" || req.method === "DELETE")) {
     const body = await readBody(req);
-    sendJson(res, 200, forgetClient(state, body.clientId));
+    sendJson(res, 200, goalPanelSession.forgetClient(state, body.clientId));
     return;
   }
 
   if (url.pathname === "/api/server/stop" && req.method === "POST") {
     const body = await readBody(req);
-    forgetClient(state, body.clientId);
+    goalPanelSession.forgetClient(state, body.clientId);
     sendJson(res, 200, { stopping: true, reason: "api-stop" });
     setTimeout(() => shutdownServer(state, "api-stop"), 25).unref();
     return;
   }
 
   if (url.pathname === "/api/goal" && req.method === "GET") {
-    const threadId = requireThreadId(url, options);
+    const threadId = goalPanelSession.requireThreadId(url, options);
     sendJson(res, 200, await runGoalCommand({ command: "get", threadId, json: true }));
     return;
   }
 
   if (url.pathname === "/api/goal" && req.method === "DELETE") {
-    const threadId = requireThreadId(url, options);
+    const threadId = goalPanelSession.requireThreadId(url, options);
     sendJson(res, 200, await runGoalCommand({ command: "clear", threadId, json: true }));
     return;
   }
 
   if (url.pathname === "/api/goal" && req.method === "POST") {
-    const threadId = requireThreadId(url, options);
+    const threadId = goalPanelSession.requireThreadId(url, options);
     const body = await readBody(req);
     const objective = String(body.objective || "").trim();
     if (!objective) throw new Error("Missing objective");
@@ -642,7 +534,7 @@ async function handleApi(req, res, options, state) {
   }
 
   if (url.pathname === "/api/goal/status" && req.method === "POST") {
-    const threadId = requireThreadId(url, options);
+    const threadId = goalPanelSession.requireThreadId(url, options);
     const body = await readBody(req);
     const statusCommand = {
       active: "resume",
@@ -658,7 +550,7 @@ async function handleApi(req, res, options, state) {
 }
 
 function createServer(options) {
-  const state = createLifecycleState();
+  const state = goalPanelSession.createLifecycleState();
   const server = http.createServer(async (req, res) => {
     try {
       if (req.url.startsWith("/api/")) {
@@ -692,7 +584,7 @@ function main() {
             host: options.host,
             port: options.port,
             thread_id: options.threadId,
-            claim_file: CLAIM_FILE,
+            claim_file: goalPanelSession.paths.claimFile,
           },
           null,
           2,
