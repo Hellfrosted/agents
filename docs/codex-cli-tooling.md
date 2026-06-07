@@ -12,6 +12,7 @@ plus repo-local wrappers that maintain those tools.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
 - LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
+- LazyCodex LSP MCP: wired directly as `mcp_servers.lsp` in WSL Codex config.
 - OMO CLI: local `omo` entrypoint for LazyCodex-specific helpers.
 - Discrawl: local Discord cache archive/search for Vesktop wiretap-only use.
 - Skills updater: Windows wrappers for checking and updating globally installed
@@ -214,6 +215,41 @@ unless the user explicitly asks to remove it.
 The local CLI entrypoint is `omo`. It does not expose a `--version` flag, so
 use `omo help` as the basic availability check.
 
+### Direct LSP MCP wiring
+
+The OMO LSP MCP server is also wired directly in the active WSL Codex config at
+`/home/crunch/.codex/config.toml`:
+
+```toml
+[mcp_servers.lsp]
+command = "node"
+args = [
+    "/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/lsp/dist/cli.js",
+    "mcp",
+]
+```
+
+This bypasses plugin MCP mounting for LSP diagnostics. It was added after a
+thread exposed the OMO LSP skill text but did not expose an `lsp` MCP namespace,
+even though the server itself answered a direct MCP handshake.
+
+The direct server can be checked without Codex by sending an MCP
+`initialize`, `notifications/initialized`, and `tools/list` sequence to the CLI:
+
+```bash
+printf '%s\n' \
+  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
+  '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
+  '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
+| node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/lsp/dist/cli.js mcp
+```
+
+The response should include tools such as `diagnostics`, `status`,
+`goto_definition`, `references`, `symbols`, and `rename`. After changing
+`mcp_servers.lsp`, start a fresh Codex thread or restart/reload Codex before
+checking whether the `lsp` namespace is available, because tool assembly happens
+at thread startup.
+
 For T3code sessions launched through `bin/codex-wsl.cmd`, the WSL runner
 disables LazyCodex telemetry, auto-update, and config migration by default while
 leaving the plugin available:
@@ -257,4 +293,6 @@ omo help
 
 Some tools are exposed through MCP or plugins rather than plain CLI commands.
 For those, verify them through the Codex config or the tool list in the running
-session.
+session. For direct LazyCodex LSP MCP wiring, `codex plugin list` only confirms
+that the Codex TOML is parseable; a fresh thread is still needed to confirm that
+the `lsp` MCP namespace mounted.
