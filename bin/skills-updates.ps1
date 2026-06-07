@@ -138,6 +138,20 @@ function Write-StatusLine {
     }
 }
 
+function Write-CliError {
+    param([string]$Message)
+
+    $shortMessage = $Message -replace "^skills-updates:\s*", ""
+    $line = "ERROR   $shortMessage"
+    $previousColor = [Console]::ForegroundColor
+    try {
+        [Console]::ForegroundColor = [ConsoleColor]::Red
+        [Console]::Error.WriteLine($line)
+    } finally {
+        [Console]::ForegroundColor = $previousColor
+    }
+}
+
 function Test-TargetMatch {
     param([string]$Name)
 
@@ -209,7 +223,7 @@ foreach ($arg in $args) {
         }
         default {
             if ($arg.StartsWith("-")) {
-                Write-Error "skills-updates: unknown option: $arg"
+                Write-CliError "skills-updates: unknown option: $arg"
                 exit 1
             }
             $targets.Add($arg)
@@ -227,39 +241,39 @@ if ($mode -eq "help") {
 }
 
 if ($scope -and $scope -ne "global") {
-    Write-Error "skills-updates: only global scope is supported"
+    Write-CliError "skills-updates: only global scope is supported"
     exit 1
 }
 
 if ($scope -eq "global" -and $mode -in @("install", "install-all")) {
-    Write-Error "skills-updates: -g cannot be used with -i; use $displayName -i instead"
+    Write-CliError "skills-updates: -g cannot be used with -i; use $displayName -i instead"
     exit 1
 }
 
 if ($globalOptionUsed -and $mode -eq "zed") {
-    Write-Error "skills-updates: -g cannot be used with -z; use $displayName -z [skill] instead"
+    Write-CliError "skills-updates: -g cannot be used with -z; use $displayName -z [skill] instead"
     exit 1
 }
 
 if ($globalOptionUsed -and $mode -eq "diff") {
-    Write-Error "skills-updates: -g cannot be used with -d; use $displayName -d <skill> instead"
+    Write-CliError "skills-updates: -g cannot be used with -d; use $displayName -d <skill> instead"
     exit 1
 }
 
 if ($globalOptionUsed -and $mode -eq "summary" -and $targets.Count -gt 0) {
-    Write-Error "skills-updates: -g does not accept a skill name; use $displayName -d <skill> instead"
+    Write-CliError "skills-updates: -g does not accept a skill name; use $displayName -d <skill> instead"
     exit 1
 }
 
 if (-not $scope -and $mode -notin @("list", "install", "install-all", "uninstall", "skip", "unskip", "skips")) {
-    Write-Error "skills-updates: use -g to check global skills"
+    Write-CliError "skills-updates: use -g to check global skills"
     Write-Output ""
     Show-Help
     exit 1
 }
 
 if ($mode -eq "diff" -and $targets.Count -ne 1) {
-    Write-Error "skills-updates: diff mode requires exactly one skill name"
+    Write-CliError "skills-updates: diff mode requires exactly one skill name"
     exit 1
 }
 
@@ -268,12 +282,12 @@ if ($mode -eq "install" -and $targets.Count -eq 0) {
 }
 
 if ($mode -eq "uninstall" -and $targets.Count -eq 0) {
-    Write-Error "skills-updates: uninstall requires at least one skill name"
+    Write-CliError "skills-updates: uninstall requires at least one skill name"
     exit 1
 }
 
 if ($mode -in @("skip", "unskip") -and $targets.Count -ne 1) {
-    Write-Error "skills-updates: $mode requires exactly one skill name"
+    Write-CliError "skills-updates: $mode requires exactly one skill name"
     exit 1
 }
 
@@ -355,7 +369,7 @@ function Invoke-WithSkillLockMutex {
     try {
         $hasLock = $mutex.WaitOne([TimeSpan]::FromMinutes(10))
         if (-not $hasLock) {
-            Write-Error "skills-updates: timed out waiting for lockfile guard: $lock"
+            Write-CliError "skills-updates: timed out waiting for lockfile guard: $lock"
             return
         }
 
@@ -378,7 +392,7 @@ function Invoke-SkillsAdd {
     )
 
     if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
-        Write-Error "skills-updates: pnpm is required to install skills"
+        Write-CliError "skills-updates: pnpm is required to install skills"
         return $false
     }
 
@@ -433,7 +447,7 @@ function Uninstall-Skill {
     param([string]$Name)
 
     if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
-        Write-Error "skills-updates: pnpm is required to uninstall skills"
+        Write-CliError "skills-updates: pnpm is required to uninstall skills"
         return $false
     }
 
@@ -471,7 +485,7 @@ function Read-SkillLock {
     try {
         return Read-RawSkillLock | ConvertFrom-Json
     } catch {
-        Write-Error "skills-updates: could not read lockfile: $lock"
+        Write-CliError "skills-updates: could not read lockfile: $lock"
         return $null
     }
 }
@@ -496,7 +510,7 @@ function Read-SkillLockSnapshot {
             $snapshot.State = $snapshot.Raw | ConvertFrom-Json
         }
     } catch {
-        Write-Error "skills-updates: could not snapshot lockfile before install: $lock"
+        Write-CliError "skills-updates: could not snapshot lockfile before install: $lock"
     }
 
     return $snapshot
@@ -856,13 +870,13 @@ function New-RemoteComparePath {
 
     & git @archiveArgs
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "skills-updates: could not export clean compare tree for $RemoteDir"
+        Write-CliError "skills-updates: could not export clean compare tree for $RemoteDir"
         return $null
     }
 
     tar -xf $archiveFile -C $tempRoot
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "skills-updates: could not extract clean compare tree for $RemoteDir"
+        Write-CliError "skills-updates: could not extract clean compare tree for $RemoteDir"
         return $null
     }
     Remove-Item -LiteralPath $archiveFile -Force -ErrorAction SilentlyContinue
@@ -961,7 +975,7 @@ if ($mode -eq "install" -and $targets.Count -gt 0) {
 
     if ($installSources.Count -gt 0) {
         if ($installNames.Count -gt 0) {
-            Write-Error "skills-updates: install cannot mix source URLs and lockfile skill names"
+            Write-CliError "skills-updates: install cannot mix source URLs and lockfile skill names"
             exit 1
         }
 
@@ -982,7 +996,7 @@ if ($mode -eq "install" -and $targets.Count -gt 0) {
 
 if ($mode -eq "list") {
     if ($targets.Count -gt 0) {
-        Write-Error "skills-updates: list mode does not accept skill names"
+        Write-CliError "skills-updates: list mode does not accept skill names"
         exit 1
     }
 
@@ -991,11 +1005,11 @@ if ($mode -eq "list") {
 }
 
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Error "skills-updates: git is required"
+    Write-CliError "skills-updates: git is required"
     exit 1
 }
 if (-not (Test-Path -LiteralPath $lock -PathType Leaf)) {
-    Write-Error "skills-updates: lockfile not found: $lock"
+    Write-CliError "skills-updates: lockfile not found: $lock"
     exit 1
 }
 New-Item -ItemType Directory -Path $repoRoot -Force | Out-Null
@@ -1226,7 +1240,7 @@ try {
 
     if ($mode -eq "skip") {
         if (-not $results.ContainsKey($target)) {
-            Write-Error "skills-updates: skill not found in global lockfile: $target"
+            Write-CliError "skills-updates: skill not found in global lockfile: $target"
             exit 1
         }
 
@@ -1253,7 +1267,7 @@ try {
         if ($mode -eq "install") {
             foreach ($requestedName in $targets) {
                 if (-not $sourcesByName.ContainsKey($requestedName)) {
-                    Write-Error "skills-updates: skill not found in global lockfile: $requestedName"
+                    Write-CliError "skills-updates: skill not found in global lockfile: $requestedName"
                     exit 1
                 }
             }
@@ -1375,12 +1389,12 @@ try {
             Write-ColoredLine "Opening $changedCount diff(s) in Zed." Cyan
             & zed @zedArgs
             if ($LASTEXITCODE -ne 0) {
-                Write-Error "skills-updates: zed failed to open diff viewer"
+                Write-CliError "skills-updates: zed failed to open diff viewer"
                 exit 1
             }
             $preserveCompareTempPaths = $true
         } else {
-            Write-Error "skills-updates: zed command not found"
+            Write-CliError "skills-updates: zed command not found"
             exit 1
         }
     }
