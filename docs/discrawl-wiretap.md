@@ -69,11 +69,66 @@ discrawl search "query" --dm
 discrawl messages --dm --last 50
 ```
 
+## Auto-Sync
+
+This workstation keeps the local archive fresh with a user-level systemd timer:
+
+- Service: `/home/crunch/.config/systemd/user/discrawl-sync.service`
+- Timer: `/home/crunch/.config/systemd/user/discrawl-sync.timer`
+- Lockfile: `/tmp/discrawl-sync.lock`
+- Interval: every 30 minutes after the last completed run
+
+The service runs:
+
+```ini
+ExecStart=/usr/bin/flock -n /tmp/discrawl-sync.lock /home/crunch/.local/bin/discrawl sync
+```
+
+The timer uses:
+
+```ini
+OnBootSec=2min
+OnUnitActiveSec=30min
+Persistent=true
+Unit=discrawl-sync.service
+```
+
+Check the timer state:
+
+```bash
+systemctl --user list-timers --all discrawl-sync.timer
+systemctl --user is-enabled discrawl-sync.timer
+systemctl --user is-active discrawl-sync.timer
+```
+
+Check recent sync logs:
+
+```bash
+journalctl --user -u discrawl-sync.service -n 50 --no-pager
+```
+
+Change the interval:
+
+```bash
+systemctl --user edit --full discrawl-sync.timer
+systemctl --user daemon-reload
+systemctl --user restart discrawl-sync.timer
+```
+
+Disable auto-sync:
+
+```bash
+systemctl --user disable --now discrawl-sync.timer
+```
+
 ## Limits
 
 - Discrawl sees only messages Vesktop has cached locally.
 - Servers and channels that have not been opened in Vesktop may not have useful
   cached history.
+- The current local database may store synthetic guild labels such as
+  `Discord Desktop Guild ...` instead of real Discord server names. Prefer
+  visible channel names in user-facing answers when server names are missing.
 - `full_cache = false` keeps imports faster. Use `discrawl wiretap --full-cache`
   only for a deliberate slower archaeology pass.
 - Do not add bot tokens unless the user explicitly wants Discord API sync; even
@@ -102,4 +157,13 @@ messages=26
 guild_messages=26
 dm_messages=0
 dry_run=false
+
+systemctl --user is-enabled discrawl-sync.timer
+enabled
+
+systemctl --user is-active discrawl-sync.timer
+active
+
+systemctl --user cat discrawl-sync.timer
+OnUnitActiveSec=30min
 ```

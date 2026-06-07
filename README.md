@@ -22,6 +22,8 @@ auto-update, and config-migration startup paths for T3code app-server sessions.
 - `docs/codex-cli-tooling.md` documents companion tools used around Codex:
   Evo, RTK, ICM, Codex Security, OpenAI Developer Docs MCP, and adjacent
   utilities.
+- `docs/discrawl-wiretap.md` documents the local Discrawl Vesktop wiretap setup
+  and its user-level systemd auto-sync timer.
 
 ## Install
 
