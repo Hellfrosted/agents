@@ -77,6 +77,7 @@ function Show-Help {
         Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>"
         Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y --agent universal"
         Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>"
+        Write-HelpNote "Uninstalls also remove the global installed skill directory and saved skip."
         return
     }
 
@@ -109,6 +110,7 @@ function Show-Help {
     Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>"
     Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y --agent universal"
     Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>"
+    Write-HelpNote "Uninstalls also remove the global installed skill directory and saved skip."
 }
 
 function Write-ColoredLine {
@@ -443,6 +445,57 @@ function Install-SkillSource {
     return Invoke-SkillsAdd -SourceUrl $SourceUrl
 }
 
+function Get-InstalledSkillDirectory {
+    param([string]$Name)
+
+    if ([string]::IsNullOrWhiteSpace($Name) -or $Name -in @(".", "..") -or (Split-Path -Leaf $Name) -ne $Name) {
+        Write-CliError "skills-updates: invalid skill name for uninstall: $Name"
+        return $null
+    }
+
+    $baseDir = [IO.Path]::GetFullPath($skillsDir)
+    $candidateDir = [IO.Path]::GetFullPath((Join-Path $skillsDir $Name))
+    $basePrefix = if (
+        $baseDir.EndsWith([IO.Path]::DirectorySeparatorChar) -or
+        $baseDir.EndsWith([IO.Path]::AltDirectorySeparatorChar)
+    ) {
+        $baseDir
+    } else {
+        "$baseDir$([IO.Path]::DirectorySeparatorChar)"
+    }
+
+    if (-not $candidateDir.StartsWith($basePrefix, [StringComparison]::OrdinalIgnoreCase)) {
+        Write-CliError "skills-updates: invalid skill name for uninstall: $Name"
+        return $null
+    }
+
+    return $candidateDir
+}
+
+function Remove-InstalledSkillDirectory {
+    param([string]$Name)
+
+    $installedDir = Get-InstalledSkillDirectory -Name $Name
+    if (-not $installedDir) {
+        return $false
+    }
+
+    if (-not (Test-Path -LiteralPath $installedDir -PathType Container)) {
+        Write-StatusLine "OK      no installed directory for $Name"
+        return $true
+    }
+
+    try {
+        Remove-Item -LiteralPath $installedDir -Recurse -Force -ErrorAction Stop
+    } catch {
+        Write-CliError "skills-updates: could not remove installed directory for $Name`: $($_.Exception.Message)"
+        return $false
+    }
+
+    Write-StatusLine "OK      removed installed directory for $Name"
+    return $true
+}
+
 function Uninstall-Skill {
     param([string]$Name)
 
@@ -452,7 +505,10 @@ function Uninstall-Skill {
     }
 
     Write-StatusLine "UNINSTALL $Name"
-    $status = [pscustomobject]@{ Ok = $false }
+    $status = [pscustomobject]@{
+        Ok = $false
+        LockEntryRemoved = $false
+    }
     $completed = $false
     Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
         $lockBeforeUninstall = Read-SkillLockSnapshot
@@ -461,18 +517,61 @@ function Uninstall-Skill {
         $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
         if (-not $exitCode) {
             $status.Ok = $true
+        } else {
+            $status.Ok = $exitCode.Value -eq 0
+        }
+
+        if (-not $status.Ok) {
+            Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeUninstall
             Remove-SkillLockBackup
             return
         }
 
-        $status.Ok = $exitCode.Value -eq 0
-        if (-not $status.Ok) {
-            Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeUninstall
+        if (-not (Remove-InstalledSkillDirectory -Name $Name)) {
+            $status.Ok = $false
+            if (Restore-SkillLockSnapshotExact -Snapshot $lockBeforeUninstall) {
+                Remove-SkillLockBackup
+            }
+            return
+        }
+
+        $state = Read-SkillLock
+        if (Remove-SkillLockEntry -State $state -Name $Name) {
+            try {
+                Write-SkillLock -State $state
+                $writtenState = Read-SkillLock
+                if (Test-SkillLockEntry -State $writtenState -Name $Name) {
+                    throw "lock entry remained after write"
+                }
+                $status.LockEntryRemoved = $true
+            } catch {
+                Write-CliError "skills-updates: could not remove $Name from lockfile: $($_.Exception.Message)"
+                $status.Ok = $false
+                if (Restore-SkillLockSnapshotExact -Snapshot $lockBeforeUninstall) {
+                    Remove-SkillLockBackup
+                }
+                return
+            }
+        }
+
+        $skipState = Read-SkipState
+        if (Remove-SkipEntry -State $skipState -Name $Name) {
+            Write-SkipState -State $skipState
         }
         Remove-SkillLockBackup
     }
 
-    return $completed -and $status.Ok
+    if (-not ($completed -and $status.Ok)) {
+        return $false
+    }
+
+    if ($status.LockEntryRemoved) {
+        Write-StatusLine "OK      removed $Name from lockfile"
+    } else {
+        Write-StatusLine "OK      no lock entry for $Name"
+    }
+
+    return $true
 }
 
 function Read-SkillLock {
@@ -573,7 +672,7 @@ function Save-SkillLockBackup {
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
     $tempBackup = Join-Path $backupDir (".skill-lock.json.sk-up-backup.tmp-{0}" -f [IO.Path]::GetRandomFileName())
     try {
-        Set-Content -LiteralPath $tempBackup -Value $Snapshot.Raw -Encoding UTF8 -NoNewline
+        Write-Utf8NoBomFile -Path $tempBackup -Raw $Snapshot.Raw
         Move-Item -LiteralPath $tempBackup -Destination $backupPath -Force
     } finally {
         if (Test-Path -LiteralPath $tempBackup -PathType Leaf) {
@@ -610,6 +709,20 @@ function Repair-SkillLockFromBackup {
     return $true
 }
 
+function Write-Utf8NoBomFile {
+    param(
+        [string]$Path,
+        [AllowNull()][string]$Raw
+    )
+
+    if ($null -eq $Raw) {
+        $Raw = ""
+    }
+
+    $utf8NoBom = [Text.UTF8Encoding]::new($false)
+    [IO.File]::WriteAllText($Path, $Raw, $utf8NoBom)
+}
+
 function Write-RawSkillLock {
     param([AllowNull()][string]$Raw)
 
@@ -619,11 +732,11 @@ function Write-RawSkillLock {
 
     $writePath = Get-SkillLockWritePath
     $lockDir = Split-Path -Parent $writePath
-    New-Item -ItemType Directory -Path $lockDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $lockDir -Force -ErrorAction Stop | Out-Null
     $tempLock = Join-Path $lockDir (".skill-lock.json.tmp-{0}" -f [IO.Path]::GetRandomFileName())
     try {
-        Set-Content -LiteralPath $tempLock -Value $Raw -Encoding UTF8 -NoNewline
-        Move-Item -LiteralPath $tempLock -Destination $writePath -Force
+        Write-Utf8NoBomFile -Path $tempLock -Raw $Raw
+        Move-Item -LiteralPath $tempLock -Destination $writePath -Force -ErrorAction Stop
     } finally {
         if (Test-Path -LiteralPath $tempLock -PathType Leaf) {
             Remove-Item -LiteralPath $tempLock -Force -ErrorAction SilentlyContinue
@@ -636,6 +749,33 @@ function Write-SkillLock {
 
     $json = $State | ConvertTo-Json -Depth 20
     Write-RawSkillLock -Raw ($json + [Environment]::NewLine)
+}
+
+function Restore-SkillLockSnapshotExact {
+    param(
+        [object]$Snapshot
+    )
+
+    if (-not $Snapshot) {
+        return $false
+    }
+
+    try {
+        if (-not $Snapshot.Exists) {
+            if (Test-Path -LiteralPath $lock -PathType Leaf) {
+                Remove-Item -LiteralPath $lock -Force -ErrorAction Stop
+                Write-StatusLine "OK      restored lockfile snapshot"
+            }
+            return $true
+        }
+
+        Write-RawSkillLock -Raw $Snapshot.Raw
+        Write-StatusLine "OK      restored lockfile snapshot"
+        return $true
+    } catch {
+        Write-CliError "skills-updates: could not restore lockfile snapshot: $($_.Exception.Message)"
+        return $false
+    }
 }
 
 function Set-JsonProperty {
@@ -761,17 +901,26 @@ function Remove-SkillLockEntry {
         [string]$Name
     )
 
-    if (-not $State -or -not ((Get-JsonPropertyNames -Object $State) -contains "skills")) {
-        return $false
-    }
-
-    $names = @($State.skills.PSObject.Properties | ForEach-Object { $_.Name })
-    if (-not ($names -ccontains $Name)) {
+    if (-not (Test-SkillLockEntry -State $State -Name $Name)) {
         return $false
     }
 
     $State.skills.PSObject.Properties.Remove($Name)
     return $true
+}
+
+function Test-SkillLockEntry {
+    param(
+        [object]$State,
+        [string]$Name
+    )
+
+    if (-not $State -or -not ((Get-JsonPropertyNames -Object $State) -contains "skills")) {
+        return $false
+    }
+
+    $names = @($State.skills.PSObject.Properties | ForEach-Object { $_.Name })
+    return $names -ccontains $Name
 }
 
 function Remove-SkillLockEntryFromFile {
@@ -929,8 +1078,6 @@ if ($mode -eq "unskip") {
 }
 
 if ($mode -eq "uninstall") {
-    $skipState = Read-SkipState
-    $skipStateChanged = $false
     $failedCount = 0
 
     foreach ($name in $targets) {
@@ -938,20 +1085,6 @@ if ($mode -eq "uninstall") {
             $failedCount += 1
             continue
         }
-
-        if (Remove-SkillLockEntryFromFile -Name $name) {
-            Write-StatusLine "OK      removed $name from lockfile"
-        } else {
-            Write-StatusLine "OK      no lock entry for $name"
-        }
-
-        if (Remove-SkipEntry -State $skipState -Name $name) {
-            $skipStateChanged = $true
-        }
-    }
-
-    if ($skipStateChanged) {
-        Write-SkipState -State $skipState
     }
 
     if ($failedCount -gt 0) {

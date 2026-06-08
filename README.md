@@ -154,5 +154,7 @@ directory.
 Installs and uninstalls require `pnpm`. The updater uses
 `pnpm dlx skills@latest`, forces global operations to the universal
 `.agents/skills` target, guards lockfile writes with a mutex, and preserves
-existing lockfile entries around Skills CLI operations. Saved skips are tied to
-the current upstream tree hash and expire when upstream changes.
+existing lockfile entries around Skills CLI operations. Uninstalls also remove
+the global installed skill directory and clear saved skips for the skill. Saved
+skips are tied to the current upstream tree hash and expire when upstream
+changes.
