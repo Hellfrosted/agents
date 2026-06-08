@@ -77,7 +77,7 @@ function Show-Help {
         Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>"
         Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y --agent universal"
         Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>"
-        Write-HelpNote "Uninstalls also remove the global installed skill directory and saved skip."
+        Write-HelpNote "Uninstalls also remove the global installed skill directory, saved skip, and lockfile entry."
         return
     }
 
@@ -110,7 +110,7 @@ function Show-Help {
     Write-HelpNote "Named installs run: pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>"
     Write-HelpNote "Source installs run: pnpm dlx skills@latest add <source> -g -y --agent universal"
     Write-HelpNote "Uninstalls run: pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>"
-    Write-HelpNote "Uninstalls also remove the global installed skill directory and saved skip."
+    Write-HelpNote "Uninstalls also remove the global installed skill directory, saved skip, and lockfile entry."
 }
 
 function Write-ColoredLine {
