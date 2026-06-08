@@ -215,7 +215,8 @@ The updater reads global skills from `%AGENTS_HOME%` when set, otherwise from
 directory. Install and uninstall operations require `pnpm` and run
 `pnpm dlx skills@latest`; global operations are forced to the universal
 `.agents/skills` target. The script protects `.skill-lock.json` with a mutex
-and preserves existing lockfile fields around those operations.
+and preserves existing lockfile fields around those operations. Uninstalls also
+remove the global installed skill directory and clear saved skips for the skill.
 
 ## Codex Security
 
