@@ -672,7 +672,7 @@ function Save-SkillLockBackup {
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
     $tempBackup = Join-Path $backupDir (".skill-lock.json.sk-up-backup.tmp-{0}" -f [IO.Path]::GetRandomFileName())
     try {
-        Set-Content -LiteralPath $tempBackup -Value $Snapshot.Raw -Encoding UTF8 -NoNewline
+        Write-Utf8NoBomFile -Path $tempBackup -Raw $Snapshot.Raw
         Move-Item -LiteralPath $tempBackup -Destination $backupPath -Force
     } finally {
         if (Test-Path -LiteralPath $tempBackup -PathType Leaf) {
@@ -709,6 +709,20 @@ function Repair-SkillLockFromBackup {
     return $true
 }
 
+function Write-Utf8NoBomFile {
+    param(
+        [string]$Path,
+        [AllowNull()][string]$Raw
+    )
+
+    if ($null -eq $Raw) {
+        $Raw = ""
+    }
+
+    $utf8NoBom = [Text.UTF8Encoding]::new($false)
+    [IO.File]::WriteAllText($Path, $Raw, $utf8NoBom)
+}
+
 function Write-RawSkillLock {
     param([AllowNull()][string]$Raw)
 
@@ -721,7 +735,7 @@ function Write-RawSkillLock {
     New-Item -ItemType Directory -Path $lockDir -Force -ErrorAction Stop | Out-Null
     $tempLock = Join-Path $lockDir (".skill-lock.json.tmp-{0}" -f [IO.Path]::GetRandomFileName())
     try {
-        Set-Content -LiteralPath $tempLock -Value $Raw -Encoding UTF8 -NoNewline -ErrorAction Stop
+        Write-Utf8NoBomFile -Path $tempLock -Raw $Raw
         Move-Item -LiteralPath $tempLock -Destination $writePath -Force -ErrorAction Stop
     } finally {
         if (Test-Path -LiteralPath $tempLock -PathType Leaf) {
