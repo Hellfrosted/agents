@@ -1,12 +1,23 @@
-const params = new URLSearchParams(window.location.search);
-const pinnedThreadId = params.get("threadId") || "";
+const {
+  GOAL_REFRESH_INTERVAL_MS,
+  HEARTBEAT_INTERVAL_MS,
+  apiPath,
+  applyConfig,
+  createPanelState,
+  goalViewModel,
+  nextIconHrefs,
+  requestHeaders,
+} = window.CodexGoalPanelState;
+
 const clientId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-let threadId = pinnedThreadId;
-let iconVersion = 0;
+const state = createPanelState({
+  href: window.location.href,
+  origin: window.location.origin,
+  clientId,
+});
 let refreshInFlight = null;
 let heartbeatTimer = null;
 let goalRefreshTimer = null;
-let csrfToken = "";
 
 const els = {
   objective: document.getElementById("goal-objective"),
@@ -21,105 +32,58 @@ const els = {
   budgetMeter: document.getElementById("budget-meter"),
 };
 
-function apiPath(path) {
-  const next = new URL(path, window.location.origin);
-  const shouldPinThread = threadId && !(path === "/api/config" && !pinnedThreadId);
-  if (shouldPinThread) next.searchParams.set("threadId", threadId);
-  return `${next.pathname}${next.search}`;
-}
-
 function setOutput(value) {
   els.output.textContent = typeof value === "string" ? value : JSON.stringify(value, null, 2);
 }
 
-function updateIcons(goal) {
-  const status = goal?.status || "none";
-  iconVersion += 1;
-  for (const link of document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]')) {
-    const next = new URL(link.getAttribute("href") || "/favicon.svg", window.location.origin);
-    if (threadId) next.searchParams.set("threadId", threadId);
-    next.searchParams.set("goalStatus", status);
-    next.searchParams.set("v", String(iconVersion));
-    link.href = `${next.pathname}${next.search}`;
-  }
-}
+function renderBudgetMeter(meterState) {
+  const segments = Array.from(els.budgetMeter.querySelectorAll("span"));
+  els.budgetMeter.classList.toggle("is-looping", meterState.classes.isLooping);
+  els.budgetMeter.classList.toggle("is-budgeted", meterState.classes.isBudgeted);
+  els.budgetMeter.classList.toggle("is-over-budget", meterState.classes.isOverBudget);
 
-function formatSeconds(value) {
-  const seconds = Number(value || 0);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const rest = seconds % 60;
-  return `${minutes}m ${rest}s`;
-}
-
-function renderBudgetMeter(goal) {
-  const meter = els.budgetMeter;
-  const segments = Array.from(meter.querySelectorAll("span"));
-  const tokensUsed = Number(goal?.tokensUsed ?? 0);
-  const tokenBudget = Number(goal?.tokenBudget ?? 0);
-  const hasBudget = Number.isFinite(tokenBudget) && tokenBudget > 0;
-
-  meter.classList.toggle("is-looping", !hasBudget);
-  meter.classList.toggle("is-budgeted", hasBudget);
-  meter.classList.toggle("is-over-budget", hasBudget && tokensUsed > tokenBudget);
-
-  segments.forEach((segment) => {
+  meterState.segments.forEach((segmentState, index) => {
+    const segment = segments[index];
     segment.className = "";
+    if (segmentState.isFilled) segment.classList.add("is-filled");
+    if (segmentState.isHot) segment.classList.add("is-hot");
   });
 
-  if (!hasBudget) {
-    meter.setAttribute("aria-valuenow", "0");
-    meter.setAttribute("aria-valuetext", "No token budget set. Meter is scanning.");
-    return;
-  }
+  els.budgetMeter.setAttribute("aria-valuenow", meterState.valueNow);
+  els.budgetMeter.setAttribute("aria-valuetext", meterState.valueText);
+}
 
-  const ratio = Math.max(0, Math.min(tokensUsed / tokenBudget, 1));
-  const percent = Math.round(ratio * 100);
-  const filled = Math.max(1, Math.ceil(ratio * segments.length));
-  segments.forEach((segment, index) => {
-    if (index < filled) segment.classList.add("is-filled");
-    if (index === filled - 1) segment.classList.add("is-hot");
+function updateIcons(goal) {
+  const links = Array.from(document.querySelectorAll('link[rel="icon"], link[rel="apple-touch-icon"]'));
+  const hrefs = nextIconHrefs(
+    state,
+    links.map((link) => link.getAttribute("href")),
+    goal,
+  );
+  links.forEach((link, index) => {
+    link.href = hrefs[index];
   });
-
-  meter.setAttribute("aria-valuenow", String(percent));
-  meter.setAttribute("aria-valuetext", `${tokensUsed} of ${tokenBudget} tokens used.`);
 }
 
 function renderGoal(goal) {
-  els.threadId.textContent = threadId || "-";
+  const view = goalViewModel(state, goal, els.budgetMeter.querySelectorAll("span").length);
+  els.threadId.textContent = view.threadId;
+  els.objective.textContent = view.objective;
+  els.status.textContent = view.status;
+  els.status.dataset.status = view.status;
+  els.tokens.textContent = view.tokens;
+  els.budget.textContent = view.budget;
+  els.time.textContent = view.time;
+  renderBudgetMeter(view.budgetMeter);
   updateIcons(goal);
-  renderBudgetMeter(goal);
-  if (!goal) {
-    els.objective.textContent = "No goal set";
-    els.status.textContent = "none";
-    els.status.dataset.status = "none";
-    els.tokens.textContent = "-";
-    els.budget.textContent = "-";
-    els.time.textContent = "-";
-    return;
-  }
-
-  els.objective.textContent = goal.objective;
-  els.status.textContent = goal.status;
-  els.status.dataset.status = goal.status;
-  els.tokens.textContent = String(goal.tokensUsed ?? 0);
-  els.budget.textContent = goal.tokenBudget == null ? "none" : String(goal.tokenBudget);
-  els.time.textContent = formatSeconds(goal.timeUsedSeconds);
 }
 
 async function request(path, options = {}) {
   const method = options.method || "GET";
-  const headers = {
-    "content-type": "application/json",
-    ...(method === "GET" ? {} : { "x-codex-goal-csrf": csrfToken }),
-    ...(options.headers || {}),
-  };
-  const response = await fetch(apiPath(path), {
+  const response = await fetch(apiPath(state, path), {
     cache: "no-store",
     ...options,
-    headers: {
-      ...headers,
-    },
+    headers: requestHeaders(state, method, options.headers),
   });
   const data = await response.json();
   if (!response.ok || data.error) {
@@ -131,21 +95,16 @@ async function request(path, options = {}) {
 async function sendHeartbeat() {
   return request("/api/session/heartbeat", {
     method: "POST",
-    body: JSON.stringify({ clientId }),
+    body: JSON.stringify({ clientId: state.clientId }),
   });
 }
 
 function closeSession() {
-  const body = JSON.stringify({ clientId });
-  const url = apiPath("/api/session/close");
-  fetch(url, {
+  fetch(apiPath(state, "/api/session/close"), {
     method: "POST",
-    body,
+    body: JSON.stringify({ clientId: state.clientId }),
     cache: "no-store",
-    headers: {
-      "content-type": "application/json",
-      "x-codex-goal-csrf": csrfToken,
-    },
+    headers: requestHeaders(state, "POST"),
     keepalive: true,
   }).catch(() => {});
 }
@@ -154,30 +113,21 @@ function startHeartbeat() {
   sendHeartbeat().catch(() => {});
   heartbeatTimer = window.setInterval(() => {
     sendHeartbeat().catch(() => {});
-  }, 30_000);
+  }, HEARTBEAT_INTERVAL_MS);
 }
 
 async function loadConfig() {
   const config = await request("/api/config");
-  csrfToken = config.csrfToken || "";
-  if (!pinnedThreadId) {
-    threadId = config.threadId || "";
-    if (threadId) {
-      const next = new URL(window.location.href);
-      next.searchParams.set("threadId", threadId);
-      window.history.replaceState(null, "", next);
-    }
-  } else {
-    threadId = pinnedThreadId;
-  }
-  els.threadId.textContent = threadId;
+  const nextHref = applyConfig(state, config);
+  if (nextHref) window.history.replaceState(null, "", nextHref);
+  els.threadId.textContent = state.threadId;
   updateIcons(null);
 }
 
 async function refreshGoal() {
   if (refreshInFlight) return refreshInFlight;
   refreshInFlight = (async () => {
-    if (!pinnedThreadId) {
+    if (!state.pinnedThreadId) {
       await loadConfig();
     }
     const data = await request("/api/goal");
@@ -229,7 +179,7 @@ async function stopServer() {
   if (goalRefreshTimer) window.clearInterval(goalRefreshTimer);
   const data = await request("/api/server/stop", {
     method: "POST",
-    body: JSON.stringify({ clientId }),
+    body: JSON.stringify({ clientId: state.clientId }),
   });
   setOutput(data);
 }
@@ -266,6 +216,6 @@ goalRefreshTimer = window.setInterval(() => {
   refreshGoal().catch((error) => {
     setOutput(error.message || String(error));
   });
-}, 10_000);
+}, GOAL_REFRESH_INTERVAL_MS);
 
 window.addEventListener("pagehide", closeSession);
