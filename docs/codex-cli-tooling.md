@@ -11,6 +11,8 @@ plus repo-local wrappers that maintain those tools.
 - Codex Security: security review plugin from `openai-curated`.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
+- CodSpeed: CLI plus hosted MCP for performance runs, comparisons, and
+  flamegraph analysis.
 - LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
 - LazyCodex local MCP: LSP, AST grep, Context7, and grep.app search are provided
   by the OMO plugin when their servers work on this host.
@@ -234,6 +236,32 @@ it for current OpenAI API, SDK, platform, and product docs.
 
 Prefer it over web search for OpenAI-specific questions. Fetch the exact doc
 page before quoting or summarizing details.
+
+## CodSpeed
+
+CodSpeed CLI is installed at `/home/crunch/.local/bin/codspeed`. It is
+authenticated as the default CLI profile.
+
+The hosted CodSpeed MCP server is configured globally in Codex as `CodSpeed`:
+
+```bash
+codex mcp get CodSpeed
+codex mcp login CodSpeed
+```
+
+Use `codspeed status` to verify CLI auth, repository linkage, and available
+local executors. Local executor dependencies are installed on this WSL host:
+
+- Simulation: CodSpeed's Valgrind fork is installed from source under
+  `/home/crunch/.local`; `valgrind --version` should report
+  `valgrind-3.26.0.codspeed3`.
+- Walltime: Ubuntu `linux-tools-common`, `linux-tools-generic`, and
+  `linux-perf` provide `/usr/bin/perf`.
+- Memory: `codspeed setup` installs `codspeed-memtrack` automatically.
+
+`codspeed setup status` should show green checks for Valgrind, perf, and
+memtrack. The CLI and MCP are usable for account auth, repository/local-runs
+uploads, hosted run data, comparisons, and flamegraph queries when runs exist.
 
 ## LazyCodex
 
