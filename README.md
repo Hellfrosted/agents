@@ -83,8 +83,8 @@ LazyCodex startup defaults in the WSL runner:
 
 ## Use
 
-Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through to Codex after
-Windows paths are converted to WSL paths.
+Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through
+to Codex after Windows paths are converted to WSL paths.
 
 The WSL side needs `node` available on `PATH`.
 

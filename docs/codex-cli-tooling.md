@@ -265,6 +265,8 @@ workstation it is installed globally with `pnpm` and in the OMO plugin cache
 The plugin server can be checked without Codex by sending an MCP `initialize`,
 `notifications/initialized`, and `tools/list` sequence to the CLI:
 
+<!-- markdownlint-disable MD013 -->
+
 ```bash
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
@@ -272,6 +274,8 @@ printf '%s\n' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
 | /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/ast_grep/dist/cli.js mcp
 ```
+
+<!-- markdownlint-enable MD013 -->
 
 The response should include `search` and `replace`. The runtime also requires
 the real `@ast-grep/cli` binary. OMO Context7 is a remote streamable HTTP MCP
