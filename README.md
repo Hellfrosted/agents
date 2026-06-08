@@ -90,8 +90,8 @@ LazyCodex startup defaults in the WSL runner:
 
 ## Use
 
-Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through to Codex after
-Windows paths are converted to WSL paths.
+Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through
+to Codex after Windows paths are converted to WSL paths.
 
 The WSL side needs `node` available on `PATH`.
 
@@ -162,6 +162,8 @@ Installs and uninstalls require `pnpm`. The updater uses
 `pnpm dlx skills@latest`, forces global operations to the universal
 `.agents/skills` target, guards lockfile writes with a mutex, and preserves
 existing lockfile entries around Skills CLI operations. Uninstalls also remove
-the global installed skill directory and clear saved skips for the skill. Saved
-skips are tied to the current upstream tree hash and expire when upstream
-changes.
+the global installed skill directory, clear saved skips for the skill, and
+remove the skill's lockfile entry under the same operation lock. If post-CLI
+cleanup fails, the updater restores the pre-uninstall lockfile snapshot so
+directory and lockfile state do not diverge. Saved skips are tied to the
+current upstream tree hash and expire when upstream changes.
