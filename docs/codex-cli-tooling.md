@@ -12,7 +12,8 @@ plus repo-local wrappers that maintain those tools.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
 - LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
-- LazyCodex LSP MCP: wired directly as `mcp_servers.lsp` in WSL Codex config.
+- LazyCodex local MCP: LSP, AST grep, Context7, and grep.app search are provided
+  by the OMO plugin when their servers work on this host.
 - OMO CLI: local `omo` entrypoint for LazyCodex-specific helpers.
 - Discrawl: local Discord cache archive/search for Vesktop wiretap-only use.
 - Skills updater: Windows wrappers for checking and updating globally installed
@@ -23,9 +24,35 @@ plus repo-local wrappers that maintain those tools.
 - `react-doctor`: React diagnostics and cleanup checks.
 - `tokscale`: token counting and scale checks.
 - `actionlint`: GitHub Actions workflow linting.
+- `wslpath`: preferred WSL/Windows path conversion utility.
+- `wslu`: optional WSL convenience tools, mainly `wslview`.
 
 These are useful during agent work, but they are narrower than the main tools
 above.
+
+## WSL path and opener utilities
+
+Use `wslpath` for path conversion in scripts and diagnostics. On this
+workstation, `/usr/local/bin/wslpath` is first on `PATH` and converts the common
+forms used by this repo:
+
+```bash
+wslpath -w /mnt/e/dev/agents-toolkit
+wslpath -u 'E:\dev\agents-toolkit'
+wslpath -u 'C:\Program Files\Git\cmd'
+```
+
+Keep WSLU installed only as optional convenience tooling. The upstream
+`wslutilities/wslu` repository is archived, but Ubuntu still ships `wslu`; it is
+acceptable for interactive helpers such as `wslview`. Do not add new repo or
+shim logic that depends on WSLU when direct WSL interop works.
+
+Prefer direct WSL interop for durable automation:
+
+- `wslpath` for WSL/Windows path conversion.
+- `explorer.exe .` for opening a folder from WSL.
+- `powershell.exe /c start .` or `cmd.exe /c start` for opening files and URLs.
+- `wsl.exe` for WSL management from Windows.
 
 ## Discrawl
 
@@ -215,40 +242,61 @@ unless the user explicitly asks to remove it.
 The local CLI entrypoint is `omo`. It does not expose a `--version` flag, so
 use `omo help` as the basic availability check.
 
-### Direct LSP MCP wiring
+### LazyCodex MCP runtime
 
-The OMO LSP MCP server is also wired directly in the active WSL Codex config at
-`/home/crunch/.codex/config.toml`:
+The OMO plugin declares the local LazyCodex MCP servers in its bundled
+`.mcp.json`. Do not add direct `mcp_servers.lsp`, `mcp_servers.ast_grep`, or
+direct custom Context7 MCP wiring to `/home/crunch/.codex/config.toml` unless
+the user explicitly asks for a temporary diagnostic override. Prefer
+OMO-provided MCP servers over custom/local alternatives when the OMO servers
+work. The local plugin cache declaration launches the local stdio MCP servers
+through `/bin/bash -c` so it can prepend WSL user tool directories and base WSL
+system paths before execing `/home/crunch/.local/share/pnpm/bin/node`; this is
+needed when the Codex desktop app-server starts with a Windows-heavy PATH.
 
-```toml
-[mcp_servers.lsp]
-command = "node"
-args = [
-    "/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/lsp/dist/cli.js",
-    "mcp",
-]
-```
+The AST grep server requires the real `@ast-grep/cli` binary. On this
+workstation it is installed globally with `pnpm` and in the OMO plugin cache
+`node_modules`, exposing `sg` and `ast-grep` for the plugin-provided server.
 
-This bypasses plugin MCP mounting for LSP diagnostics. It was added after a
-thread exposed the OMO LSP skill text but did not expose an `lsp` MCP namespace,
-even though the server itself answered a direct MCP handshake.
-
-The direct server can be checked without Codex by sending an MCP
-`initialize`, `notifications/initialized`, and `tools/list` sequence to the CLI:
+The plugin server can be checked without Codex by sending an MCP `initialize`,
+`notifications/initialized`, and `tools/list` sequence to the CLI:
 
 ```bash
 printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-| node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/lsp/dist/cli.js mcp
+| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/ast_grep/dist/cli.js mcp
 ```
 
-The response should include tools such as `diagnostics`, `status`,
-`goto_definition`, `references`, `symbols`, and `rename`. After changing
-`mcp_servers.lsp`, start a fresh Codex thread or restart/reload Codex before
-checking whether the `lsp` namespace is available, because tool assembly happens
-at thread startup.
+The response should include `search` and `replace`. The runtime also requires
+the real `@ast-grep/cli` binary. OMO Context7 is a remote streamable HTTP MCP
+server at `https://mcp.context7.com/mcp`; use the OMO declaration instead of the
+old local Context7 compat proxy when the remote initializes successfully.
+
+Keep `plugins."omo@sisyphuslabs".mcp_servers.git_bash` disabled in the WSL
+Codex config until OMO `git_bash` supports this host. Its current server exits
+on non-Windows hosts before returning tools, so it does not satisfy the
+"prefer OMO when it works" rule here.
+
+Keep the top-level `mcp_servers.grep_app` entry pointed at
+`/home/crunch/.codex/mcp/grep-app-compat/grep-app-compat.mjs`, with
+`plugins."omo@sisyphuslabs".mcp_servers.grep_app` disabled, until the hosted
+`https://mcp.grep.app` server handles broad searches reliably. The compatibility
+server preserves the `grep_app/searchGitHub` namespace, tries the hosted MCP
+first, then falls back to authenticated `gh search code` when the hosted server
+times out or returns HTML.
+
+Keep redundant or noisy LazyCodex LSP entries disabled in
+`/home/crunch/.codex/lsp-client.json`: Deno, ESLint, Pyright, Ty, Ruff, Svelte,
+Astro, bash-ls, terraform-ls, and Prisma. The default diagnostic surface should
+prefer the active non-duplicated servers: TypeScript/JavaScript, Oxlint, Biome,
+BasedPyright, bash, Terraform, and Dockerfile plus the other single-language
+servers that do not overlap.
+
+After changing MCP dependencies, start a fresh Codex thread or restart/reload
+Codex before checking whether namespaces are available, because tool assembly
+happens at thread startup.
 
 For T3code sessions launched through `bin/codex-wsl.cmd`, the WSL runner
 disables LazyCodex telemetry, auto-update, and config migration by default while
@@ -293,6 +341,6 @@ omo help
 
 Some tools are exposed through MCP or plugins rather than plain CLI commands.
 For those, verify them through the Codex config or the tool list in the running
-session. For direct LazyCodex LSP MCP wiring, `codex plugin list` only confirms
-that the Codex TOML is parseable; a fresh thread is still needed to confirm that
-the `lsp` MCP namespace mounted.
+session. `codex plugin list` confirms that OMO is installed and enabled, but a
+fresh thread is still needed to confirm that the `lsp` and `ast_grep` MCP
+namespaces mounted.
