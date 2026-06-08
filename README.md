@@ -15,7 +15,11 @@ auto-update, and config-migration startup paths for T3code app-server sessions.
 
 - `bin/codex-wsl.cmd` is the Windows entry point.
 - `bin/codex-wsl-proxy-runner.sh` finds `node` inside WSL and starts the proxy.
-- `bin/codex-wsl-proxy.js` translates paths and forwards traffic to Codex.
+- `bin/codex-wsl-proxy.js` starts the WSL proxy runtime.
+- `bin/codex-wsl-proxy-runtime.js` owns child process lifecycle, protocol
+  fallback timing, and stream forwarding.
+- `bin/codex-wsl-path-translation.js` and
+  `bin/codex-wsl-skills-fallback.js` hold focused proxy policies.
 - `skills/` contains Codex skills that can be installed with the Skills CLI.
 - `bin/skills-updates.ps1`, `bin/skills-updates.cmd`, and `bin/sk-up.cmd`
   check, diff, install, skip, and remove globally installed skills.
@@ -39,6 +43,9 @@ Copy the WSL scripts into your WSL user:
 mkdir -p ~/.local/bin
 cp bin/codex-wsl-proxy-runner.sh ~/.local/bin/
 cp bin/codex-wsl-proxy.js ~/.local/bin/
+cp bin/codex-wsl-proxy-runtime.js ~/.local/bin/
+cp bin/codex-wsl-path-translation.js ~/.local/bin/
+cp bin/codex-wsl-skills-fallback.js ~/.local/bin/
 chmod +x ~/.local/bin/codex-wsl-proxy-runner.sh ~/.local/bin/codex-wsl-proxy.js
 ```
 
