@@ -387,6 +387,35 @@ function Invoke-WithSkillLockMutex {
     }
 }
 
+function Invoke-WithSkillStateTransaction {
+    param(
+        [scriptblock]$ScriptBlock,
+        [ref]$Completed
+    )
+
+    Invoke-WithSkillLockMutex -Completed $Completed -ScriptBlock {
+        $snapshot = Read-SkillLockSnapshot
+        Save-SkillLockBackup -Snapshot $snapshot
+        & $ScriptBlock $snapshot
+    }
+}
+
+function Complete-SkillStateTransaction {
+    Remove-SkillLockBackup
+}
+
+function Restore-SkillStateAfterSkillsCommand {
+    param([object]$BeforeSnapshot)
+
+    Restore-SkillLockAfterPnpx -BeforeSnapshot $BeforeSnapshot
+}
+
+function Restore-SkillStateSnapshot {
+    param([object]$Snapshot)
+
+    return Restore-SkillLockSnapshotExact -Snapshot $Snapshot
+}
+
 function Invoke-SkillsAdd {
     param(
         [string]$SourceUrl,
@@ -419,13 +448,13 @@ function Invoke-SkillsAdd {
 
     $status = [pscustomobject]@{ Ok = $false }
     $completed = $false
-    Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
-        $lockBeforeInstall = Read-SkillLockSnapshot
-        Save-SkillLockBackup -Snapshot $lockBeforeInstall
+    Invoke-WithSkillStateTransaction -Completed ([ref]$completed) -ScriptBlock {
+        param([object]$lockBeforeInstall)
+
         & pnpm dlx @skillsArgs | ForEach-Object { Write-Host $_ }
         $status.Ok = $LASTEXITCODE -eq 0
-        Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeInstall
-        Remove-SkillLockBackup
+        Restore-SkillStateAfterSkillsCommand -BeforeSnapshot $lockBeforeInstall
+        Complete-SkillStateTransaction
     }
     return $completed -and $status.Ok
 }
@@ -510,9 +539,9 @@ function Uninstall-Skill {
         LockEntryRemoved = $false
     }
     $completed = $false
-    Invoke-WithSkillLockMutex -Completed ([ref]$completed) -ScriptBlock {
-        $lockBeforeUninstall = Read-SkillLockSnapshot
-        Save-SkillLockBackup -Snapshot $lockBeforeUninstall
+    Invoke-WithSkillStateTransaction -Completed ([ref]$completed) -ScriptBlock {
+        param([object]$lockBeforeUninstall)
+
         & pnpm dlx skills@latest remove -g -y --agent universal --skill $Name | ForEach-Object { Write-Host $_ }
         $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
         if (-not $exitCode) {
@@ -522,15 +551,15 @@ function Uninstall-Skill {
         }
 
         if (-not $status.Ok) {
-            Restore-SkillLockAfterPnpx -BeforeSnapshot $lockBeforeUninstall
-            Remove-SkillLockBackup
+            Restore-SkillStateAfterSkillsCommand -BeforeSnapshot $lockBeforeUninstall
+            Complete-SkillStateTransaction
             return
         }
 
         if (-not (Remove-InstalledSkillDirectory -Name $Name)) {
             $status.Ok = $false
-            if (Restore-SkillLockSnapshotExact -Snapshot $lockBeforeUninstall) {
-                Remove-SkillLockBackup
+            if (Restore-SkillStateSnapshot -Snapshot $lockBeforeUninstall) {
+                Complete-SkillStateTransaction
             }
             return
         }
@@ -547,18 +576,15 @@ function Uninstall-Skill {
             } catch {
                 Write-CliError "skills-updates: could not remove $Name from lockfile: $($_.Exception.Message)"
                 $status.Ok = $false
-                if (Restore-SkillLockSnapshotExact -Snapshot $lockBeforeUninstall) {
-                    Remove-SkillLockBackup
+                if (Restore-SkillStateSnapshot -Snapshot $lockBeforeUninstall) {
+                    Complete-SkillStateTransaction
                 }
                 return
             }
         }
 
-        $skipState = Read-SkipState
-        if (Remove-SkipEntry -State $skipState -Name $Name) {
-            Write-SkipState -State $skipState
-        }
-        Remove-SkillLockBackup
+        Remove-SavedSkillSkip -Name $Name | Out-Null
+        Complete-SkillStateTransaction
     }
 
     if (-not ($completed -and $status.Ok)) {
@@ -1051,25 +1077,65 @@ function Remove-SkipEntry {
     return $false
 }
 
+function Get-SavedSkillSkips {
+    $state = Read-SkipState
+    return [pscustomobject]@{
+        State = $state
+        Names = @($state.skips.PSObject.Properties | ForEach-Object { $_.Name } | Sort-Object)
+    }
+}
+
+function Get-SavedSkillSkip {
+    param(
+        [object]$State,
+        [string]$Name
+    )
+
+    return Get-SkipEntry -State $State -Name $Name
+}
+
+function Save-SkillSkip {
+    param(
+        [object]$State,
+        [string]$Name,
+        [string]$RemoteHash,
+        [string]$SourceUrl
+    )
+
+    Set-SkipEntry -State $State -Name $Name -RemoteHash $RemoteHash -SourceUrl $SourceUrl
+    Write-SkipState -State $State
+}
+
+function Remove-SavedSkillSkip {
+    param([string]$Name)
+
+    $state = Read-SkipState
+    if (-not (Remove-SkipEntry -State $state -Name $Name)) {
+        return $false
+    }
+
+    Write-SkipState -State $state
+    return $true
+}
+
 if ($mode -eq "skips") {
-    $skipState = Read-SkipState
-    $skipNames = @($skipState.skips.PSObject.Properties | ForEach-Object { $_.Name } | Sort-Object)
+    $savedSkips = Get-SavedSkillSkips
+    $skipState = $savedSkips.State
+    $skipNames = $savedSkips.Names
     if ($skipNames.Count -eq 0) {
         Write-StatusLine "OK      no saved skips"
         exit 0
     }
 
     foreach ($name in $skipNames) {
-        $entry = Get-SkipEntry -State $skipState -Name $name
+        $entry = Get-SavedSkillSkip -State $skipState -Name $name
         Write-StatusLine "SKIP    $name $($entry.remoteHash)"
     }
     exit 0
 }
 
 if ($mode -eq "unskip") {
-    $skipState = Read-SkipState
-    if (Remove-SkipEntry -State $skipState -Name $target) {
-        Write-SkipState -State $skipState
+    if (Remove-SavedSkillSkip -Name $target) {
         Write-StatusLine "OK      removed skip for $target"
     } else {
         Write-StatusLine "OK      no saved skip for $target"
@@ -1149,7 +1215,7 @@ New-Item -ItemType Directory -Path $repoRoot -Force | Out-Null
 
 try {
     $lockData = Get-Content -LiteralPath $lock -Raw | ConvertFrom-Json
-    $skipState = Read-SkipState
+    $skipState = (Get-SavedSkillSkips).State
     $zedArgs = New-Object System.Collections.Generic.List[string]
     $changedCount = 0
     $groups = @{}
@@ -1347,7 +1413,7 @@ try {
                 git -c core.autocrlf=false -C $repo rev-parse "HEAD:$($item.RemoteDir)" 2>$null | ForEach-Object {
                     $remoteHash = $_.Trim()
                 }
-                $skipEntry = Get-SkipEntry -State $skipState -Name $item.Name
+                $skipEntry = Get-SavedSkillSkip -State $skipState -Name $item.Name
                 if ($skipEntry -and $skipEntry.remoteHash -eq $remoteHash) {
                     $results[$item.Name] = @{
                         Status = "SKIP"
@@ -1388,8 +1454,7 @@ try {
             exit 1
         }
 
-        Set-SkipEntry -State $skipState -Name $target -RemoteHash $result.RemoteHash -SourceUrl $result.SourceUrl
-        Write-SkipState -State $skipState
+        Save-SkillSkip -State $skipState -Name $target -RemoteHash $result.RemoteHash -SourceUrl $result.SourceUrl
         Write-StatusLine "SKIP    saved current update for $target"
         exit 0
     }
