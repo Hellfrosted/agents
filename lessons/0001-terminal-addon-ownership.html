@@ -285,7 +285,7 @@
         <article class="card">
           <h3>ble.sh: WSL Bash line editor</h3>
           <p>ble.sh is Bash Line Editor. Its README says it replaces default GNU Readline and adds syntax highlighting, enhanced completion, auto-complete, vim mode, status-line features, and history-share support.</p>
-          <p>Your WSL <code>.bashrc</code> sources <code>$HOME/.local/share/blesh/ble.sh</code> at lines 217-219, before Starship, fzf, zoxide, and Atuin. That means Bash editing, completion behavior, and some key handling should be debugged as ble.sh first, not plain Readline first.</p>
+          <p>Your WSL <code>.bashrc</code> sources <code>$HOME/.local/share/blesh/ble.sh</code> after readline-based fzf hooks and before Starship, zoxide, Atuin, and direnv. That makes ble.sh the Bash-side PSReadLine equivalent: Bash editing, completion behavior, suggestions, and syntax highlighting should be debugged as ble.sh first, not plain Readline first.</p>
         </article>
       </div>
     </section>
@@ -305,7 +305,7 @@
           <tr>
             <td>WSL Bash</td>
             <td><code>/home/crunch/.bashrc</code> lines 236-266</td>
-            <td>ble.sh loads earlier at lines 217-219. Then Starship, fzf env/key bindings, zoxide, Atuin, and direnv.</td>
+            <td>fzf readline hooks load first. Then ble.sh takes over Bash editing before Starship, zoxide, Atuin, and direnv.</td>
           </tr>
           <tr>
             <td>Windows PowerShell 5.1</td>
@@ -315,7 +315,7 @@
         </tbody>
       </table>
       <div class="callout">
-        <strong>Conflict rule:</strong> last key binding usually wins. That is why Atuin loading after PSFzf matters for <code>Ctrl-R</code>. In WSL Bash, ble.sh is the line editor underneath later fzf/zoxide/Atuin hooks.
+        <strong>Conflict rule:</strong> last key binding usually wins. That is why Atuin loading after PSFzf matters for <code>Ctrl-R</code>. In WSL Bash, fzf readline hooks load first, then ble.sh becomes the PSReadLine-equivalent line editor underneath later zoxide/Atuin hooks.
       </div>
     </section>
 

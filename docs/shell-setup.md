@@ -22,6 +22,14 @@ Atuin sync and AI are intentionally not configured. Atuin can become the main
 history search workflow, but Bash and PSReadLine still keep their own history
 unless separately disabled.
 
+Line editor parity:
+
+- PowerShell uses PSReadLine for live command editing, prediction display, and
+  menu completion.
+- WSL Bash uses ble.sh as the PSReadLine equivalent. Plain GNU Readline still
+  exists underneath Bash, but ble.sh owns the interactive editing layer after it
+  loads.
+
 ## Prompt
 
 Starship is the shared prompt engine.
@@ -180,7 +188,9 @@ git clone --recursive --depth 1 --shallow-submodules https://github.com/akinomyo
 make -C ~/.local/src/ble.sh install PREFIX=~/.local
 ```
 
-Load fzf readline bindings before ble.sh, then add ble.sh before the later Starship/zoxide/Atuin block:
+Load fzf readline bindings before ble.sh, then add ble.sh before the later
+Starship/zoxide/Atuin block. This makes ble.sh the Bash-side PSReadLine
+equivalent while preserving fzf's readline key bindings:
 
 ```bash
 # fzf's Bash bindings use readline, so install them before ble.sh takes over line editing.
@@ -191,7 +201,9 @@ if command -v fzf >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
     declare -F fzf-file-widget >/dev/null 2>&1 && bind -m emacs-standard -x "\"\C-t\": fzf-file-widget"
 fi
 
-# ble.sh needs Bash line editing; skip bash -c/script-style interactive shells.
+# ble.sh is the Bash equivalent of PSReadLine: live editing, suggestions,
+# syntax highlighting, and richer completion. Load it after readline-based
+# fzf hooks, before prompt/history/jump hooks.
 if [[ $- == *i* && -z ${BASH_EXECUTION_STRING+x} && -t 0 && -t 1 && -r "$HOME/.local/share/blesh/ble.sh" ]]; then
     source "$HOME/.local/share/blesh/ble.sh"
 fi
@@ -231,7 +243,7 @@ if [ -n "${BASH_VERSION:-}" ] && [ -n "${PS1:-}" ]; then
     fi
 
     if command -v atuin >/dev/null 2>&1 && [ -t 0 ] && [ -t 1 ]; then
-        eval "$(atuin init bash --disable-up-arrow --disable-ai)"
+        eval "$(atuin init bash --disable-up-arrow)"
     fi
 
     if command -v direnv >/dev/null 2>&1; then
@@ -301,4 +313,6 @@ Expected key model:
 - `Alt-C` opens fzf directory picker.
 - `Tab` uses PSReadLine MenuComplete in PowerShell and ble.sh-enhanced
   completion in WSL Bash.
+- Bash command editing, suggestions, syntax highlighting, and completion
+  debugging start with ble.sh, not plain GNU Readline.
 - `UpArrow` remains normal shell history.

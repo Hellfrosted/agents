@@ -183,7 +183,7 @@
           <td><strong>ble.sh</strong></td>
           <td>WSL Bash line editor: syntax highlighting, enhanced completion, suggestions, keymap behavior.</td>
           <td>Not command-history database, not prompt renderer, not directory jumper.</td>
-          <td>Sourced before Starship/fzf/zoxide/Atuin in <code>/home/crunch/.bashrc</code>.</td>
+          <td>Sourced after fzf readline hooks and before Starship/zoxide/Atuin in <code>/home/crunch/.bashrc</code>.</td>
         </tr>
       </tbody>
     </table>
@@ -220,7 +220,7 @@
     <div class="grid">
       <div class="box"><strong>History problem?</strong> Check Atuin first, then PSReadLine/Bash history.</div>
       <div class="box"><strong>File picker problem?</strong> Check fzf/PSFzf and <code>fd</code> commands.</div>
-      <div class="box"><strong>Bash editing problem?</strong> Check ble.sh before plain Readline.</div>
+      <div class="box"><strong>Bash editing problem?</strong> Check ble.sh before plain Readline; it is the Bash-side PSReadLine equivalent.</div>
       <div class="box"><strong><code>z</code> problem?</strong> Check zoxide init and database.</div>
       <div class="box"><strong>Prompt problem?</strong> Check Starship or Oh My Posh, depending shell.</div>
     </div>
