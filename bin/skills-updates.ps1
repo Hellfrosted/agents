@@ -393,10 +393,11 @@ function Invoke-WithSkillStateTransaction {
         [ref]$Completed
     )
 
+    $transactionScriptBlock = $ScriptBlock
     Invoke-WithSkillLockMutex -Completed $Completed -ScriptBlock {
         $snapshot = Read-SkillLockSnapshot
         Save-SkillLockBackup -Snapshot $snapshot
-        & $ScriptBlock $snapshot
+        & $transactionScriptBlock $snapshot
     }
 }
 
