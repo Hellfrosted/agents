@@ -24,7 +24,7 @@ Config location:
 - WSL Ubuntu: `/home/crunch/.config/starship.toml`
 - Linux/Arch: `~/.config/starship.toml`
 
-The current config uses portable modules only: OS, shell, directory, git, Node, Python, Rust, Go, command duration, time, and prompt character.
+The current config uses portable modules only: OS, shell, directory, git, command duration, inline time, and prompt character. It uses Powerline separators, so use a Nerd Font or another font with Powerline glyphs in the terminal. Color roles: blue/mauve for OS and shell, peach/yellow for git, teal for path, green/red only for command success or failure.
 
 ## Windows
 
