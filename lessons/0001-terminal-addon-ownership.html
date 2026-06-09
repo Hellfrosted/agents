@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Lesson 0001: Terminal Addon Ownership</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f8;
+      --ink: #1f2328;
+      --muted: #606975;
+      --panel: #ffffff;
+      --line: #d8dee4;
+      --accent: #0a66c2;
+      --good: #1a7f37;
+      --bad: #cf222e;
+      --note: #fff8c5;
+      --note-ink: #4d3b00;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #111315;
+        --ink: #e6edf3;
+        --muted: #9aa4b2;
+        --panel: #1b1f24;
+        --line: #333942;
+        --accent: #79c0ff;
+        --good: #7ee787;
+        --bad: #ff7b72;
+        --note: #312a08;
+        --note-ink: #f0d98c;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.6 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .wrap {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+    header .wrap {
+      padding: 30px 0 24px;
+    }
+    main.wrap {
+      padding: 24px 0 48px;
+    }
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+    h1 { font-size: clamp(30px, 5vw, 48px); }
+    h2 {
+      margin-top: 30px;
+      font-size: 24px;
+    }
+    h3 {
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+    p { margin: 10px 0 0; }
+    a { color: var(--accent); }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: .94em;
+      background: color-mix(in oklab, var(--line) 38%, transparent);
+      border-radius: 4px;
+      padding: 1px 4px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .lede {
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 760px;
+    }
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 4px 10px;
+      color: var(--muted);
+      background: color-mix(in oklab, var(--panel) 85%, var(--bg));
+      font-size: 13px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .card p { color: var(--muted); }
+    .callout {
+      background: var(--note);
+      color: var(--note-ink);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-top: 16px;
+      border: 1px solid color-mix(in oklab, var(--note-ink) 28%, transparent);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .stack {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .layer {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 12px;
+      align-items: start;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .layer strong { color: var(--accent); }
+    .quiz {
+      margin-top: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .question {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .choices {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: color-mix(in oklab, var(--panel) 88%, var(--bg));
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button:hover { border-color: var(--accent); }
+    .answer {
+      min-height: 24px;
+      margin-top: 10px;
+      color: var(--muted);
+    }
+    .answer.good { color: var(--good); }
+    .answer.bad { color: var(--bad); }
+    .refs li { margin: 6px 0; }
+    @media (max-width: 620px) {
+      .wrap {
+        width: min(358px, calc(100% - 32px));
+        margin-left: 16px;
+        margin-right: auto;
+      }
+      .layer { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+      th, td {
+        min-width: 140px;
+      }
+    }
+    @media print {
+      body { background: white; color: black; }
+      header { background: white; }
+      button, .quiz { display: none; }
+      a { color: black; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Terminal Addon Ownership</h1>
+      <p class="lede">Skill for this lesson: look at a terminal behavior and name the addon responsible. Once owner is known, debugging gets small.</p>
+      <div class="meta">
+        <span class="pill">Lesson 0001</span>
+        <span class="pill">Estimated time: 8 minutes</span>
+        <span class="pill">Workspace: agents-toolkit</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section>
+      <h2>One Mental Model</h2>
+      <p>Your terminal setup is not one tool. It is layers. Each layer owns one class of behavior.</p>
+      <div class="stack">
+        <div class="layer"><strong>Terminal app</strong><span>Tabby/Windows Terminal shows panes, tabs, fonts, colors, key routing. It does not decide what <code>Ctrl-R</code> means inside a shell prompt.</span></div>
+        <div class="layer"><strong>Shell</strong><span>PowerShell or Bash runs commands and loads profile files. Addons become active only when profile init code runs.</span></div>
+        <div class="layer"><strong>Line editor</strong><span>PSReadLine owns PowerShell prompt editing. In WSL Bash, ble.sh is loaded and replaces plain GNU Readline as the interactive line editor.</span></div>
+        <div class="layer"><strong>Prompt renderer</strong><span>Starship or Oh My Posh draws the prompt: OS, shell, cwd, git, duration, time. It does not search history.</span></div>
+        <div class="layer"><strong>Workflow addons</strong><span>Atuin, fzf, PSFzf, and zoxide add history search, fuzzy picking, and smart directory jumping.</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Your Active Addons</h2>
+      <div class="grid">
+        <article class="card">
+          <h3>Atuin: command history brain</h3>
+          <p>Atuin replaces plain shell history with a SQLite-backed history store plus search UI. Official docs describe extra command context and optional end-to-end encrypted sync.</p>
+          <p>Your config: PowerShell runs <code>atuin init powershell --disable-up-arrow --disable-ai</code>. WSL Bash runs <code>atuin init bash --disable-up-arrow</code>. Result: <code>Ctrl-R</code> opens Atuin; up-arrow stays normal shell history.</p>
+          <p>Practical answer: Atuin can replace your day-to-day history search and recall workflow, but not literally erase the shell's own history layer. Bash still has <code>history</code>, <code>HISTFILE</code>, <code>HISTSIZE</code>, and <code>.bash_history</code>; PowerShell still has PSReadLine history unless separately changed. Atuin's own import docs also state old history files continue updating.</p>
+        </article>
+        <article class="card">
+          <h3>fzf: generic fuzzy picker</h3>
+          <p>fzf is a filter UI: give it lines, type fuzzy text, select one or more lines. It is not specifically a history tool. It becomes file picker, directory picker, process picker, or git picker depending what feeds it input.</p>
+          <p>Your WSL Bash sources fzf completion and key-binding scripts. It also sets <code>FZF_DEFAULT_COMMAND</code>, <code>FZF_CTRL_T_COMMAND</code>, and <code>FZF_ALT_C_COMMAND</code> through <code>fd</code> so hidden files/directories are included while noisy dirs are excluded.</p>
+        </article>
+        <article class="card">
+          <h3>PSFzf: PowerShell-to-fzf bridge</h3>
+          <p>PSFzf is not another picker. It wraps fzf for PowerShell and registers PSReadLine key handlers.</p>
+          <p>Your profile loads PSFzf only when <code>fzf.exe</code> exists, then sets <code>Ctrl-T</code> for provider/file selection and <code>Alt-C</code> for directory selection. Atuin loads after PSFzf, so history search belongs to Atuin in practice.</p>
+        </article>
+        <article class="card">
+          <h3>zoxide: smart cd memory</h3>
+          <p>zoxide tracks directories you use and ranks them. <code>z foo</code> jumps to best remembered match. <code>zi foo</code> asks fzf when you want to choose interactively.</p>
+          <p>Your PowerShell and Bash profiles both eval <code>zoxide init</code>, which defines shell functions. Install alone is not enough because a child process cannot change parent shell cwd.</p>
+        </article>
+        <article class="card">
+          <h3>Starship: current main prompt</h3>
+          <p>Starship draws a portable prompt from modules. Your shared config shows OS, shell, git branch/status, command duration, time, directory, and success/error prompt symbol.</p>
+          <p>PowerShell 7 sets <code>STARSHIP_CONFIG</code> to <code>$HOME\.config\starship.toml</code>. WSL Bash uses <code>starship init bash</code>.</p>
+        </article>
+        <article class="card">
+          <h3>Oh My Posh: legacy prompt</h3>
+          <p>Oh My Posh still exists in Windows PowerShell 5.1 profile. It chooses a Codex-safe theme when it detects Codex host; otherwise clean detailed theme.</p>
+          <p>PowerShell 7 profile now uses Starship instead, so prompt issue in <code>pwsh</code> points to Starship, not Oh My Posh.</p>
+        </article>
+        <article class="card">
+          <h3>PSReadLine: PowerShell line editor</h3>
+          <p>PSReadLine owns edit mode, bell, predictive suggestions, and Tab behavior. Microsoft docs define <code>PredictionSource</code> and <code>PredictionViewStyle</code> through <code>Set-PSReadLineOption</code>.</p>
+          <p>Your profile sets Windows edit mode, disables bell, enables history predictions in ListView when output is not redirected, and maps Tab to MenuComplete.</p>
+        </article>
+        <article class="card">
+          <h3>ble.sh: WSL Bash line editor</h3>
+          <p>ble.sh is Bash Line Editor. Its README says it replaces default GNU Readline and adds syntax highlighting, enhanced completion, auto-complete, vim mode, status-line features, and history-share support.</p>
+          <p>Your WSL <code>.bashrc</code> sources <code>$HOME/.local/share/blesh/ble.sh</code> at lines 217-219, before Starship, fzf, zoxide, and Atuin. That means Bash editing, completion behavior, and some key handling should be debugged as ble.sh first, not plain Readline first.</p>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Exact Startup Order</h2>
+      <table>
+        <thead>
+          <tr><th>Shell</th><th>Profile Section</th><th>Effect</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>PowerShell 7</td>
+            <td><code>Microsoft.PowerShell_profile.ps1</code> lines 16-50</td>
+            <td>Starship first, PSReadLine next, PSFzf next, zoxide next, Atuin last.</td>
+          </tr>
+          <tr>
+            <td>WSL Bash</td>
+            <td><code>/home/crunch/.bashrc</code> lines 236-266</td>
+            <td>ble.sh loads earlier at lines 217-219. Then Starship, fzf env/key bindings, zoxide, Atuin, and direnv.</td>
+          </tr>
+          <tr>
+            <td>Windows PowerShell 5.1</td>
+            <td><code>Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1</code> lines 3-38</td>
+            <td>Only Oh My Posh prompt setup is visible in current profile slice.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <strong>Conflict rule:</strong> last key binding usually wins. That is why Atuin loading after PSFzf matters for <code>Ctrl-R</code>. In WSL Bash, ble.sh is the line editor underneath later fzf/zoxide/Atuin hooks.
+      </div>
+    </section>
+
+    <section>
+      <h2>Use This Debug Map</h2>
+      <table>
+        <thead>
+          <tr><th>Symptom</th><th>Likely Owner</th><th>First Check</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>Ctrl-R</code> does not open history UI</td><td>Atuin or line editor key binding</td><td>Confirm shell profile ran and <code>atuin init ...</code> is after competing history bindings.</td></tr>
+          <tr><td><code>Ctrl-T</code> file picker missing</td><td>fzf/PSFzf</td><td>Check <code>fzf</code> exists and shell fzf bindings or PSFzf loaded.</td></tr>
+          <tr><td><code>Alt-C</code> directory picker missing</td><td>fzf/PSFzf</td><td>Check <code>FZF_ALT_C_COMMAND</code> in Bash or PSFzf chord in PowerShell.</td></tr>
+          <tr><td><code>z repo</code> does not jump</td><td>zoxide</td><td>Check <code>zoxide init</code> ran; visit directory normally once so zoxide can learn it.</td></tr>
+          <tr><td>Prompt ugly, slow, wrong git info</td><td>Starship or Oh My Posh</td><td>Check which shell profile loaded and which prompt renderer that shell uses.</td></tr>
+          <tr><td>Tab completion feels different</td><td>PSReadLine, ble.sh, or fzf completion</td><td>PowerShell: <code>Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete</code>. WSL Bash: check ble.sh first, then fzf completion script.</td></tr>
+          <tr><td>Bash syntax highlighting or autosuggest is wrong</td><td>ble.sh</td><td>Check whether <code>$HOME/.local/share/blesh/ble.sh</code> loaded in an interactive TTY shell.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Practice</h2>
+      <p>Pick owner. Feedback appears immediately.</p>
+      <div class="quiz">
+        <div class="question" data-answer="Atuin">
+          <strong>You press Ctrl-R and expect searchable command history. Who owns it?</strong>
+          <div class="choices">
+            <button>Atuin</button><button>Starship</button><button>zoxide</button>
+          </div>
+          <div class="answer"></div>
+        </div>
+        <div class="question" data-answer="zoxide">
+          <strong>You type z agents and jump to an old repo path. Who decided target directory?</strong>
+          <div class="choices">
+            <button>fzf</button><button>zoxide</button><button>PSReadLine</button>
+          </div>
+          <div class="answer"></div>
+        </div>
+        <div class="question" data-answer="PSFzf">
+          <strong>In PowerShell, Ctrl-T opens a fuzzy file/provider picker. Which wrapper attached that to PSReadLine?</strong>
+          <div class="choices">
+            <button>PSFzf</button><button>Oh My Posh</button><button>Atuin</button>
+          </div>
+          <div class="answer"></div>
+        </div>
+        <div class="question" data-answer="Starship">
+          <strong>Your PowerShell 7 prompt shows git branch, time, and cwd. Who renders that prompt?</strong>
+          <div class="choices">
+            <button>Starship</button><button>fzf</button><button>PSReadLine</button>
+          </div>
+          <div class="answer"></div>
+        </div>
+        <div class="question" data-answer="ble.sh">
+          <strong>In WSL Bash, syntax highlighting and richer Tab behavior changed. Who owns that line-editing layer?</strong>
+          <div class="choices">
+            <button>Atuin</button><button>ble.sh</button><button>Starship</button>
+          </div>
+          <div class="answer"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Sources</h2>
+      <ul class="refs">
+        <li><a href="https://docs.atuin.sh/">Atuin docs</a>: history database, command context, sync, and Ctrl-R/up-arrow behavior.</li>
+        <li><a href="https://docs.atuin.sh/cli/guide/import/">Atuin import docs</a>: existing shell history files continue updating and can be imported.</li>
+        <li><a href="https://docs.atuin.sh/cli/configuration/key-binding/">Atuin key binding docs</a>: disabling up-arrow and Ctrl-R bindings.</li>
+        <li><a href="https://github.com/junegunn/fzf/blob/master/README.md">fzf README</a>: shell bindings, fuzzy completion, and picker behavior.</li>
+        <li><a href="https://github.com/akinomyoga/ble.sh">ble.sh README</a>: Bash line editor replacement, syntax highlighting, enhanced completion, and fzf compatibility note.</li>
+        <li><a href="https://github.com/ajeetdsouza/zoxide">zoxide README</a>: <code>z</code>, <code>zi</code>, init commands, and fzf interactive selection.</li>
+        <li><a href="https://starship.rs/config/">Starship config docs</a>: prompt config file, modules, and formatting.</li>
+        <li><a href="https://learn.microsoft.com/en-us/powershell/module/psreadline/set-psreadlineoption">Microsoft PSReadLine docs</a>: edit options, prediction source, and ListView.</li>
+        <li><a href="https://github.com/kelleyma49/PSFzf">PSFzf README</a>: PowerShell wrapper around fzf and PSReadLine chord setup.</li>
+        <li><a href="https://ohmyposh.dev/docs/installation/prompt">Oh My Posh prompt docs</a>: PowerShell prompt init through profile scripts.</li>
+      </ul>
+      <p>Ask follow-up questions in Codex when one addon still feels fuzzy. Best next drill: give me a terminal symptom, and we classify owner before touching config.</p>
+    </section>
+  </main>
+
+  <script>
+    for (const question of document.querySelectorAll(".question")) {
+      const answer = question.querySelector(".answer");
+      for (const button of question.querySelectorAll("button")) {
+        button.addEventListener("click", () => {
+          const correct = button.textContent.trim() === question.dataset.answer;
+          answer.className = "answer " + (correct ? "good" : "bad");
+          answer.textContent = correct
+            ? "Correct. Debug that addon first."
+            : "Not owner. Responsible addon: " + question.dataset.answer + ".";
+        });
+      }
+    }
+  </script>
+</body>
+</html>

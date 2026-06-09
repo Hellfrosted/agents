@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Terminal Addons Cheatsheet</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f7f7f4;
+      --ink: #202124;
+      --muted: #5f6368;
+      --line: #d9d6cc;
+      --panel: #ffffff;
+      --accent: #0969da;
+      --ok: #137333;
+      --warn: #b06000;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #151617;
+        --ink: #eceff1;
+        --muted: #b0b5b9;
+        --line: #34383c;
+        --panel: #1f2225;
+        --accent: #7ab7ff;
+        --ok: #8bdc9b;
+        --warn: #ffcc7a;
+      }
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15px/1.55 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+    main {
+      width: min(1040px, calc(100% - 32px));
+      margin: 32px auto;
+    }
+    h1, h2 {
+      line-height: 1.1;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 18px;
+      margin: 28px 0 12px;
+    }
+    p {
+      margin: 0 0 12px;
+      color: var(--muted);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      background: color-mix(in oklab, var(--line) 38%, transparent);
+      border-radius: 4px;
+      padding: 1px 4px;
+      white-space: normal;
+      overflow-wrap: anywhere;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+    }
+    .box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .box strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    @media print {
+      body { background: white; color: black; }
+      main { margin: 0; width: 100%; }
+      a { color: black; }
+    }
+    @media (max-width: 620px) {
+      main {
+        width: min(358px, calc(100% - 32px));
+        margin-left: 16px;
+        margin-right: auto;
+      }
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+      th, td {
+        min-width: 130px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Terminal Addons Cheatsheet</h1>
+    <p>One job per addon. When something breaks, find owner first.</p>
+
+    <h2>Ownership Map</h2>
+    <table>
+      <thead>
+        <tr><th>Addon</th><th>Owns</th><th>Does Not Own</th><th>Your Current Hook</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Atuin</strong></td>
+          <td>Command history database, history search UI, optional encrypted sync.</td>
+          <td>Does not make Bash <code>history</code> or PSReadLine read from Atuin. Old history files can still update.</td>
+          <td><code>Ctrl-R</code>; up-arrow disabled; AI binding disabled in PowerShell.</td>
+        </tr>
+        <tr>
+          <td><strong>fzf</strong></td>
+          <td>Generic fuzzy picker. Reads list in, lets you filter/select, prints selection out.</td>
+          <td>Does not know shell history unless some wrapper feeds history into it.</td>
+          <td>Bash key-binding files; PowerShell via PSFzf.</td>
+        </tr>
+        <tr>
+          <td><strong>PSFzf</strong></td>
+          <td>PowerShell bridge from PSReadLine key chords to fzf.</td>
+          <td>Not installed on WSL Bash; not prompt; not Atuin history.</td>
+          <td><code>Ctrl-T</code> file/provider picker; <code>Alt-C</code> directory picker.</td>
+        </tr>
+        <tr>
+          <td><strong>zoxide</strong></td>
+          <td>Smart directory jump database based on places you visit.</td>
+          <td>File picking, history search, prompt drawing.</td>
+          <td><code>z query</code> jumps; <code>zi query</code> opens fzf picker.</td>
+        </tr>
+        <tr>
+          <td><strong>Starship</strong></td>
+          <td>Cross-shell prompt: OS, shell, git, directory, time, command duration.</td>
+          <td>Line editing, history, file picking.</td>
+          <td>PowerShell 7 and WSL Bash use <code>~/.config/starship.toml</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Oh My Posh</strong></td>
+          <td>Legacy Windows PowerShell prompt theme.</td>
+          <td>PowerShell 7 prompt in current profile.</td>
+          <td>Windows PowerShell 5.1 profile only.</td>
+        </tr>
+        <tr>
+          <td><strong>PSReadLine</strong></td>
+          <td>PowerShell command-line editor, predictions, Tab behavior, key handlers.</td>
+          <td>Not WSL Bash; not fzf itself.</td>
+          <td>Windows edit mode, no bell, history ListView, Tab MenuComplete.</td>
+        </tr>
+        <tr>
+          <td><strong>ble.sh</strong></td>
+          <td>WSL Bash line editor: syntax highlighting, enhanced completion, suggestions, keymap behavior.</td>
+          <td>Not command-history database, not prompt renderer, not directory jumper.</td>
+          <td>Sourced before Starship/fzf/zoxide/Atuin in <code>/home/crunch/.bashrc</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Current Versions</h2>
+    <div class="grid">
+      <div class="box">
+        <strong>Windows shims</strong>
+        Atuin 18.16.1, fzf 0.73.1, zoxide 0.9.9, Starship 1.25.1, Oh My Posh 29.14.0.
+      </div>
+      <div class="box">
+        <strong>WSL packages</strong>
+        Atuin 18.8.0, fzf 0.67.0, zoxide 0.9.8, Starship 1.22.1, ble.sh 0.4.0-devel4+b99cadb4.
+      </div>
+    </div>
+
+    <h2>Hotkeys</h2>
+    <table>
+      <thead>
+        <tr><th>Key</th><th>PowerShell 7</th><th>WSL Bash</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Ctrl-R</code></td><td>Atuin history search.</td><td>Atuin history search.</td></tr>
+        <tr><td><code>Up</code></td><td>Normal PSReadLine previous-history behavior.</td><td>Normal Bash previous-history behavior.</td></tr>
+        <tr><td><code>Ctrl-T</code></td><td>PSFzf file/provider picker.</td><td>fzf file widget.</td></tr>
+        <tr><td><code>Alt-C</code></td><td>PSFzf directory picker.</td><td>fzf directory change if Bash binding file provided it.</td></tr>
+        <tr><td><code>Tab</code></td><td>PSReadLine MenuComplete.</td><td>ble.sh-enhanced Bash completion, plus fzf completion if loaded.</td></tr>
+        <tr><td><code>z text</code></td><td>zoxide smart jump.</td><td>zoxide smart jump.</td></tr>
+        <tr><td><code>zi text</code></td><td>zoxide interactive jump via fzf.</td><td>zoxide interactive jump via fzf.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Debug First Question</h2>
+    <div class="grid">
+      <div class="box"><strong>History problem?</strong> Check Atuin first, then PSReadLine/Bash history.</div>
+      <div class="box"><strong>File picker problem?</strong> Check fzf/PSFzf and <code>fd</code> commands.</div>
+      <div class="box"><strong>Bash editing problem?</strong> Check ble.sh before plain Readline.</div>
+      <div class="box"><strong><code>z</code> problem?</strong> Check zoxide init and database.</div>
+      <div class="box"><strong>Prompt problem?</strong> Check Starship or Oh My Posh, depending shell.</div>
+    </div>
+  </main>
+</body>
+</html>
