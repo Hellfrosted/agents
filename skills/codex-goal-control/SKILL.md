@@ -17,18 +17,19 @@ goals = true
 ## Run Bundled Scripts
 
 Run bundled scripts from the directory that contains this loaded `SKILL.md`.
-
-Do not build script paths from `CODEX_HOME`, `HOME`, `$skills_home`, `$SKILLS_HOME`, the current working directory, a remembered install root, or a workstation-specific path. Skill managers may install skills in different locations, and those locations may move.
-
-Use the loaded skill path as the only authority. In commands below, replace `<skill-dir>` with the actual directory that contains this loaded `SKILL.md`, keeping the path format exposed to the current runtime. Symlinked skills use the visible loaded `SKILL.md` directory unless the filesystem cannot read through the link.
-
-If the loaded skill path is unavailable, locate the installed `codex-goal-control` skill first, then verify it before running helpers. Use the local command syntax for the current runtime; the examples below are shell-shaped, not a requirement to use Bash:
+Use the loaded skill path as the only authority; do not build paths from
+`CODEX_HOME`, `HOME`, `$skills_home`, `$SKILLS_HOME`, the current working
+directory, or remembered install roots. In commands below, replace `<skill-dir>`
+with the directory that contains this loaded `SKILL.md`.
+If the loaded path cannot be read, locate the installed skill and verify it
+before running helpers.
 
 ```bash
 node "<skill-dir>/scripts/codex_goal.js" --help
 ```
 
-Use the `node` executable available in the current runtime. For a WSL agent, that is WSL `node`; for native Windows, that is Windows `node`; for Linux or macOS, that is the local `node`. The scripts resolve their sibling files from their own installed directory.
+Use the `node` executable available in the current runtime. The scripts resolve
+their sibling files from their own installed directory.
 
 ## Ground Rules
 
@@ -70,11 +71,12 @@ node "<skill-dir>/scripts/codex_goal.js" clear --json
 
 Before `set`, run `get --json`. If a goal already exists and the user did not clearly ask to replace it, report the existing objective/status and ask before overwriting it.
 
-For `set`, pass `--budget` only when the user provides a concrete positive integer budget.
-
-For `complete`, act only when the user explicitly asks or when the agent has actually achieved the objective and no required work remains.
-
-For `clear`, act only when the user explicitly asks to clear/delete/remove the goal, or after confirmation.
+- For `set`, pass `--budget` only when the user provides a concrete positive
+  integer budget.
+- For `complete`, act only when the user explicitly asks or when the agent has
+  actually achieved the objective and no required work remains.
+- For `clear`, act only when the user explicitly asks to clear/delete/remove the
+  goal, or after confirmation.
 
 After `set`, `pause`, `resume`, `complete`, or `clear`, run:
 

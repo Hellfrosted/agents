@@ -9,6 +9,9 @@ Discrawl Local searches the workstation's local Discord archive. This install is
 configured for Vesktop wiretap mode, so it reads local desktop cache only and
 does not use a Discord bot token.
 
+For machine paths, troubleshooting commands, and cache limits, see
+[REFERENCE.md](REFERENCE.md).
+
 ## Quick Start
 
 For a normal search request:
@@ -27,7 +30,7 @@ discrawl doctor --json
 discrawl status --json
 ```
 
-## Workflows
+## Workflow
 
 1. Treat Discrawl as a local documentation and memory source for Discord
    discussions, especially servers where bot sync is unavailable.
@@ -42,17 +45,7 @@ discrawl status --json
 6. Answer with the commands/filters used and cite channel name, guild/channel id
    when available, timestamp, or enough output context to audit the finding.
 
-## Local Setup
-
-- Binary: `/home/crunch/.local/bin/discrawl`
-- Config: `/home/crunch/.config/discrawl/config.toml`
-- Database: `/home/crunch/.local/share/discrawl/discrawl.db`
-- Vesktop cache: `/mnt/c/Users/nguco/AppData/Roaming/Vesktop/sessionData`
-- Default sync source: `wiretap`
-- Discord token source: `none`
-- Setup doc: `/mnt/e/dev/agents-toolkit/docs/discrawl-wiretap.md`
-
-## Invocation Cases
+## Bare Invocation
 
 If invoked without a question, run `discrawl status --json`, then report current
 message count, channel count, database path, and common asks:
@@ -69,20 +62,6 @@ _use your coding agent to search locally cached Discord history_
 - `use discrawl, what did #channel say about topic?`
 ```
 
-For setup or troubleshooting, run:
-
-```bash
-discrawl --version
-discrawl check-update
-discrawl doctor --json
-discrawl status --json
-rg -n '^(token_source|source|path|full_cache) =' /home/crunch/.config/discrawl/config.toml
-```
-
-The expected setup is wiretap-only with Vesktop's `sessionData` path. If the
-cache path stops working, inspect the Vesktop data directories under
-`/mnt/c/Users/nguco/AppData/Roaming/`.
-
 ## Safety Rules
 
 - Do not configure bot tokens, user tokens, selfbots, share/publish, cloud, or
@@ -91,10 +70,3 @@ cache path stops working, inspect the Vesktop data directories under
   or remote-read features, not part of normal local wiretap search.
 - Never record token values in docs, examples, commits, or agent notes.
 - Do not dump long private conversations. Summarize only what is needed.
-
-## Limits
-
-- The archive only contains what Vesktop has cached locally.
-- `--full-cache` can be slow; use it only when the normal scan misses expected
-  historical context.
-- Bot-visible complete history is intentionally not configured.
