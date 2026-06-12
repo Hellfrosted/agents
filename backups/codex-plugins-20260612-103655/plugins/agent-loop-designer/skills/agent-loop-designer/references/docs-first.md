@@ -46,5 +46,12 @@ Before creating or spawning subagents:
 2. Confirm whether the child needs read-only, artifact-only, or code-editing access.
 3. Confirm the active parent runtime permits that access.
 4. Record the permission model in the subagent plan.
+5. Record the spawn policy. Role-specific workers, reviewers, explorers, and
+   custom-agent style assignments use non-full-history spawns with role/model
+   intent in the message. In the current `spawn_agent` tool, omit
+   `fork_context` or set `fork_context: false`; on tool surfaces that use
+   `fork_turns`, set `fork_turns: "none"`. Full-history forks inherit the
+   parent agent type, model, and reasoning effort, so do not combine them with
+   `agent_type`, `model`, or `reasoning_effort` overrides.
 
 If the child must write and the active parent turn is read-only, stop and report the mismatch instead of spawning a writer.

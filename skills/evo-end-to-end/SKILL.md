@@ -64,6 +64,13 @@ before continuing with the best available fallback.
 10. Size `subagents=<n>` from benchmark/backend resources first. Use width 1
     for exclusive GPUs, fixed ports, shared databases, singleton services, or
     timing-sensitive harnesses unless the harness isolates them.
+    This is Evo CLI worker sizing, not Codex `spawn_agent` fork behavior. If
+    this workflow also uses Codex subagents for planning, review, or triage,
+    launch role-specific workers without full history. In the current
+    `spawn_agent` tool, omit `fork_context` or set `fork_context: false`; on
+    tool surfaces that use `fork_turns`, set `fork_turns: "none"`. Put the role
+    and needed context in the message; do not override `agent_type`, `model`, or
+    `reasoning_effort` on a full-history fork.
 11. Run `$evo optimize subagents=<n> budget=<n> stall=<n>` within the approved
     scope.
 12. Use `evo direct "<text>"` only to steer an already-running Evo session. If

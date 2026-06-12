@@ -34,6 +34,14 @@ Always use sub-agent reviewers. The mode controls only how many reviewers to use
 - **hard/2**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
 - **extreme/3**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
 
+When spawning reviewers in Codex, use non-full-history forks for role-specific
+review. In the current `spawn_agent` tool, omit `fork_context` or set
+`fork_context: false`; on tool surfaces that use `fork_turns`, set
+`fork_turns: "none"`. Put the reviewer role, angle, constraints, and needed
+context in the `message`. Do not combine a full-history fork with `agent_type`,
+`model`, or `reasoning_effort` overrides; full-history forks inherit those
+fields from the parent and will be rejected if overridden.
+
 Choose reviewer angles that match the problem. Common angles:
 
 - **Skeptic**: false assumptions, loopholes, and failure modes.
@@ -49,12 +57,14 @@ Give each reviewer the strategy, criteria, evidence, and open questions. They mu
 Prompt shape:
 
 ```
-Read-only confidence-loop reviewer. Angle: {reviewer angle}.
+TASK: act as a read-only confidence-loop reviewer. Angle: {reviewer angle}.
+DELIVERABLE: material loopholes with evidence, verification checks, speculative objections labeled as such, and confidence: 0-100.
+SCOPE: no file edits, no spawned agents, no final decision.
+VERIFY: cite the evidence or reasoning used for every material objection.
 Strategy: {strategy}
 Criteria: {criteria}
 Evidence: {facts}
 Open questions: {unknowns}
-Return material loopholes with evidence, verification checks, speculative objections labeled as such, and confidence: 0-100.
 ```
 
 Integrate results yourself. Accept evidence-backed issues, reject unsupported ones, fix valid gaps, then verify.

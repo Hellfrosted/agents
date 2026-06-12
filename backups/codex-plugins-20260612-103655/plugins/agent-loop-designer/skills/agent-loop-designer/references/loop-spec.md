@@ -48,6 +48,10 @@ Valid `surface` values:
 Each subagent must define:
 
 - `role`
+- `spawn_policy`: omit `fork_context` or set `fork_context: false` in the
+  current `spawn_agent` tool for role-specific agents; use
+  `fork_turns: "none"` on tool surfaces that expose `fork_turns`; full history
+  only when inheriting the parent agent type/model/reasoning is intended
 - `ownership`
 - `write_intent`: `none`, `artifact-only`, or `code-editing`
 - `sandbox_expectation`: `read-only`, `workspace-write`, `permission-profile`, or `danger-full-access`
@@ -61,7 +65,8 @@ Each Worktree thread must define:
 - `ownership`
 - `write_intent`: `none`, `artifact-only`, or `code-editing`
 - `starting_state`
-- `location_strategy`: `wsl-manual` or `codex-managed`
+- `location_strategy`: `same-project-nested-manual` by default; other
+  strategies require explicit user approval
 - `output_contract`
 - `integration_rule`
 
@@ -73,5 +78,8 @@ Each Worktree thread must define:
 - `validation`: source/cache and script checks to run.
 - `skip_when`: cases where the failure should not update the plugin.
 
-The validator rejects `code-editing` subagents with a `read-only` sandbox expectation.
+The validator rejects subagents whose `spawn_policy` does not explicitly encode
+a non-full-history role-specific launch rule for either the current
+`fork_context` surface or a `fork_turns` surface. It also rejects `code-editing`
+subagents with a `read-only` sandbox expectation.
 The validator also rejects specs that omit `failure_learning`, name `tools`, `worktree_threads`, or `subagents`, use docs-sensitive surfaces, or mention Worktree threads/subagents/custom agents in `workers` without `docs_checked`. If `workers` mentions Worktree threads or subagents/custom agents, define the matching structured entries too.

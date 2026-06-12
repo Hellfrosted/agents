@@ -7,7 +7,7 @@
 - Automation prompt: use when the workflow should run on a schedule or heartbeat.
 - Worktree policy: use when the loop may edit code, fan out candidates, or run beside active local work.
 - Plugin-backed skill: use when the workflow should be installed, shared, or bundled with connectors/MCP.
-- Worktree-backed threads: default for independent candidates, parallel exploration, or code-editing work. In WSL, prefer manual Linux-native git worktrees over Codex-managed worktrees on Windows storage.
+- Worktree-backed threads: default for independent candidates, parallel exploration, or code-editing work inside the current loop run. Prefer same-project manual git worktrees nested under the saved project checkout, with worker threads targeting the existing saved Codex project. Do not create separate Codex GUI projects for candidate worktrees, and do not convert later subagent requests into thread requests.
 - Subagents: use only when the user explicitly asks for subagents or the work is small and read-only inside the current thread.
 
 For worktree-backed threads, see `worktree-threads.md` before assigning parallel candidate work.

@@ -27,6 +27,14 @@ Always use at least one reviewer per commit. Prefer one batched reviewer for
 small, familiar, docs-only, formatting-only, or obvious mechanical changes.
 Split reviewers by risk area for larger or mixed commits.
 
+When spawning Codex reviewers, use non-full-history forks for role-specific
+review. In the current `spawn_agent` tool, omit `fork_context` or set
+`fork_context: false`; on tool surfaces that use `fork_turns`, set
+`fork_turns: "none"`. Paste the commit scope, assigned paths, risk focus, and
+relevant diff context into the `message`. Do not combine a full-history fork
+with `agent_type`, `model`, or `reasoning_effort` overrides; full-history forks
+inherit those fields from the parent and will be rejected if overridden.
+
 Add targeted reviewers for:
 
 - Security, credentials, auth, persistence, paths, process execution,
@@ -41,13 +49,13 @@ Use per-file review only when one file is the risk boundary.
 Short reviewer prompt:
 
 ```text
-Read-only tuck reviewer.
+TASK: act as a read-only tuck reviewer.
+DELIVERABLE: blocking findings only, with file paths and line references; if none, say: no blocking findings.
+SCOPE: review only changed diff plus minimal nearby context; do not edit files or spawn agents.
+VERIFY: every finding must be tied to a concrete changed line or omitted required check.
 Commit scope: {COMMIT_SCOPE}
 Assigned paths: {PATHS}
 Focus: {RISK_OR_QUESTION}
-Review only changed diff plus minimal nearby context.
-Return blocking findings only with file paths and line references.
-If none, say: no blocking findings.
 ```
 
 Do not stage until reviewers return. Re-run review only when a material fix

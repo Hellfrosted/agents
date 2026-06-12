@@ -2,7 +2,9 @@
 
 Use this when a loop uses subagents or custom agents.
 
-Subagents are not the default fan-out model for this plugin. Prefer worktree-backed threads for independent candidates and any code-editing work. In WSL, that means manual Linux-native git worktrees by default. Use this file only when the user explicitly asks for subagents or when a small read-only check should stay inside the current thread.
+Subagents are not the default fan-out model for Agent Loop Designer loops. Prefer worktree-backed threads for independent candidates and any code-editing work while designing or running that specific loop. In WSL, that means same-project manual git worktrees nested under the saved project checkout by default.
+
+Outside an active Agent Loop Designer or Architecture Cascade loop, a user request for `subagent`, `sub-agent`, or a custom agent is an ordinary subagent request. Do not convert it into a worktree-backed thread request.
 
 Read the current Codex subagents and configuration docs before creating or recommending custom agent files, permission profiles, sandbox settings, or subagent prompts. Record the docs in `docs_checked` when using the loop spec.
 
@@ -12,7 +14,17 @@ Subagents are best for parallel, read-heavy work: exploration, review, triage, t
 
 The common failure mode is assigning implementation work to an agent that effectively runs read-only. That can happen when the custom agent file, parent session runtime overrides, sandbox mode, approval policy, or permission profile do not agree.
 
-## Two Config Interactions To Check
+A separate Codex spawn failure happens when a loop asks for a role-specific
+subagent while also forking full history. Full-history forked agents inherit the
+parent agent type, model, and reasoning effort. Do not try to override
+`agent_type`, `model`, or `reasoning_effort` on a full-history fork. For
+role-specific workers, reviewers, explorers, or custom agents, spawn without
+full history and put the role, specialty, constraints, and required context in
+the message. In the current `spawn_agent` tool, omit `fork_context` or set
+`fork_context: false`; on tool surfaces that use `fork_turns`, set
+`fork_turns: "none"`.
+
+## Three Config Interactions To Check
 
 1. **Parent runtime overrides vs custom agent defaults**
    - Custom agent files can set defaults such as `sandbox_mode`, `model`, `model_reasoning_effort`, MCP servers, and skills.
@@ -25,11 +37,27 @@ The common failure mode is assigning implementation work to an agent that effect
    - Codex also has permission profiles through `default_permissions` and `[permissions.<name>]`.
    - Do not design a loop that mixes `default_permissions` with `sandbox_mode` or `[sandbox_workspace_write]` in the same intended config surface. Pick one model for the loop.
 
+3. **Full-history forks vs role/model overrides**
+   - Use full-history forks only when the child should be the same agent type as
+     the parent and continue parent context.
+   - In the current `spawn_agent` tool, omit `fork_context` or set
+     `fork_context: false` for role-specific workers, reviewers, explorers, and
+     custom-agent style assignments.
+   - On tool surfaces that use `fork_turns`, set `fork_turns: "none"` for those
+     role-specific assignments.
+   - Put role, model/reasoning preference, skills, files, constraints, and
+     deliverables in the child message. Do not pass them as overrides on a
+     full-history fork.
+
 ## Required Subagent Plan
 
 For every subagent, specify:
 
 - **Role**: what this agent is responsible for.
+- **Spawn policy**: omit `fork_context` or set `fork_context: false` in the
+  current `spawn_agent` tool for role-specific agents; use `fork_turns: "none"`
+  on tool surfaces that expose `fork_turns`; full-history only when inheriting
+  the parent agent type/model/reasoning is intended.
 - **Ownership**: exact files, directories, or read-only area.
 - **Write intent**: `none`, `artifact-only`, or `code-editing`.
 - **Sandbox expectation**: `read-only`, `workspace-write`, or explicit permission profile.
@@ -45,6 +73,8 @@ For every subagent, specify:
 - In non-interactive or automation runs, avoid child tasks that need fresh approval. They will fail if approval cannot surface.
 - Do not rely on a child `sandbox_mode = "workspace-write"` if the parent turn has a stricter live runtime override.
 - Prefer explicit role names: `explorer`, `reviewer`, `test_runner`, `docs_researcher`, `worker`.
+- Prefer a non-full-history spawn and a self-contained message for every
+  explicit role. Full-history forks are for same-role continuation only.
 
 ## Example Read-Only Agent
 
@@ -82,5 +112,9 @@ Use subagents for the read-heavy parts only:
 - architecture_explorer: read-only, map relevant modules and return file references.
 - reviewer: read-only, find correctness and test risks.
 
-Wait for both, summarize their findings, then ask me before spawning any writer.
+Spawn both without full history: omit `fork_context` or set
+`fork_context: false` in the current `spawn_agent` tool, or use
+`fork_turns: "none"` where that surface exists. Each message starts with TASK,
+then names DELIVERABLE, SCOPE, and VERIFY. Wait for both, summarize their
+findings, then ask me before spawning any writer.
 ```

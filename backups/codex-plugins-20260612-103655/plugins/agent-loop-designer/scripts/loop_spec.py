@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -36,7 +37,7 @@ VALID_SURFACES = {
 DOCS_REQUIRED_SURFACES = {"automation-prompt", "worktree-policy", "plugin-backed-skill"}
 VALID_WRITE_INTENTS = {"none", "artifact-only", "code-editing"}
 VALID_SANDBOXES = {"read-only", "workspace-write", "permission-profile", "danger-full-access"}
-VALID_WORKTREE_LOCATION_STRATEGIES = {"wsl-manual", "codex-managed"}
+VALID_WORKTREE_LOCATION_STRATEGIES = {"same-project-nested-manual"}
 
 
 def empty_spec(task: str) -> dict[str, Any]:
@@ -93,6 +94,30 @@ def list_mentions(values: Any, needles: tuple[str, ...]) -> bool:
     )
 
 
+def spawn_policy_encodes_safe_fork(policy: str) -> bool:
+    normalized = policy.lower()
+    uses_fork_turns_none = bool(
+        re.search(r"\bfork_turns\b\s*[:=]\s*[\"']?none\b", normalized)
+    )
+    uses_fork_context_false = bool(
+        re.search(r"\bfork_context\b\s*[:=]\s*false\b", normalized)
+    )
+    omits_fork_context = bool(
+        re.search(r"\bomit(?:ted)?\s+\bfork_context\b", normalized)
+    )
+    intentional_full_history = bool(
+        re.search(r"\bfull[- ]history\b", normalized)
+        and re.search(r"\binherit(?:s|ing)?\b", normalized)
+        and re.search(r"\b(no|without|must not)\s+overrides?\b", normalized)
+    )
+    return (
+        uses_fork_turns_none
+        or uses_fork_context_false
+        or omits_fork_context
+        or intentional_full_history
+    )
+
+
 def validate_subagent(index: int, subagent: Any) -> list[str]:
     errors: list[str] = []
     prefix = f"subagents[{index}]"
@@ -101,6 +126,7 @@ def validate_subagent(index: int, subagent: Any) -> list[str]:
 
     for field in [
         "role",
+        "spawn_policy",
         "ownership",
         "write_intent",
         "sandbox_expectation",
@@ -121,6 +147,12 @@ def validate_subagent(index: int, subagent: Any) -> list[str]:
     if sandbox and sandbox not in VALID_SANDBOXES:
         errors.append(
             f"{prefix}.sandbox_expectation must be one of {', '.join(sorted(VALID_SANDBOXES))}"
+        )
+
+    spawn_policy = str(subagent.get("spawn_policy", ""))
+    if spawn_policy and not spawn_policy_encodes_safe_fork(spawn_policy):
+        errors.append(
+            f"{prefix}.spawn_policy must encode fork_context false/omitted, fork_turns none, or intentional full-history inheritance with no overrides"
         )
 
     if write_intent == "code-editing" and sandbox == "read-only":
@@ -294,6 +326,7 @@ def render_markdown(spec: dict[str, Any]) -> str:
                 [
                     "",
                     f"### {subagent.get('role', '')}",
+                    f"- Spawn policy: {subagent.get('spawn_policy', '')}",
                     f"- Ownership: {subagent.get('ownership', '')}",
                     f"- Write intent: {subagent.get('write_intent', '')}",
                     f"- Sandbox: {subagent.get('sandbox_expectation', '')}",

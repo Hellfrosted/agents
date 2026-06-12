@@ -39,8 +39,8 @@ def slug(value: str) -> str:
     return cleaned.lower() or "candidate"
 
 
-def default_root() -> Path:
-    return Path(os.environ.get("CODEX_WSL_WORKTREE_ROOT", Path.home() / "codex-worktrees"))
+def default_root(repo_root: Path) -> Path:
+    return repo_root / ".codex-worktrees" / "architecture-cascade"
 
 
 def resolve_ref(repo: Path, requested_ref: str | None) -> str:
@@ -56,24 +56,19 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
     repo_root = Path(run_git(repo, ["rev-parse", "--show-toplevel"]))
     verified_ref = resolve_ref(repo_root, args.ref)
     run_id = args.run_id or datetime.now().strftime("%Y%m%d%H%M%S")
-    root = Path(args.root).expanduser() if args.root else default_root()
-
-    if is_wsl() and str(root).startswith("/mnt/") and not args.allow_windows_mount:
-        raise ValueError(
-            f"refusing Windows-mounted worktree root in WSL: {root}; "
-            "set CODEX_WSL_WORKTREE_ROOT under /home or pass --allow-windows-mount"
-        )
+    root = default_root(repo_root)
 
     candidates = args.candidate or ["candidate"]
     worktrees = []
     for candidate in candidates:
         candidate_id = slug(candidate)
-        path = root / repo_root.name / run_id / candidate_id
+        path = root / run_id / candidate_id
         worktrees.append(
             {
                 "candidate": candidate,
                 "candidate_id": candidate_id,
                 "path": str(path),
+                "worker_cwd": str(path),
                 "create_command": [
                     "git",
                     "-C",
@@ -86,7 +81,7 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
                 ],
                 "thread_target": {
                     "type": "project",
-                    "projectId": str(path),
+                    "projectId": str(repo_root),
                     "environment": {"type": "local"},
                 },
             }
@@ -98,11 +93,31 @@ def build_plan(args: argparse.Namespace) -> dict[str, Any]:
         "verified_ref": verified_ref,
         "run_id": run_id,
         "root": str(root),
+        "same_project": True,
+        "local_exclude": ".codex-worktrees/",
         "worktrees": worktrees,
     }
 
 
+def ensure_local_exclude(repo_root: Path, pattern: str) -> None:
+    if not pattern:
+        return
+
+    common_dir = Path(run_git(repo_root, ["rev-parse", "--git-common-dir"]))
+    if not common_dir.is_absolute():
+        common_dir = repo_root / common_dir
+    exclude_path = common_dir / "info" / "exclude"
+    exclude_path.parent.mkdir(parents=True, exist_ok=True)
+    existing = exclude_path.read_text(encoding="utf-8") if exclude_path.exists() else ""
+    if pattern in existing.splitlines():
+        return
+    separator = "" if existing.endswith("\n") or not existing else "\n"
+    with exclude_path.open("a", encoding="utf-8") as handle:
+        handle.write(f"{separator}{pattern}\n")
+
+
 def create_worktrees(plan: dict[str, Any]) -> None:
+    ensure_local_exclude(Path(plan["repo_root"]), plan.get("local_exclude", ""))
     for worktree in plan["worktrees"]:
         path = Path(worktree["path"])
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -113,11 +128,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", default=".", help="Repository path; defaults to cwd")
     parser.add_argument("--ref", help="Existing git ref to use; defaults to current branch")
-    parser.add_argument("--root", help="Manual worktree root; defaults to CODEX_WSL_WORKTREE_ROOT or ~/codex-worktrees")
     parser.add_argument("--run-id", help="Stable run id; defaults to current timestamp")
     parser.add_argument("--candidate", action="append", help="Candidate id/title; repeat for multiple candidates")
     parser.add_argument("--create", action="store_true", help="Create the planned detached git worktrees")
-    parser.add_argument("--allow-windows-mount", action="store_true", help="Allow /mnt/* worktree roots in WSL")
     args = parser.parse_args()
 
     try:

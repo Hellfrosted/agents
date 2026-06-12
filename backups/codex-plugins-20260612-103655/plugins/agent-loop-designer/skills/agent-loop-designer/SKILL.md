@@ -27,10 +27,7 @@ Do not put Worktree-thread plans, worker topology, or control-plane details in t
 
 If the user asks to actually make it repeatable, implement the durable surface rather than only explaining it.
 
-Use [workflow-rules.md](references/workflow-rules.md) for surface selection, safety defaults, and packaging rules.
-When consistency matters, produce and validate a loop spec with `scripts/loop_spec.py`; see [loop-spec.md](references/loop-spec.md).
-Before proposing or using CLIs, tools, Worktree threads, subagents, automations, plugins, MCP/connectors, or config changes, follow [docs-first.md](references/docs-first.md).
-When an Agent Loop Designer run fails because the skill encoded a bad assumption, missed a guardrail, or produced a fragile instruction, apply [self-improvement.md](references/self-improvement.md) before the final response.
+Use [workflow-rules.md](references/workflow-rules.md) for surface selection and packaging. When consistency matters, validate a loop spec with `scripts/loop_spec.py`; see [loop-spec.md](references/loop-spec.md). Before proposing or using CLIs, tools, Worktree threads, subagents, automations, plugins, MCP/connectors, or config changes, follow [docs-first.md](references/docs-first.md). For repeat failures caused by this skill, apply [self-improvement.md](references/self-improvement.md) before the final response.
 
 If the request is about running `improve-codebase-architecture` and then automatically exploring or acting on all candidates, do not produce the old "pick one candidate" radar. Route it to `$architecture-cascade <optional repo area or problem>`.
 
@@ -50,7 +47,7 @@ Every loop must define:
 
 Keep the user's command memorable. Do not make them remember "control plane", "state model", or feature taxonomy. Use `references/control-plane-template.md` internally when a template helps.
 
-For fan-out or code-editing loops, use worktree-backed threads by default and include role, ownership, write intent, starting state, location strategy, output contract, and integration rule. Use [worktree-threads.md](references/worktree-threads.md). Use subagents only when explicitly requested or for small read-only checks; then use [subagents.md](references/subagents.md).
+For fan-out or code-editing loops, use worktree-backed threads by default and include role, ownership, write intent, starting state, location strategy, output contract, and integration rule. Use [worktree-threads.md](references/worktree-threads.md). This default applies only while designing or running that specific loop; it must not install global behavior that turns later `subagent` or `sub-agent` requests into thread creation. Use subagents only when explicitly requested or for small read-only checks; then use [subagents.md](references/subagents.md).
 
 Keep the Required Loop Shape and Worktree-thread plan internal. The visible answer should read like the output contract of the running agent loop: report fields, changed artifacts, blocked items, verification, and next user decision.
 
@@ -81,7 +78,7 @@ For `improve-codebase-architecture` style loops where the user wants all candida
 
 1. Run one discovery pass using the `improve-codebase-architecture` process.
 2. Extract every candidate into a queue with candidate id, files, recommendation strength, conflicts, and proposed owner.
-3. Create worktree-backed candidate threads. In WSL, prefer manual WSL-native git worktrees under `$HOME/codex-worktrees/...` and start local project threads there instead of using Codex-managed worktrees under Windows `$CODEX_HOME/worktrees`.
+3. Create worktree-backed candidate threads for that cascade turn only. In WSL, create manual git worktrees under `<repo>/.codex-worktrees/architecture-cascade/...` by default and start local project threads under the same saved project, with each worker prompt naming its nested worktree cwd.
 4. Act automatically in each candidate worktree when the candidate is bounded, non-conflicting, and has clear verification.
 5. Ask only for blocked candidates: ADR conflict, overlapping ownership, unsafe permission mismatch, unclear tests, or product/domain decision.
 

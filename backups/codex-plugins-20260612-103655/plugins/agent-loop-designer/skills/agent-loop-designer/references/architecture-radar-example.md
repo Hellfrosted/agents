@@ -15,8 +15,8 @@ Find codebase architecture deepening opportunities once, then explore and act on
 - Artifact: durable non-repo HTML report plus an architecture candidate queue with status for every candidate.
 - Decision point: only blocked candidates ask for user input.
 - Next action: implement safe candidates, verify them, update `CONTEXT.md` or offer ADRs when decisions crystallize.
-- Safety rule: candidate edits happen in isolated worktree-backed threads after each thread confirms files, tests, conflicts, and ownership. In WSL, use manual Linux-native git worktrees unless the user explicitly chooses managed worktrees.
+- Safety rule: candidate edits happen in isolated worktree-backed threads after each thread confirms files, tests, conflicts, and ownership. Use same-project manual git worktrees nested under the saved project checkout so candidate workers remain under the existing Codex GUI project.
 
 ## Automation Upgrade
 
-Run weekly in a coordinator worktree. Create candidate worktree-backed threads for bounded candidates; in WSL, place manual git worktrees under `$HOME/codex-worktrees`. Report blocked candidates with the exact decision needed.
+Run weekly in the current saved project. Create candidate worktree-backed threads for bounded candidates; place manual git worktrees under `<repo>/.codex-worktrees/architecture-cascade` by default. Report blocked candidates with the exact decision needed.

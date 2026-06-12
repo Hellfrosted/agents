@@ -12,6 +12,7 @@ One sentence: what should Codex repeatedly help with, and why?
 - State:
 - Inputs:
 - Workers:
+- Coordination:
 - Artifact:
 - Decision point:
 - Next action:
@@ -24,6 +25,12 @@ One sentence: what should Codex repeatedly help with, and why?
 - Worktree:
 - Plugin/connectors:
 - Subagents:
+  - Spawn policy: use non-full-history spawns for role-specific workers,
+    reviewers, explorers, or custom-agent style assignments. In the current
+    `spawn_agent` tool, omit `fork_context` or set `fork_context: false`; on
+    tool surfaces that use `fork_turns`, set `fork_turns: "none"`.
+    Full-history forks inherit parent agent type/model/reasoning and must not
+    carry those overrides.
 
 ## First Manual Run
 
