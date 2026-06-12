@@ -73,10 +73,10 @@ Before running it:
 - Check `evo --version`. It should report `evo-hq-cli`, not the unrelated SLAM
   package named `evo`.
 - Keep the CLI and Codex plugin bundle in lockstep. Use
-  `evo update codex --version 0.5.0` for the v0.5.0 line, then verify with
-  `evo doctor codex`.
+  `evo update codex --version 0.5.2 --trust-hooks` for the v0.5.2 line, then
+  verify with `evo doctor codex`.
 - If Codex is pinned to a stale local `evo-hq` marketplace, remove that
-  marketplace source and add `evo-hq/evo --ref v0.5.0` before reinstalling.
+  marketplace source and add `evo-hq/evo --ref v0.5.2` before reinstalling.
 - Do not install or upgrade it unless the user asks.
 - Write a short experiment brief first: goal, metric, baseline, gate, editable
   scope, read-only context, forbidden changes, backend, runtime/env,

@@ -1,6 +1,6 @@
 ---
 name: evo-end-to-end
-description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.0+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as $grill-me, $grill-with-docs, and $improve-codebase-architecture when needed.
+description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.2+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as $grill-me, $grill-with-docs, and $improve-codebase-architecture when needed.
 ---
 
 # Evo End To End
@@ -8,7 +8,7 @@ description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.0+. Use wh
 Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only
 after approval.
 
-Target Evo release line: `evo-hq/evo` v0.5.0 or newer.
+Target Evo release line: `evo-hq/evo` v0.5.2 or newer.
 
 For companion skill sources, optimize presets, and release-specific notes, see
 [REFERENCE.md](REFERENCE.md).

@@ -41,6 +41,33 @@ repeatable, and the approved scope can absorb broader exploration.
 - Override individual calls with `evo run <exp_id> --timeout <seconds>` only
   when the configured per-experiment timeout is not appropriate.
 
+## Evo v0.5.2 Notes
+
+- v0.5.2 improves the optimize meta controller: meta ticks keep a journal,
+  appended prompt directives accumulate instead of overwriting each other, and
+  the meta can harden verifier prompts during a run.
+- Meta and hard implement/revise agents follow the session model instead of a
+  stale pinned model; easy briefs still route to the lighter model.
+- Keep the Codex CLI and plugin bundle in lockstep with
+  `evo update codex --version 0.5.2 --trust-hooks`, then verify with
+  `evo doctor codex`.
+- If Codex is pinned to a stale local marketplace such as
+  `evo-hq-0.5.0-hookdrain`, remove that marketplace and add
+  `evo-hq/evo --ref v0.5.2` before reinstalling.
+- SDK packages such as `evo-hq-agent`, `@evo-hq/evo-agent`, and `@evo-hq/pi-evo`
+  should match the 0.5.2 line when SDK instrumentation is used.
+
+## Evo v0.5.1 Notes
+
+- v0.5.1 moves the durable hook binary to `~/.evo/bin` and leaves a host-plugin
+  fallback at the hook path, so host plugin cache rebuilds no longer delete the
+  real binary and trigger `SessionStart hook (failed): exit 127`.
+- `evo install codex` can trust Evo hooks during install; use
+  `--no-trust-hooks` only when the user wants to review them manually through
+  `/hooks`.
+- `evo doctor codex` verifies hook trust and catches plugin updates that changed
+  `hooks.json` enough to invalidate trust.
+
 ## Evo v0.5.0 Notes
 
 - v0.5.0 adds `$evo finetuning` for SFT, LoRA, preference optimization, RFT, and
@@ -60,8 +87,6 @@ repeatable, and the approved scope can absorb broader exploration.
   detached benchmark or training children.
 - The dashboard supports live log tailing, per-experiment annotations, and
   `EVO_DASHBOARD_HOST` for binding on cloud or Modal hosts.
-- SDK packages such as `evo-hq-agent`, `@evo-hq/evo-agent`, and `@evo-hq/pi-evo`
-  should match the 0.5.0 line when SDK instrumentation is used.
 
 ## Evo v0.4.5 Notes
 
