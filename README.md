@@ -151,6 +151,10 @@ skills-updates --skips
 skills-updates --remove confidence-loop
 ```
 
+Additional aliases are accepted by the script: `--gui` for `--zed`,
+`--uninstall` for `--remove`, and `--install-all`/`install-all` as explicit
+forms of targetless `--install`.
+
 The updater reads the global skill lockfile from `%AGENTS_HOME%\.skill-lock.json`
 when `AGENTS_HOME` is set, otherwise from `%USERPROFILE%\.agents\.skill-lock.json`.
 It compares installed skill folders with upstream repository content, not only

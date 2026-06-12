@@ -211,6 +211,10 @@ Skips are saved with `-s`, removed with `-u`, and listed with `-S`. They are
 tied to the current upstream tree hash, so a new upstream tree makes the update
 visible again.
 
+The long-form wrapper also accepts `--gui` as an alias for `--zed`,
+`--uninstall` as an alias for `--remove`, and `--install-all`/`install-all` as
+explicit forms of targetless `--install`.
+
 The updater reads global skills from `%AGENTS_HOME%` when set, otherwise from
 `%USERPROFILE%\.agents`. It caches upstream repositories and skip state under
 `%LOCALAPPDATA%\skills-updates` when available, otherwise in a temp state
@@ -225,9 +229,10 @@ directory and lockfile state do not diverge.
 
 ## Codex Security
 
-Codex Security is installed as the `codex-security@openai-curated` plugin. Use
-it for security scans, diff reviews, validation, attack-path analysis, threat
-models, and security fixes.
+Codex Security is installed as the `codex-security@openai-curated` plugin, but
+it is currently disabled in this workstation's Codex plugin config. Check
+`codex plugin list` before relying on it, and enable or reinstall it only when
+the user asks for security-plugin work.
 
 Keep its output focused on exploitable behavior. Security review should lead
 with findings and include file and line references when possible.
@@ -300,7 +305,7 @@ printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/0.1.0/mcp/ast_grep/dist/cli.js mcp
+| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.8.1/mcp/ast_grep/dist/cli.js mcp
 ```
 
 <!-- markdownlint-enable MD013 -->
