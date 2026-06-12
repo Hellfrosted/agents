@@ -154,6 +154,48 @@ function Write-CliError {
     }
 }
 
+function Resolve-CommandPath {
+    param([string]$Name)
+
+    $command = Get-Command $Name -ErrorAction SilentlyContinue
+    if ($command) {
+        return $command.Source
+    }
+
+    if ([IO.Path]::GetExtension($Name)) {
+        return $null
+    }
+
+    foreach ($extension in @(".exe", ".cmd", ".bat")) {
+        $command = Get-Command "$Name$extension" -ErrorAction SilentlyContinue
+        if ($command) {
+            return $command.Source
+        }
+    }
+
+    return $null
+}
+
+function Test-CommandAvailable {
+    param([string]$Name)
+
+    return [bool](Resolve-CommandPath $Name)
+}
+
+function Get-NativeExitCode {
+    param([bool]$CommandSucceeded)
+
+    $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
+    if ($exitCode -and $null -ne $exitCode.Value) {
+        return $exitCode.Value
+    }
+
+    if ($CommandSucceeded) {
+        return 0
+    }
+    return 1
+}
+
 function Test-TargetMatch {
     param([string]$Name)
 
@@ -423,7 +465,8 @@ function Invoke-SkillsAdd {
         [string]$Name = ""
     )
 
-    if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+    $pnpmCommand = Resolve-CommandPath "pnpm"
+    if (-not $pnpmCommand) {
         Write-CliError "skills-updates: pnpm is required to install skills"
         return $false
     }
@@ -452,7 +495,7 @@ function Invoke-SkillsAdd {
     Invoke-WithSkillStateTransaction -Completed ([ref]$completed) -ScriptBlock {
         param([object]$lockBeforeInstall)
 
-        & pnpm dlx @skillsArgs | ForEach-Object { Write-Host $_ }
+        & $pnpmCommand dlx @skillsArgs | ForEach-Object { Write-Host $_ }
         $status.Ok = $LASTEXITCODE -eq 0
         Restore-SkillStateAfterSkillsCommand -BeforeSnapshot $lockBeforeInstall
         Complete-SkillStateTransaction
@@ -529,7 +572,8 @@ function Remove-InstalledSkillDirectory {
 function Uninstall-Skill {
     param([string]$Name)
 
-    if (-not (Get-Command pnpm -ErrorAction SilentlyContinue)) {
+    $pnpmCommand = Resolve-CommandPath "pnpm"
+    if (-not $pnpmCommand) {
         Write-CliError "skills-updates: pnpm is required to uninstall skills"
         return $false
     }
@@ -543,7 +587,7 @@ function Uninstall-Skill {
     Invoke-WithSkillStateTransaction -Completed ([ref]$completed) -ScriptBlock {
         param([object]$lockBeforeUninstall)
 
-        & pnpm dlx skills@latest remove -g -y --agent universal --skill $Name | ForEach-Object { Write-Host $_ }
+        & $pnpmCommand dlx skills@latest remove -g -y --agent universal --skill $Name | ForEach-Object { Write-Host $_ }
         $exitCode = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
         if (-not $exitCode) {
             $status.Ok = $true
@@ -1044,14 +1088,14 @@ function New-RemoteComparePath {
         $archiveArgs += $RemoteDir
     }
 
-    & git @archiveArgs
-    if ($LASTEXITCODE -ne 0) {
+    & $script:GitCommand @archiveArgs
+    if (-not $?) {
         Write-CliError "skills-updates: could not export clean compare tree for $RemoteDir"
         return $null
     }
 
-    tar -xf $archiveFile -C $tempRoot
-    if ($LASTEXITCODE -ne 0) {
+    & $script:TarCommand -xf $archiveFile -C $tempRoot
+    if (-not $?) {
         Write-CliError "skills-updates: could not extract clean compare tree for $RemoteDir"
         return $null
     }
@@ -1204,8 +1248,14 @@ if ($mode -eq "list") {
     exit 0
 }
 
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+$script:GitCommand = Resolve-CommandPath "git"
+if (-not $script:GitCommand) {
     Write-CliError "skills-updates: git is required"
+    exit 1
+}
+$script:TarCommand = Resolve-CommandPath "tar"
+if (-not $script:TarCommand) {
+    Write-CliError "skills-updates: tar is required"
     exit 1
 }
 if (-not (Test-Path -LiteralPath $lock -PathType Leaf)) {
@@ -1273,19 +1323,20 @@ try {
         param(
             [string]$SourceUrl,
             [string]$Repo,
-            [string[]]$RemoteDirs
+            [string[]]$RemoteDirs,
+            [string]$GitCommand
         )
 
         try {
             if (Test-Path -LiteralPath (Join-Path $Repo ".git") -PathType Container) {
-                git -c core.autocrlf=false -C $Repo remote set-url origin $SourceUrl 2>$null
-                git -c core.autocrlf=false -C $Repo fetch --quiet --depth 1 --filter=blob:none origin HEAD 2>$null
-                if ($LASTEXITCODE -ne 0) {
+                & $GitCommand -c core.autocrlf=false -C $Repo remote set-url origin $SourceUrl 2>$null
+                & $GitCommand -c core.autocrlf=false -C $Repo fetch --quiet --depth 1 --filter=blob:none origin HEAD 2>$null
+                if (-not $?) {
                     throw "git fetch failed"
                 }
 
-                git -c core.autocrlf=false -C $Repo reset --quiet --hard FETCH_HEAD 2>$null
-                if ($LASTEXITCODE -ne 0) {
+                & $GitCommand -c core.autocrlf=false -C $Repo reset --quiet --hard FETCH_HEAD 2>$null
+                if (-not $?) {
                     throw "git reset failed"
                 }
             } else {
@@ -1293,14 +1344,14 @@ try {
                     Remove-Item -LiteralPath $Repo -Recurse -Force -ErrorAction SilentlyContinue
                 }
 
-                git -c core.autocrlf=false clone --quiet --depth 1 --filter=blob:none --sparse $SourceUrl $Repo 2>$null
-                if ($LASTEXITCODE -ne 0) {
+                & $GitCommand -c core.autocrlf=false clone --quiet --depth 1 --filter=blob:none --sparse $SourceUrl $Repo 2>$null
+                if (-not $?) {
                     throw "git clone failed"
                 }
             }
 
-            git -c core.autocrlf=false -C $Repo sparse-checkout set @RemoteDirs 2>$null
-            if ($LASTEXITCODE -ne 0) {
+            & $GitCommand -c core.autocrlf=false -C $Repo sparse-checkout set @RemoteDirs 2>$null
+            if (-not $?) {
                 throw "git sparse-checkout failed"
             }
 
@@ -1340,7 +1391,7 @@ try {
 
         $job = [powershell]::Create()
         $job.RunspacePool = $repoRunspacePool
-        [void]$job.AddScript($repoUpdateScript.ToString()).AddArgument($sourceUrl).AddArgument($repo).AddArgument($remoteDirs)
+        [void]$job.AddScript($repoUpdateScript.ToString()).AddArgument($sourceUrl).AddArgument($repo).AddArgument($remoteDirs).AddArgument($script:GitCommand)
         $asyncResult = $job.BeginInvoke()
 
         $repoJobs.Add([pscustomobject]@{
@@ -1397,8 +1448,9 @@ try {
                 }
                 continue
             }
-            git -c core.autocrlf=false diff --quiet --ignore-cr-at-eol --no-index -- $item.InstalledDir $remotePath 2>$null
-            $diffExit = $LASTEXITCODE
+            $global:LASTEXITCODE = $null
+            & $script:GitCommand -c core.autocrlf=false diff --quiet --ignore-cr-at-eol --no-index -- $item.InstalledDir $remotePath 2>$null
+            $diffExit = Get-NativeExitCode -CommandSucceeded $?
 
             if ($diffExit -eq 0) {
                 $results[$item.Name] = @{
@@ -1411,7 +1463,7 @@ try {
                 }
             } else {
                 $remoteHash = ""
-                git -c core.autocrlf=false -C $repo rev-parse "HEAD:$($item.RemoteDir)" 2>$null | ForEach-Object {
+                & $script:GitCommand -c core.autocrlf=false -C $repo rev-parse "HEAD:$($item.RemoteDir)" 2>$null | ForEach-Object {
                     $remoteHash = $_.Trim()
                 }
                 $skipEntry = Get-SavedSkillSkip -State $skipState -Name $item.Name
@@ -1551,8 +1603,9 @@ try {
                 if ($mode -eq "diff") {
                     Write-Output ""
                     Write-Output "===== $name ====="
-                    git -c core.autocrlf=false diff --ignore-cr-at-eol --no-index --color=auto -- $result.InstalledDir $result.RemotePath
-                    if ($LASTEXITCODE -notin @(0, 1)) {
+                    $global:LASTEXITCODE = $null
+                    & $script:GitCommand -c core.autocrlf=false diff --ignore-cr-at-eol --no-index --color=auto -- $result.InstalledDir $result.RemotePath
+                    if ((Get-NativeExitCode -CommandSucceeded $?) -notin @(0, 1)) {
                         Write-Output "ERROR   $name`: diff failed"
                     }
                 }
@@ -1584,17 +1637,19 @@ try {
             } else {
                 Write-StatusLine "OK      all skills are up to date"
             }
-        } elseif (Get-Command zed -ErrorAction SilentlyContinue) {
+        } else {
+            $zedCommand = Resolve-CommandPath "zed"
+            if (-not $zedCommand) {
+                Write-CliError "skills-updates: zed command not found"
+                exit 1
+            }
             Write-ColoredLine "Opening $changedCount diff(s) in Zed." Cyan
-            & zed @zedArgs
+            & $zedCommand @zedArgs
             if ($LASTEXITCODE -ne 0) {
                 Write-CliError "skills-updates: zed failed to open diff viewer"
                 exit 1
             }
             $preserveCompareTempPaths = $true
-        } else {
-            Write-CliError "skills-updates: zed command not found"
-            exit 1
         }
     }
 } finally {
