@@ -1,7 +1,13 @@
 # Codex companion tools
 
 This page lists companion tools installed on this machine for Codex workflows,
-plus repo-local wrappers that maintain those tools.
+plus repo-local wrappers that maintain those tools. It is an operator map, not
+the source of truth for every wrapper flag. Use focused docs for detailed
+contracts:
+
+- [Codex WSL Shim](wsl-shim.md)
+- [Skills Updater](skills-updater.md)
+- [Discrawl Vesktop Wiretap](discrawl-wiretap.md)
 
 ## Main list
 
@@ -179,53 +185,17 @@ private personal data, or raw session exports.
 
 ## Skills Updater
 
-The repo includes Windows wrappers for installed skill maintenance:
+The repo includes Windows wrappers for installed global skill maintenance:
 
 - `bin/sk-up.cmd`: short command names and flags.
 - `bin/skills-updates.cmd`: long command names and flags.
 - `bin/skills-updates.ps1`: implementation.
 
-Common commands:
-
-```bat
-sk-up -l
-sk-up -g
-sk-up -d confidence-loop
-sk-up -z confidence-loop evo-end-to-end
-sk-up -i
-sk-up -i confidence-loop
-sk-up -i owner/repo
-sk-up -s confidence-loop
-sk-up -u confidence-loop
-sk-up -S
-sk-up -r confidence-loop
-```
-
-Use `-l` to list installed skills without checking upstream. Use `-g` to check
-global skill status. Diff one skill with `-d`, or open one or more Zed diffs
-with `-z`. Install all changed or missing skills with `-i`, install specific
-lockfile skills with `-i <skill>`, or install a source URL/repo with
-`-i <source>`. Remove a global skill with `-r`.
-
-Skips are saved with `-s`, removed with `-u`, and listed with `-S`. They are
-tied to the current upstream tree hash, so a new upstream tree makes the update
-visible again.
-
-The long-form wrapper also accepts `--gui` as an alias for `--zed`,
-`--uninstall` as an alias for `--remove`, and `--install-all`/`install-all` as
-explicit forms of targetless `--install`.
-
-The updater reads global skills from `%AGENTS_HOME%` when set, otherwise from
-`%USERPROFILE%\.agents`. It caches upstream repositories and skip state under
-`%LOCALAPPDATA%\skills-updates` when available, otherwise in a temp state
-directory. Install and uninstall operations require `pnpm` and run
-`pnpm dlx skills@latest`; global operations are forced to the universal
-`.agents/skills` target. The script protects `.skill-lock.json` with a mutex
-and preserves existing lockfile fields around those operations. Uninstalls also
-remove the global installed skill directory, clear saved skips for the skill,
-and remove the skill's lockfile entry under the same operation lock. If post-CLI
-cleanup fails, the updater restores the pre-uninstall lockfile snapshot so
-directory and lockfile state do not diverge.
+Use it to list installed skills, compare global skills against upstream
+content, open diffs, install changed or missing skills, install source URLs,
+save or remove skips, and uninstall global skills. See
+[Skills Updater](skills-updater.md) for the full command table, state paths,
+lockfile behavior, and verification.
 
 ## Codex Security
 
@@ -296,7 +266,9 @@ workstation it is installed globally with `pnpm` and in the OMO plugin cache
 `node_modules`, exposing `sg` and `ast-grep` for the plugin-provided server.
 
 The plugin server can be checked without Codex by sending an MCP `initialize`,
-`notifications/initialized`, and `tools/list` sequence to the CLI:
+`notifications/initialized`, and `tools/list` sequence to the CLI. Use the
+latest installed OMO cache directory. On 2026-06-12 that path was
+`/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.9.2`.
 
 <!-- markdownlint-disable MD013 -->
 
@@ -305,15 +277,17 @@ printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.8.1/mcp/ast_grep/dist/cli.js mcp
+| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.9.2/mcp/ast_grep/dist/cli.js mcp
 ```
 
 <!-- markdownlint-enable MD013 -->
 
-The response should include `search` and `replace`. The runtime also requires
-the real `@ast-grep/cli` binary. OMO Context7 is a remote streamable HTTP MCP
-server at `https://mcp.context7.com/mcp`; use the OMO declaration instead of the
-old local Context7 compat proxy when the remote initializes successfully.
+The response should include `search` and `replace`. Replace the version segment
+with the latest installed OMO cache version before running the command. The
+runtime also requires the real `@ast-grep/cli` binary. OMO Context7 is a remote
+streamable HTTP MCP server at `https://mcp.context7.com/mcp`; use the OMO
+declaration instead of the old local Context7 compat proxy when the remote
+initializes successfully.
 
 Keep `plugins."omo@sisyphuslabs".mcp_servers.git_bash` disabled in the WSL
 Codex config until OMO `git_bash` supports this host. Its current server exits
@@ -363,6 +337,9 @@ Other T3code shim knobs:
   milliseconds.
 - `CODEX_WSL_PROXY_DEBUG_LOG`: WSL path for proxy debug logs.
 - `CODEX_WSL_SHIM_DEBUG`: print the Windows shim launch arguments.
+
+See [Codex WSL Shim](wsl-shim.md) for the full shim contract, install shape,
+path translation policy, and runtime verification.
 
 Serena is not part of the current installed Codex toolchain on this workstation;
 it has already been uninstalled.

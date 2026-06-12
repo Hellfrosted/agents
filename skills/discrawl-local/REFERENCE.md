@@ -8,6 +8,7 @@
 - Vesktop cache: `/mnt/c/Users/nguco/AppData/Roaming/Vesktop/sessionData`
 - Default sync source: `wiretap`
 - Discord token source: `none`
+- Desktop full cache: `true`
 - Setup doc: `/mnt/e/dev/agents-toolkit/docs/discrawl-wiretap.md`
 
 ## Troubleshooting
@@ -19,7 +20,7 @@ discrawl --version
 discrawl check-update
 discrawl doctor --json
 discrawl status --json
-rg -n '^(token_source|source|path|full_cache) =' /home/crunch/.config/discrawl/config.toml
+rg -n '^(token_source|source|path|full_cache|auto_update|media) =' /home/crunch/.config/discrawl/config.toml
 ```
 
 The expected setup is wiretap-only with Vesktop's `sessionData` path. If the
@@ -29,6 +30,6 @@ cache path stops working, inspect the Vesktop data directories under
 ## Limits
 
 - The archive only contains what Vesktop has cached locally.
-- `--full-cache` can be slow; use it only when the normal scan misses expected
-  historical context.
+- Full-cache wiretap is the current local default and can be slower than a
+  focused scan.
 - Bot-visible complete history is intentionally not configured.

@@ -1,173 +1,156 @@
-# codex-wsl
+# agents-toolkit
 
-Run Codex from Windows while the real process lives in WSL.
+Local Codex workstation tooling for this machine.
 
-The Windows shim starts a small WSL-side proxy. The proxy translates Windows and
-WSL paths in both directions, then hands off to the real `codex` binary. For
-T3code-style non-interactive sessions, the proxy starts `codex app-server`
-automatically and shuts it down after the configured idle period.
+This repository is the source tree for:
 
-This workstation also installs LazyCodex as the `omo@sisyphuslabs` Codex
-plugin. The WSL runner keeps that plugin enabled, but disables its telemetry,
-auto-update, and config-migration startup paths for T3code app-server sessions.
+- the Windows-to-WSL Codex shim used by T3code-style app-server sessions;
+- the Node proxy that translates Windows and WSL paths for Codex protocol
+  traffic;
+- the Windows skills updater wrappers for globally installed Codex skills;
+- local Codex skills maintained on this workstation;
+- operator docs for companion tooling, shell setup, and local archives.
 
-## Layout
+Keep changes here first. Copy files into the active workstation install only
+when the user asks to install, repair, or republish the local setup.
 
-- `bin/codex-wsl.cmd` is the Windows entry point.
-- `bin/codex-wsl-proxy-runner.sh` finds `node` inside WSL and starts the proxy.
-- `bin/codex-wsl-proxy.js` starts the WSL proxy runtime.
-- `bin/codex-wsl-proxy-runtime.js` owns child process lifecycle, protocol
-  fallback timing, and stream forwarding.
-- `bin/codex-wsl-path-translation.js` and
-  `bin/codex-wsl-skills-fallback.js` hold focused proxy policies.
-- `skills/` contains Codex skills that can be installed with the Skills CLI.
-- `bin/skills-updates.ps1`, `bin/skills-updates.cmd`, and `bin/sk-up.cmd`
-  check, diff, install, skip, and remove globally installed skills.
-- `docs/codex-cli-tooling.md` documents companion tools used around Codex:
-  Evo, RTK, ICM, Codex Security, OpenAI Developer Docs MCP, and adjacent
-  utilities.
-- `docs/discrawl-wiretap.md` documents the local Discrawl Vesktop wiretap setup
-  and its user-level systemd auto-sync timer.
+## Current Surface
 
-## Install
+| Area | Source of truth | Notes |
+| --- | --- | --- |
+| WSL Codex shim | [docs/wsl-shim.md](docs/wsl-shim.md) | Windows `.cmd`, WSL runner, Node proxy runtime, path translation, skills fallback, and T3code app-server behavior. |
+| Skills updater | [docs/skills-updater.md](docs/skills-updater.md) | `sk-up` and `skills-updates` flags, state paths, locking, install/uninstall behavior, and verification. |
+| Companion tools | [docs/codex-cli-tooling.md](docs/codex-cli-tooling.md) | Evo, RTK, ICM, CodSpeed, OMO/LazyCodex, OpenAI docs MCP, Discrawl, and adjacent CLIs. |
+| Shell setup | [docs/shell-setup.md](docs/shell-setup.md) | Starship, fzf, zoxide, Atuin, PSReadLine, ble.sh, Tabby, Windows, WSL, and Arch parity. |
+| Discrawl wiretap | [docs/discrawl-wiretap.md](docs/discrawl-wiretap.md) | Local Vesktop-cache archive, user systemd timer, limits, and verification. |
+| Local skills | [skills/](skills/) | Repo-owned skill sources. In this repo, "work on skills" means this directory, not installed global skill copies. |
+| Learning artifacts | [lessons/](lessons/) and [reference/](reference/) | Static HTML terminal-addon lesson and cheatsheet. |
+| Plugin backups | [backups/](backups/) | Restore payloads from plugin backup operations. They are historical artifacts, not canonical docs to refresh. |
 
-Copy the Windows shim somewhere on your Windows `PATH`, for example:
+Root docs:
 
-```bat
-copy bin\codex-wsl.cmd %USERPROFILE%\bin\codex-wsl.cmd
+- [MISSION.md](MISSION.md): durable project mission and non-goals.
+- [CONTEXT.md](CONTEXT.md): local vocabulary and architecture terms.
+- [RESOURCES.md](RESOURCES.md): authoritative references used by this repo.
+- [AGENTS.md](AGENTS.md): local agent instructions; it is workstation-local and
+  excluded from normal VCS use by policy.
+- [RTK.md](RTK.md): local shell-command wrapper rule for agents.
+
+## Repository Layout
+
+```text
+bin/
+  codex-wsl.cmd
+  codex-wsl-proxy-runner.sh
+  codex-wsl-proxy.js
+  codex-wsl-proxy-runtime.js
+  codex-wsl-path-translation.js
+  codex-wsl-skills-fallback.js
+  skills-updates.ps1
+  skills-updates.cmd
+  sk-up.cmd
+docs/
+  codex-cli-tooling.md
+  discrawl-wiretap.md
+  shell-setup.md
+  skills-updater.md
+  wsl-shim.md
+skills/
+  codex-goal-control/
+  confidence-loop/
+  discrawl-local/
+  evo-end-to-end/
+  icm/
+  icm-recall/
+  icm-store/
+  tuck/
+  yeet/
+tests/
+  skills-updates-install.ps1
 ```
 
-Copy the WSL scripts into your WSL user:
+## Common Tasks
+
+### Verify the WSL proxy modules
 
 ```bash
-mkdir -p ~/.local/bin
-cp bin/codex-wsl-proxy-runner.sh ~/.local/bin/
-cp bin/codex-wsl-proxy.js ~/.local/bin/
-cp bin/codex-wsl-proxy-runtime.js ~/.local/bin/
-cp bin/codex-wsl-path-translation.js ~/.local/bin/
-cp bin/codex-wsl-skills-fallback.js ~/.local/bin/
-chmod +x ~/.local/bin/codex-wsl-proxy-runner.sh ~/.local/bin/codex-wsl-proxy.js
+node --test bin/codex-wsl-proxy-runtime.test.js
 ```
 
-## Defaults
+This covers protocol path translation, outbound Linux path conversion,
+proxy-only environment cleanup, `skills/list` fallback schema, Windows path-list
+handling, turn-id parsing, and timeout parsing.
 
-By default, `codex-wsl.cmd` uses the `Ubuntu` WSL distro and that distro's
-default user. The runner uses `$HOME/.codex` for `CODEX_HOME`, prepends pnpm,
-Bun, and local user bin directories to `PATH`, and expects the proxy at
-`$HOME/.local/bin/codex-wsl-proxy-runner.sh`.
+### Probe the skills updater help path
 
-Set these environment variables only when your setup is different:
+From Windows PowerShell:
 
-- `CODEX_WSL_EXE`: Windows path to `wsl.exe`.
-- `CODEX_WSL_DISTRO`: WSL distro name, such as `Ubuntu-24.04`.
-- `CODEX_WSL_USER`: WSL user to run as.
-- `CODEX_WSL_PROXY`: WSL path to `codex-wsl-proxy-runner.sh`.
-- `CODEX_WSL_PROXY_JS`: WSL path to `codex-wsl-proxy.js`.
-- `CODEX_WSL_PROXY_DISTRO`: distro name to use when converting WSL paths to
-  `\\wsl.localhost\...` paths. WSL usually sets this itself.
-- `CODEX_WSL_PROXY_TARGET`: WSL path to the real `codex` binary.
-- `CODEX_WSL_PROXY_IDLE_TIMEOUT_MS`: app-server idle timeout. The Windows shim
-  defaults this to `1800000` milliseconds.
-- `CODEX_WSL_PROXY_SKILLS_TIMEOUT_MS`: timeout before the proxy synthesizes a
-  fallback `skills/list` response. The proxy defaults this to `2000`
-  milliseconds.
-- `CODEX_WSL_PROXY_DEBUG_LOG`: WSL path for proxy debug logs.
-- `CODEX_WSL_SHIM_DEBUG`: print the Windows shim launch arguments.
-- `CODEX_SKILLS_DIRS` and `CODEX_SKILL_ROOTS`: extra skill roots passed through
-  to WSL.
-- `CODEX_HOME`: Codex home directory inside WSL.
-
-LazyCodex startup defaults in the WSL runner:
-
-- `OMO_CODEX_DISABLE_POSTHOG=1`
-- `OMO_CODEX_SEND_ANONYMOUS_TELEMETRY=0`
-- `OMO_DISABLE_POSTHOG=1`
-- `OMO_SEND_ANONYMOUS_TELEMETRY=0`
-- `LAZYCODEX_AUTO_UPDATE_DISABLED=1`
-- `OMO_CODEX_AUTO_UPDATE_DISABLED=1`
-- `LAZYCODEX_CONFIG_MIGRATION_DISABLED=1`
-- `OMO_CODEX_CONFIG_MIGRATION_DISABLED=1`
-
-## Use
-
-Put the full path to `codex-wsl.cmd` into T3code. Arguments are passed through
-to Codex after Windows paths are converted to WSL paths.
-
-The WSL side needs `node` available on `PATH`.
-
-The proxy translates arguments before spawning Codex, translates known JSON
-protocol path fields in both directions, and converts WSL filesystem paths in
-Codex output back to Windows paths when possible. Paths under `/mnt/<drive>/`
-become drive-letter paths, and Linux paths become `\\wsl.localhost\<distro>\...`
-when the distro name is known.
-
-When the proxy receives no arguments and stdin is not a TTY, it runs
-`codex app-server`. It tracks protocol activity and active turns so the idle
-reaper does not stop the app server mid-turn.
-
-If the upstream app server does not answer `skills/list` quickly enough, the
-proxy returns a fallback skill list. It searches:
-
-- `$HOME/.codex/skills`
-- `$HOME/.codex/skills/.system`
-- `$HOME/.agents/skills`
-- repo-local `.codex/skills`
-- repo-local `.agents/skills`
-- roots from `CODEX_SKILLS_DIRS` and `CODEX_SKILL_ROOTS`
-- nested `skills/` directories under `$HOME/.codex/plugins/cache`
-
-## Skills Updater
-
-The Windows wrappers run `bin/skills-updates.ps1` with UTF-8 console output.
-Use `sk-up` for short flags or `skills-updates` for long flags:
-
-```bat
-sk-up -l
-sk-up -g
-sk-up -d confidence-loop
-sk-up -z confidence-loop evo-end-to-end
-sk-up -i
-sk-up -i confidence-loop
-sk-up -i owner/repo
-sk-up -s confidence-loop
-sk-up -u confidence-loop
-sk-up -S
-sk-up -r confidence-loop
+```powershell
+bin\skills-updates.cmd --help
+bin\sk-up.cmd -h
 ```
 
-Equivalent long-form examples:
+From WSL:
 
-```bat
-skills-updates --list
-skills-updates --global
-skills-updates --diff confidence-loop
-skills-updates --zed confidence-loop evo-end-to-end
-skills-updates --install
-skills-updates --install confidence-loop
-skills-updates --install owner/repo
-skills-updates --skip confidence-loop
-skills-updates --unskip confidence-loop
-skills-updates --skips
-skills-updates --remove confidence-loop
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/skills-updates.ps1 --cmd-name skills-updates --help
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/skills-updates.ps1 --cmd-name sk-up -h
 ```
 
-Additional aliases are accepted by the script: `--gui` for `--zed`,
-`--uninstall` for `--remove`, and `--install-all`/`install-all` as explicit
-forms of targetless `--install`.
+For the source-install regression check:
 
-The updater reads the global skill lockfile from `%AGENTS_HOME%\.skill-lock.json`
-when `AGENTS_HOME` is set, otherwise from `%USERPROFILE%\.agents\.skill-lock.json`.
-It compares installed skill folders with upstream repository content, not only
-lockfile hashes. Repository clones and skip state live under
-`%LOCALAPPDATA%\skills-updates` when available, otherwise under the temp
-directory.
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
+```
 
-Installs and uninstalls require `pnpm`. The updater uses
-`pnpm dlx skills@latest`, forces global operations to the universal
-`.agents/skills` target, guards lockfile writes with a mutex, and preserves
-existing lockfile entries around Skills CLI operations. Uninstalls also remove
-the global installed skill directory, clear saved skips for the skill, and
-remove the skill's lockfile entry under the same operation lock. If post-CLI
-cleanup fails, the updater restores the pre-uninstall lockfile snapshot so
-directory and lockfile state do not diverge. Saved skips are tied to the
-current upstream tree hash and expire when upstream changes.
+From WSL, use the slash path form:
+
+```bash
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
+```
+
+### Check installed shim freshness
+
+The intended Windows entry point is a native Windows symlink:
+
+```text
+C:\Users\nguco\bin\codex-wsl.cmd -> E:\dev\agents-toolkit\bin\codex-wsl.cmd
+```
+
+The WSL-side runtime files live under `~/.local/bin` when installed:
+
+```bash
+ls -l ~/.local/bin/codex-wsl-proxy*.js ~/.local/bin/codex-wsl-path-translation.js ~/.local/bin/codex-wsl-skills-fallback.js
+```
+
+If those installed files differ from `bin/`, repair by copying from this repo.
+Do not mutate installed runtime files during ordinary source edits unless the
+user explicitly asks for install or repair work.
+
+## Current Design Rationale
+
+- The Windows entry point stays small because Windows-specific work is limited
+  to finding `wsl.exe`, selecting a distro/user, passing environment through
+  `WSLENV`, and preserving the Windows current directory.
+- The WSL runner owns Codex process startup because it can reliably normalize
+  `HOME`, `USER`, `CODEX_HOME`, and WSL `PATH`.
+- The Node proxy is split into runtime, path translation, and skills fallback
+  modules so path-policy changes and app-server lifecycle changes are testable
+  without exercising the Windows batch file.
+- The skills updater is PowerShell-first because it manages Windows global skill
+  installs, Windows `%USERPROFILE%` paths, console codepages, Zed launching, and
+  named mutexes.
+- LazyCodex / OMO is kept as a Codex plugin. The WSL runner disables its
+  telemetry, auto-update, and config-migration startup paths for T3code
+  app-server sessions while leaving the plugin itself available.
+
+## Safety Rules
+
+- Preserve user changes and unrelated local state.
+- Use Windows-native tooling to repair symlinks on Windows drives.
+- Keep temporary agent notes out of VCS with `.git/info/exclude`, not
+  `.gitignore`.
+- Never record secrets, tokens, recovery codes, private personal data, or raw
+  session exports in docs, examples, commits, or skill text.
+- For behavior, workflow, script, or config changes, update the relevant human
+  docs in the same turn.

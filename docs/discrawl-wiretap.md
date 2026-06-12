@@ -26,7 +26,7 @@ source = "wiretap"
 
 [desktop]
 path = "/mnt/c/Users/nguco/AppData/Roaming/Vesktop/sessionData"
-full_cache = false
+full_cache = true
 
 [share]
 auto_update = false
@@ -36,6 +36,10 @@ media = false
 `discrawl sync` therefore imports only the local Vesktop desktop cache. It does
 not call the Discord API as a user, use a user token, run a selfbot, or publish
 the archive.
+
+The `[remote]` block may still contain an environment-token setting for remote
+features, but remote archive settings are empty and normal local search does not
+use them.
 
 ## Normal Use
 
@@ -129,8 +133,8 @@ systemctl --user disable --now discrawl-sync.timer
 - The current local database may store synthetic guild labels such as
   `Discord Desktop Guild ...` instead of real Discord server names. Prefer
   visible channel names in user-facing answers when server names are missing.
-- `full_cache = false` keeps imports faster. Use `discrawl wiretap --full-cache`
-  only for a deliberate slower archaeology pass.
+- `full_cache = true` makes imports inspect the broader Vesktop cache. It can
+  be slower than a focused scan, but it is the current local default.
 - Do not add bot tokens unless the user explicitly wants Discord API sync; even
   then, never record token values in docs, examples, commits, or agent notes.
 - Do not enable share/publish behavior unless the user explicitly wants to back
@@ -138,32 +142,22 @@ systemctl --user disable --now discrawl-sync.timer
 - Do not configure `remote`, `cloud`, or `subscribe-cloud` unless the user
   explicitly wants a Cloudflare-backed remote archive.
 
-## Verification
+## Verification Commands
 
-The setup was verified on 2026-06-07:
+Run these when checking the current install:
 
-```text
+```bash
 discrawl --version
-0.10.0
-
 discrawl check-update
-discrawl: up to date (0.10.0)
-
 discrawl doctor --json
-discord_token: "discord token disabled by config"
-
-discrawl sync --source wiretap
-messages=26
-guild_messages=26
-dm_messages=0
-dry_run=false
-
+discrawl status --json
+rg -n '^(token_source|source|path|full_cache|auto_update|media) =' /home/crunch/.config/discrawl/config.toml
 systemctl --user is-enabled discrawl-sync.timer
-enabled
-
-systemctl --user is-active discrawl-sync.timer
-active
-
 systemctl --user cat discrawl-sync.timer
-OnUnitActiveSec=30min
+systemctl --user is-active discrawl-sync.timer
 ```
+
+Last observed from this repo on 2026-06-12: Discrawl `0.11.0`, config/database
+OK, Discord token disabled by config, embeddings disabled, FTS OK, share
+disabled, primary archive `2959 messages across 1278 channels`, and the
+`discrawl-sync.timer` was both enabled and active with `OnUnitActiveSec=30min`.
