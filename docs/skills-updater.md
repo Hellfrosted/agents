@@ -77,6 +77,16 @@ Aliases:
 `-g` is only for status checks. Do not combine it with install, diff, or Zed
 operations.
 
+`--list` and `--global` answer different questions. `--list` reads installed
+skill directories from `%AGENTS_HOME%\skills`; `--global` checks only skills
+with lockfile metadata. If a skill appears in `--list` but not `--global`, treat
+it as unmanaged drift until it is either intentionally documented as local-only
+or reinstalled through the managed flow.
+
+Last observed unmanaged drift on this workstation: `rust-coding-guidelines` and
+`tdd` were installed under `%USERPROFILE%\.agents\skills` but absent from
+`.skill-lock.json`.
+
 ## State Paths
 
 The updater resolves global skill state from:
@@ -171,3 +181,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-ins
 That test creates a temporary `AGENTS_HOME`, places a fake `pnpm` first on
 `PATH`, runs a source URL install, asserts the expected `pnpm dlx skills@latest
 add <source>` invocation, and removes its temp directory.
+
+Inventory drift check:
+
+```powershell
+bin\skills-updates.cmd --list
+bin\skills-updates.cmd --global
+```
+
+The first command should include every installed global skill directory. The
+second should include every lockfile-backed skill that the updater can compare
+against upstream.

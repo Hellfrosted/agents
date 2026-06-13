@@ -45,6 +45,14 @@ The current config uses portable modules only: OS, shell, directory, git, comman
 
 ## Windows
 
+This section describes the desired repair target for Windows shell parity, not a
+guarantee of the currently loaded profile. As of 2026-06-13, the Windows
+PowerShell and PowerShell 7 profile resolved by `$PROFILE` still initialized Oh
+My Posh and Chocolatey helpers. Scoop shims for Starship, fzf, zoxide, Atuin,
+Git, and PowerShell 7 were present, and `C:\Users\nguco\.config\starship.toml`
+matched the repo template ignoring line endings, but `PSFzf` was not installed
+and the Starship/fzf/zoxide/Atuin profile block below was not active.
+
 Prerequisites on a clean Windows machine:
 
 ```powershell

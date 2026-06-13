@@ -27,6 +27,41 @@ contracts:
 - Skills updater: Windows wrappers for checking and updating globally installed
   Codex skills.
 
+## Codex app and plugin surfaces
+
+These surfaces are part of the active workstation toolchain even when this repo
+does not own their implementation:
+
+- `google-calendar@openai-curated`: installed and enabled for connected Google
+  Calendar scheduling, availability, and agenda work.
+- `google-drive@openai-curated`: installed and enabled for connected Drive,
+  Docs, Sheets, and Slides work.
+- `chrome@openai-bundled`: installed and enabled for workflows that require the
+  user's existing Chrome state.
+- `browser@openai-bundled`: enabled in Codex config for in-app browser
+  automation and local web target checks.
+- `computer-use@openai-bundled`: installed and enabled for Windows desktop app
+  control.
+- `codex-goal-control@personal`: installed and enabled for the local Codex goal
+  panel and direct thread-goal helpers.
+- `agent-loop-designer@personal`: installed and enabled for turning recurring
+  Codex tasks into repeatable loops or worktree-thread workflows.
+- `tabby` MCP: configured as a local HTTP MCP server at
+  `http://172.27.48.1:3001/mcp`.
+- `node_repl` MCP: app-provided JavaScript runtime used for Node-backed
+  inspection and browser automation helpers.
+
+Check these with:
+
+```bash
+codex plugin list
+codex mcp list
+```
+
+Some plugin and MCP namespaces are assembled only when a Codex thread starts. If
+config changed, start a fresh thread or reload Codex before treating a missing
+namespace as a broken install.
+
 ## Adjacent utilities
 
 - `react-doctor`: React diagnostics and cleanup checks.
@@ -241,6 +276,10 @@ local executors. Local executor dependencies are installed on this WSL host:
 memtrack. The CLI and MCP are usable for account auth, repository/local-runs
 uploads, hosted run data, comparisons, and flamegraph queries when runs exist.
 
+Current repo caveat: `Hellfrosted/agents` is not enabled as a CodSpeed
+repository. Local CodSpeed runs from this repo upload to a local-runs project
+unless the repository is enabled on CodSpeed.
+
 ## LazyCodex
 
 LazyCodex is installed as the `omo@sisyphuslabs` Codex plugin. Keep it enabled
@@ -351,6 +390,9 @@ evo --version
 rtk --help
 icm --help
 codex plugin list
+codex mcp list
+codspeed status
+codspeed setup status
 actionlint --version
 react-doctor --version
 tokscale --version
