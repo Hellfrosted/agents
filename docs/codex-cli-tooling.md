@@ -26,6 +26,8 @@ contracts:
 - Discrawl: local Discord cache archive/search for Vesktop wiretap-only use.
 - Skills updater: Windows wrappers for checking and updating globally installed
   Codex skills.
+- Agent Browser: CLI-driven Chrome/Chromium automation for browser QA,
+  screenshots, and page interaction from agent workflows.
 
 ## Codex app and plugin surfaces
 
@@ -250,6 +252,44 @@ it for current OpenAI API, SDK, platform, and product docs.
 Prefer it over web search for OpenAI-specific questions. Fetch the exact doc
 page before quoting or summarizing details.
 
+## Agent Browser
+
+`agent-browser` is installed from the global `pnpm` bin directory at
+`/home/crunch/.local/share/pnpm/bin/agent-browser`. Use it for CLI-driven
+Chrome/Chromium browser automation when a task needs a real browser surface,
+including page inspection, interaction, screenshots, and lightweight QA.
+
+The installed version verified on 2026-06-13 was `agent-browser 0.27.2`.
+`agent-browser install` reported Chrome for Testing `149.0.7827.115` already
+installed under `/home/crunch/.agent-browser/browsers`, and
+`agent-browser doctor` finished with `9 pass, 0 warn, 0 fail`.
+
+Before using it, load the version-matched CLI skill text:
+
+```bash
+agent-browser skills get core
+agent-browser skills get core --full
+```
+
+Useful smoke checks:
+
+```bash
+agent-browser --version
+agent-browser skills list
+agent-browser install
+agent-browser doctor
+agent-browser open https://example.com
+agent-browser get title
+agent-browser get url
+agent-browser snapshot -i -c
+agent-browser screenshot example.png
+agent-browser close --all
+```
+
+`agent-browser screenshot <path>` may still write to its managed temporary
+screenshot directory and print the actual saved path. When preserving evidence,
+copy the printed file into the desired evidence directory and record that path.
+
 ## CodSpeed
 
 CodSpeed CLI is installed at `/home/crunch/.local/bin/codspeed`. It is
@@ -393,6 +433,8 @@ codex plugin list
 codex mcp list
 codspeed status
 codspeed setup status
+agent-browser --version
+agent-browser doctor
 actionlint --version
 react-doctor --version
 tokscale --version
