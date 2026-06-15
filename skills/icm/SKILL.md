@@ -9,7 +9,8 @@ Use ICM as Codex persistent memory when durable context is likely to matter.
 
 ## Recall First
 
-At task start, search relevant past context. Prefer the ICM MCP recall tool; otherwise use:
+At task start, search relevant past context. Prefer the ICM MCP recall tool. If
+MCP is unavailable, use the local ICM CLI through `rtk run`:
 
 ```bash
 rtk run 'icm recall "query"'
@@ -25,7 +26,8 @@ Before replying, store privacy-safe durable facts:
 - Significant progress or completion: topic `context-{project}`, importance `high`.
 - Long run without a store: save a concise progress summary.
 
-Prefer ICM MCP store when available. CLI fallback:
+Prefer ICM MCP store when available. If MCP is unavailable, use the local ICM
+CLI through `rtk run`:
 
 ```bash
 rtk run 'icm store -t "topic" -c "summary" -i high'

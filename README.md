@@ -57,13 +57,13 @@ docs/
   wsl-shim.md
 skills/
   codex-goal-control/
-  agent-browser/
   confidence-loop/
   discrawl-local/
   evo-end-to-end/
   icm/
   icm-recall/
   icm-store/
+  task-brief/
   tuck/
   yeet/
 tests/
@@ -92,8 +92,12 @@ bin\sk-up.cmd -h
 ```
 
 On this workstation, run the skills-updater PowerShell checks from Windows
-PowerShell. The WSL environment currently runs Codex inside Linux and does not
-provide a reliable `powershell.exe` interop command for these checks.
+PowerShell. From WSL, launch Windows PowerShell through WSL init because the
+Windows drive mount can make `.exe` files appear non-executable:
+
+```bash
+/init /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
+```
 
 Windows PowerShell can still target slash paths when needed:
 

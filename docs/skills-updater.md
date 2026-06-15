@@ -166,8 +166,12 @@ entries and unrelated lockfile fields survive add/remove commands.
 ## Verification
 
 Run these verification commands from Windows PowerShell on this workstation.
-The current WSL Codex environment runs inside Linux and does not expose a
-reliable `powershell.exe` interop command for these checks.
+From WSL, launch Windows PowerShell through WSL init because the Windows drive
+mount can make `.exe` files appear non-executable:
+
+```bash
+/init /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
+```
 
 Help-path smoke checks:
 

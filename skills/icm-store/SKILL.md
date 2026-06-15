@@ -5,7 +5,9 @@ description: Stores information in ICM persistent memory from Codex. Use when th
 
 # ICM Store
 
-Store the user's provided content in ICM. Prefer the ICM MCP store tool. Use topic `note` unless the user specifies a better topic. CLI fallback:
+Store the user's provided content in ICM. Prefer the ICM MCP store tool. Use
+topic `note` unless the user specifies a better topic. If MCP is unavailable,
+use the local ICM CLI through `rtk run`:
 
 ```bash
 rtk run 'icm store -t "note" -c "<content>"'

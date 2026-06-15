@@ -264,9 +264,10 @@ page before quoting or summarizing details.
 Chrome/Chromium browser automation when a task needs a real browser surface,
 including page inspection, interaction, screenshots, and lightweight QA.
 
-The repo-owned skill source is `skills/agent-browser/SKILL.md`. Keep it as a
-thin launcher that delegates detailed workflows to `agent-browser skills get ...`
-so the instructions match the installed CLI version.
+There is no repo-owned `skills/agent-browser/` source in this repository. Treat
+Agent Browser as an installed CLI workflow: load the version-matched CLI skill
+text with `agent-browser skills get ...` so the instructions match the installed
+CLI version.
 
 The installed version verified on 2026-06-14 was `agent-browser 0.27.3`.
 `agent-browser install` reported Chrome for Testing `149.0.7827.115` already
@@ -392,7 +393,7 @@ first, then falls back to authenticated `gh search code` when the hosted server
 times out or returns HTML.
 
 Keep redundant or noisy LazyCodex LSP entries disabled in
-`/home/crunch/.codex/lsp-client.json`: Deno, ESLint, Pyright, Ty, Ruff, Svelte,
+`/home/crunch/.codex/lsp-client.json`: ESLint, Pyright, Ty, Ruff, Svelte,
 Astro, bash-ls, terraform-ls, and Prisma. The default diagnostic surface should
 prefer the active non-duplicated servers: TypeScript/JavaScript, Oxlint, Biome,
 BasedPyright, bash, Terraform, and Dockerfile plus the other single-language
@@ -466,4 +467,5 @@ reports also show Windows + WSL sessions where Browser feature/config state is
 enabled but the Browser use skill or required Node REPL tool surface is missing
 from the actual session (`https://github.com/openai/codex/issues/19365`,
 `https://github.com/openai/codex/issues/21440`). When that happens, use the
-repo-owned `agent-browser` skill as the CLI fallback for browser QA.
+installed `agent-browser` CLI as the fallback for browser QA and load its current
+instructions with `agent-browser skills get core`.

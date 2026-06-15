@@ -5,7 +5,9 @@ description: Searches ICM persistent memory from Codex. Use when the user invoke
 
 # ICM Recall
 
-Search ICM for the user's query and report only relevant memories concisely. Prefer the ICM MCP recall tool; otherwise run:
+Search ICM for the user's query and report only relevant memories concisely.
+Prefer the ICM MCP recall tool. If MCP is unavailable, use the local ICM CLI
+through `rtk run`:
 
 ```bash
 rtk run 'icm recall "<query>"'
