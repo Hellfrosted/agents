@@ -165,6 +165,10 @@ entries and unrelated lockfile fields survive add/remove commands.
 
 ## Verification
 
+Run these verification commands from Windows PowerShell on this workstation.
+The current WSL Codex environment runs inside Linux and does not expose a
+reliable `powershell.exe` interop command for these checks.
+
 Help-path smoke checks:
 
 ```powershell

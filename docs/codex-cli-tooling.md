@@ -41,7 +41,10 @@ does not own their implementation:
 - `chrome@openai-bundled`: installed and enabled for workflows that require the
   user's existing Chrome state.
 - `browser@openai-bundled`: enabled in Codex config for in-app browser
-  automation and local web target checks.
+  automation and local web target checks. In Windows + WSL Codex sessions, do
+  not rely on `codex plugin list` alone: the Browser config can exist while the
+  `@Browser` skill/tool surface is absent from the Linux-side thread. Verify the
+  running thread's tool list or use `@Browser` directly in a fresh thread.
 - `computer-use@openai-bundled`: installed and enabled for Windows desktop app
   control.
 - `codex-goal-control@personal`: installed and enabled for the local Codex goal
@@ -62,7 +65,9 @@ codex mcp list
 
 Some plugin and MCP namespaces are assembled only when a Codex thread starts. If
 config changed, start a fresh thread or reload Codex before treating a missing
-namespace as a broken install.
+namespace as a broken install. Browser is the main exception on this
+workstation: because Codex Desktop is running the workspace through WSL, confirm
+it from the actual thread tool/skill surface, not only from `codex plugin list`.
 
 ## Adjacent utilities
 
@@ -259,10 +264,15 @@ page before quoting or summarizing details.
 Chrome/Chromium browser automation when a task needs a real browser surface,
 including page inspection, interaction, screenshots, and lightweight QA.
 
-The installed version verified on 2026-06-13 was `agent-browser 0.27.2`.
+The repo-owned skill source is `skills/agent-browser/SKILL.md`. Keep it as a
+thin launcher that delegates detailed workflows to `agent-browser skills get ...`
+so the instructions match the installed CLI version.
+
+The installed version verified on 2026-06-14 was `agent-browser 0.27.3`.
 `agent-browser install` reported Chrome for Testing `149.0.7827.115` already
-installed under `/home/crunch/.agent-browser/browsers`, and
-`agent-browser doctor` finished with `9 pass, 0 warn, 0 fail`.
+installed under `/home/crunch/.agent-browser/browsers`. `agent-browser doctor`
+exited successfully; its pass/warn counts can vary when the headless launch
+smoke check is slow.
 
 Before using it, load the version-matched CLI skill text:
 
@@ -446,3 +456,14 @@ For those, verify them through the Codex config or the tool list in the running
 session. `codex plugin list` confirms that OMO is installed and enabled, but a
 fresh thread is still needed to confirm that the `lsp` and `ast_grep` MCP
 namespaces mounted.
+
+For Browser use, check the current thread directly. Official Codex docs say the
+in-app browser is controlled through the Browser plugin and `@Browser`
+(`https://developers.openai.com/codex/app/browser`), and Codex plugins can
+bundle skills, apps, and MCP servers
+(`https://developers.openai.com/codex/plugins`). Public OpenAI Codex issue
+reports also show Windows + WSL sessions where Browser feature/config state is
+enabled but the Browser use skill or required Node REPL tool surface is missing
+from the actual session (`https://github.com/openai/codex/issues/19365`,
+`https://github.com/openai/codex/issues/21440`). When that happens, use the
+repo-owned `agent-browser` skill as the CLI fallback for browser QA.

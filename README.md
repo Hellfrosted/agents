@@ -57,6 +57,7 @@ docs/
   wsl-shim.md
 skills/
   codex-goal-control/
+  agent-browser/
   confidence-loop/
   discrawl-local/
   evo-end-to-end/
@@ -90,9 +91,13 @@ bin\skills-updates.cmd --help
 bin\sk-up.cmd -h
 ```
 
-From WSL:
+On this workstation, run the skills-updater PowerShell checks from Windows
+PowerShell. The WSL environment currently runs Codex inside Linux and does not
+provide a reliable `powershell.exe` interop command for these checks.
 
-```bash
+Windows PowerShell can still target slash paths when needed:
+
+```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/skills-updates.ps1 --cmd-name skills-updates --help
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/skills-updates.ps1 --cmd-name sk-up -h
 ```
@@ -103,9 +108,9 @@ For the source-install regression check:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
 ```
 
-From WSL, use the slash path form:
+From Windows PowerShell, the slash path form is also accepted:
 
-```bash
+```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
 ```
 
