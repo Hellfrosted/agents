@@ -18,10 +18,8 @@ For companion skill sources, optimize presets, and release-specific notes, see
 Names written as `$skill-name` are agent skills. Load and follow a named skill
 when its trigger applies.
 
-- Use `$grill-me` when the goal, constraints, non-goals, success metric, or
-  forbidden changes are unclear after repo inspection.
-- Use `$grill-with-docs` only for unclear terminology, ownership, `CONTEXT.md`,
-  or ADR decisions.
+- Use `$grill-with-docs` when the goal, constraints, non-goals, success metric,  unclear terminology, ownership, `CONTEXT.md`,
+  or ADR decisions., or forbidden changes are unclear after repo inspection.
 - Use `$improve-codebase-architecture` when architecture or testability must be
   decomposed before choosing an Evo metric.
 - Use `$evo finetuning` before writing or changing training code, reward design,
@@ -30,7 +28,7 @@ when its trigger applies.
 
 If a referenced `$xxx` skill is not installed, check the host's skill list and
 then the user's skill lockfile for `sourceUrl` and `skillPath`. Cite the source
-before continuing with the best available fallback.
+before continuing with the best available fallback or hardstop as needed.
 
 ## Flow
 
@@ -66,11 +64,16 @@ before continuing with the best available fallback.
     timing-sensitive harnesses unless the harness isolates them.
     This is Evo CLI worker sizing, not Codex `spawn_agent` fork behavior. If
     this workflow also uses Codex subagents for planning, review, or triage,
-    launch role-specific workers without full history. In the current
-    `spawn_agent` tool, omit `fork_context` or set `fork_context: false`; on
-    tool surfaces that use `fork_turns`, set `fork_turns: "none"`. Put the role
-    and needed context in the message; do not override `agent_type`, `model`, or
-    `reasoning_effort` on a full-history fork.
+    split the work into independent lanes and launch role-specific workers in
+    parallel without full history. Give each Codex worker a dedicated lane goal:
+    before launching the lane worker, spawn a dedicated goal-writer subagent
+    that uses `$goalcraft` to turn the approved brief and lane scope into the
+    lane goal, then returns only that goal to the main agent. The main agent
+    passes the returned goal to the lane worker. In the current `spawn_agent`
+    tool, omit `fork_context` or set `fork_context: false`; on tool surfaces
+    that use `fork_turns`, set `fork_turns: "none"`. Put the role, returned
+    goal, lane scope, and needed context in the message; do not override
+    `agent_type`, `model`, or `reasoning_effort` on a full-history fork.
 11. Run `$evo optimize subagents=<n> budget=<n> stall=<n>` within the approved
     scope.
 12. Use `evo direct "<text>"` only to steer an already-running Evo session. If

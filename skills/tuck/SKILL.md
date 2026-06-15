@@ -27,6 +27,13 @@ Always use at least one reviewer per commit. Prefer one batched reviewer for
 small, familiar, docs-only, formatting-only, or obvious mechanical changes.
 Split reviewers by risk area for larger or mixed commits.
 
+Give each reviewer a dedicated commit-review goal. The main agent must not
+draft that goal itself. First spawn a dedicated goal-writer subagent that uses
+`$goalcraft` to turn the commit scope, assigned paths, and risk focus into a
+reviewer goal, then returns only that goal to the main agent. The main agent
+then passes the returned goal to the reviewer. The goal must keep the reviewer
+read-only and commit-scoped.
+
 When spawning Codex reviewers, use non-full-history forks for role-specific
 review. In the current `spawn_agent` tool, omit `fork_context` or set
 `fork_context: false`; on tool surfaces that use `fork_turns`, set
@@ -50,6 +57,7 @@ Short reviewer prompt:
 
 ```text
 TASK: act as a read-only tuck reviewer.
+GOAL: {dedicated commit-review goal returned by the $goalcraft goal-writer subagent}
 DELIVERABLE: blocking findings only, with file paths and line references; if none, say: no blocking findings.
 SCOPE: review only changed diff plus minimal nearby context; do not edit files or spawn agents.
 VERIFY: every finding must be tied to a concrete changed line or omitted required check.
