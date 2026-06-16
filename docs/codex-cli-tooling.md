@@ -101,6 +101,19 @@ Prefer direct WSL interop for durable automation:
 - `powershell.exe /c start .` or `cmd.exe /c start` for opening files and URLs.
 - `wsl.exe` for WSL management from Windows.
 
+When the task is to run or inspect Windows-side shell behavior, prefer Tabby
+MCP over brute-force WSL interop attempts. Use Tabby MCP to target existing
+PowerShell or Command Prompt sessions, read terminal buffers, send interactive
+input, stop running commands, split/focus panes, or use SFTP through an active
+SSH session. This is especially useful when command success depends on the
+loaded Windows profile, Tabby session state, an interactive prompt, or a
+Windows-only executable that is awkward to launch reliably from WSL.
+
+Keep direct WSL interop for simple, deterministic, non-interactive commands
+that are already documented in this repo, such as path conversion, opening a
+folder or URL, checking a Windows symlink, or invoking a known PowerShell test
+script through WSL init.
+
 ## Discrawl
 
 Discrawl is installed in WSL as a local Discord archive/search tool. This
