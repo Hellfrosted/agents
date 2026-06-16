@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">ICM Memory skill icon</title>
+  <defs>
+    <linearGradient id="bg" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4338CA"/>
+      <stop offset="1" stop-color="#0891B2"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <rect x="13" y="21" width="38" height="23" rx="6" fill="#F8FAFC"/>
+  <path d="M18 18v-5M27 18v-5M37 18v-5M46 18v-5M18 51v-5M27 51v-5M37 51v-5M46 51v-5M8 28h5M8 37h5M51 28h5M51 37h5" stroke="#A5F3FC" stroke-width="3" stroke-linecap="round"/>
+  <path d="M24 32h16M24 38h10" stroke="#4338CA" stroke-width="4" stroke-linecap="round"/>
+</svg>

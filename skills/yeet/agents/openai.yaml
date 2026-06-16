@@ -1,0 +1,10 @@
+interface:
+  display_name: "Yeet"
+  short_description: "Commit and push this turn's changes"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#BE123C"
+  default_prompt: "Use $yeet to commit and push the changes from this turn."
+
+policy:
+  allow_implicit_invocation: true

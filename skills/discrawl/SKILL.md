@@ -1,11 +1,11 @@
 ---
-name: discrawl-local
+name: discrawl
 description: Uses the local Discrawl SQLite archive as a searchable Discord documentation source. Use when the user says "use discrawl", asks to search Discord history, asks what a Discord server/channel said about a topic, or wants to refresh/query Vesktop wiretap cache.
 ---
 
-# Discrawl Local
+# Discrawl
 
-Discrawl Local searches the workstation's local Discord archive. This install is
+Discrawl searches the workstation's local Discord archive. This install is
 configured for Vesktop wiretap mode, so it reads local desktop cache only and
 does not use a Discord bot token.
 
@@ -51,7 +51,7 @@ If invoked without a question, run `discrawl status --json`, then report current
 message count, channel count, database path, and common asks:
 
 ```md
-# Discrawl Local
+# Discrawl
 _use your coding agent to search locally cached Discord history_
 
 - messages: <count>

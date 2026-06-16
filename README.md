@@ -56,9 +56,8 @@ docs/
   skills-updater.md
   wsl-shim.md
 skills/
-  codex-goal-control/
   confidence-loop/
-  discrawl-local/
+  discrawl/
   evo-end-to-end/
   icm/
   icm-recall/

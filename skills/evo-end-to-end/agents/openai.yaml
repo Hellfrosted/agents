@@ -1,4 +1,10 @@
 interface:
   display_name: "Evo End To End"
   short_description: "Plan and launch scoped Evo v0.5.2+ runs"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#EA580C"
   default_prompt: "Use $evo-end-to-end to turn this optimization idea into an Evo-ready brief."
+
+policy:
+  allow_implicit_invocation: false

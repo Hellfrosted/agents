@@ -1,7 +1,10 @@
 interface:
   display_name: "Tuck"
   short_description: "Create local commits with batched review"
-  default_prompt: "Use tuck to create focused, reviewed local commits for my changes."
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#111827"
+  default_prompt: "Use $tuck to create focused, reviewed local commits for my changes."
 
 policy:
   allow_implicit_invocation: true

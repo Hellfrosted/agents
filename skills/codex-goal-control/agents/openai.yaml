@@ -1,4 +1,0 @@
-interface:
-  display_name: "Codex Goal Control"
-  short_description: "Open the goal panel and manage the current thread goal."
-  default_prompt: "Use $codex-goal-control to open the goal panel for this Codex thread."

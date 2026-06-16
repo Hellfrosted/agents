@@ -1,4 +1,10 @@
 interface:
   display_name: "ICM Recall"
   short_description: "Search ICM persistent memory"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0369A1"
   default_prompt: "Use $icm-recall to search ICM memory for relevant context."
+
+policy:
+  allow_implicit_invocation: true

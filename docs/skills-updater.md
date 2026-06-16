@@ -83,9 +83,8 @@ with lockfile metadata. If a skill appears in `--list` but not `--global`, treat
 it as unmanaged drift until it is either intentionally documented as local-only
 or reinstalled through the managed flow.
 
-Last observed unmanaged drift on this workstation: `rust-coding-guidelines` and
-`tdd` were installed under `%USERPROFILE%\.agents\skills` but absent from
-`.skill-lock.json`.
+Last observed unmanaged drift on this workstation: `tdd` is installed under
+`%USERPROFILE%\.agents\skills` but absent from `.skill-lock.json`.
 
 ## State Paths
 

@@ -1,0 +1,10 @@
+interface:
+  display_name: "Discrawl"
+  short_description: "Search locally cached Discord history"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0284C7"
+  default_prompt: "Use $discrawl to search locally cached Discord history for this topic."
+
+policy:
+  allow_implicit_invocation: true

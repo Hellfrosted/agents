@@ -1,0 +1,10 @@
+interface:
+  display_name: "Task Brief"
+  short_description: "Turn rough intent into actionable task briefs"
+  icon_small: "./assets/icon.svg"
+  icon_large: "./assets/icon.svg"
+  brand_color: "#0F766E"
+  default_prompt: "Use $task-brief to turn this rough request into a compact Codex task brief."
+
+policy:
+  allow_implicit_invocation: true

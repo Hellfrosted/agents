@@ -14,7 +14,6 @@ contracts:
 - Evo: experiment runner for optimization work.
 - RTK: command wrapper agents use for shell commands.
 - ICM: persistent memory for durable Codex context.
-- Codex Security: security review plugin from `openai-curated`.
 - OpenAI Developer Docs MCP: official OpenAI docs server for API and product
   docs lookup.
 - CodSpeed: CLI plus hosted MCP for performance runs, comparisons, and
@@ -47,8 +46,6 @@ does not own their implementation:
   running thread's tool list or use `@Browser` directly in a fresh thread.
 - `computer-use@openai-bundled`: installed and enabled for Windows desktop app
   control.
-- `codex-goal-control@personal`: installed and enabled for the local Codex goal
-  panel and direct thread-goal helpers.
 - `agent-loop-designer@personal`: installed and enabled for turning recurring
   Codex tasks into repeatable loops or worktree-thread workflows.
 - `tabby` MCP: configured as a local HTTP MCP server at
@@ -238,16 +235,6 @@ content, open diffs, install changed or missing skills, install source URLs,
 save or remove skips, and uninstall global skills. See
 [Skills Updater](skills-updater.md) for the full command table, state paths,
 lockfile behavior, and verification.
-
-## Codex Security
-
-Codex Security is installed as the `codex-security@openai-curated` plugin, but
-it is currently disabled in this workstation's Codex plugin config. Check
-`codex plugin list` before relying on it, and enable or reinstall it only when
-the user asks for security-plugin work.
-
-Keep its output focused on exploitable behavior. Security review should lead
-with findings and include file and line references when possible.
 
 ## OpenAI Developer Docs MCP
 

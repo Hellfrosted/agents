@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Evo End To End skill icon</title>
+  <defs>
+    <linearGradient id="bg" x1="10" y1="8" x2="54" y2="58" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7C2D12"/>
+      <stop offset="1" stop-color="#EA580C"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <path d="M36 42v12s8-1.5 11-6c3-4.8 0-14 0-14" fill="#FED7AA"/>
+  <path d="M18 46c-4 3.3-5 10-5 10s7-1 10-5c1.8-2.2 1.5-5-.4-6.8s-4.5-1.8-4.6 1.8z" fill="#FDBA74"/>
+  <path d="M25 31c2-5 5-11 9-15 6-6 14-8 18-8 0 5-1 14-8 21-4 4-10 7-15 9z" fill="#FFF7ED"/>
+  <path d="M25 31H13s1.5-8 6-11c4.6-3 14 0 14 0" fill="#FED7AA"/>
+  <circle cx="42" cy="19" r="4" fill="#EA580C"/>
+  <path d="M15 17h9M12 25h6M41 50h8" stroke="#FFEDD5" stroke-width="3" stroke-linecap="round"/>
+</svg>
