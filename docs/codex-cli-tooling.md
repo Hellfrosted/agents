@@ -418,8 +418,9 @@ After changing MCP dependencies, start a fresh Codex thread or restart/reload
 Codex before checking whether namespaces are available, because tool assembly
 happens at thread startup.
 
-For T3code sessions launched through `bin/codex-wsl.cmd`, the WSL runner
-disables LazyCodex telemetry, auto-update, and config migration by default while
+For T3code sessions launched through `bin/codex-wsl.cmd`, the WSL runner allows
+LazyCodex auto-update by default so Codex plugin updates do not require manual
+remembering. It still disables telemetry and config migration by default while
 leaving the plugin available:
 
 ```bash
@@ -427,11 +428,12 @@ OMO_CODEX_DISABLE_POSTHOG=1
 OMO_CODEX_SEND_ANONYMOUS_TELEMETRY=0
 OMO_DISABLE_POSTHOG=1
 OMO_SEND_ANONYMOUS_TELEMETRY=0
-LAZYCODEX_AUTO_UPDATE_DISABLED=1
-OMO_CODEX_AUTO_UPDATE_DISABLED=1
 LAZYCODEX_CONFIG_MIGRATION_DISABLED=1
 OMO_CODEX_CONFIG_MIGRATION_DISABLED=1
 ```
+
+Set `LAZYCODEX_AUTO_UPDATE_DISABLED=1` or `OMO_CODEX_AUTO_UPDATE_DISABLED=1`
+explicitly only when diagnosing update-related startup issues.
 
 Other T3code shim knobs:
 

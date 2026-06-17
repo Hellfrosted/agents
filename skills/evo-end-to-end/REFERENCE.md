@@ -5,10 +5,9 @@
 | Skill | Use in this workflow | GitHub source if missing |
 | --- | --- | --- |
 | `$ask-matt` | Choose the Matt Pocock flow when a request is not yet clearly planning, triage, implementation, or codebase health work. | `https://github.com/mattpocock/skills.git` at `skills/engineering/ask-matt/SKILL.md` |
-| `$grill-me` | Clarify ambiguous goals, constraints, non-goals, success metrics, or forbidden changes. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grill-me/SKILL.md` |
-| `$grill-with-docs` | Challenge a plan against project terminology, `CONTEXT.md`, or ADRs, and update docs as decisions crystallize. | `https://github.com/mattpocock/skills.git` at `skills/engineering/grill-with-docs/SKILL.md` |
+| `$grilling` | Clarify ambiguous goals, constraints, non-goals, success metrics, ownership, or forbidden changes. This is the internal interview skill used by the old grill wrappers. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grilling/SKILL.md` |
 | `$codebase-design` | Use Matt's deep-module vocabulary when evaluating module interfaces, seams, leverage, locality, and testability. | `https://github.com/mattpocock/skills.git` at `skills/engineering/codebase-design/SKILL.md` |
-| `$domain-modeling` | Sharpen `CONTEXT.md` and ADR vocabulary when a workflow needs to add or change domain terms. | `https://github.com/mattpocock/skills.git` at `skills/engineering/domain-modeling/SKILL.md` |
+| `$domain-modeling` | Pair with `$grilling` for codebase planning when the workflow needs to add or change `CONTEXT.md`, ADRs, or domain terms. | `https://github.com/mattpocock/skills.git` at `skills/engineering/domain-modeling/SKILL.md` |
 | `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
 | `$implement` | Execute a single PRD or issue after the plan has been split and the implementation scope is fresh. | `https://github.com/mattpocock/skills.git` at `skills/engineering/implement/SKILL.md` |
 | `$tdd` | Drive implementation test-first when an Evo setup task needs behavior locked by public-interface tests. | `https://github.com/mattpocock/skills.git` at `skills/engineering/tdd/SKILL.md` |

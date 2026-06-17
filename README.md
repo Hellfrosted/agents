@@ -20,6 +20,7 @@ when the user asks to install, repair, or republish the local setup.
 | --- | --- | --- |
 | WSL Codex shim | [docs/wsl-shim.md](docs/wsl-shim.md) | Windows `.cmd`, WSL runner, Node proxy runtime, path translation, skills fallback, and T3code app-server behavior. |
 | Skills updater | [docs/skills-updater.md](docs/skills-updater.md) | `sk-up` and `skills-updates` flags, state paths, locking, install/uninstall behavior, and verification. |
+| Skill feedback loop | [docs/skill-feedback-loop.md](docs/skill-feedback-loop.md) | Repo-local feedback events, `$improve-skills`, source-first Skill diffs, and the weekly review prompt. |
 | Companion tools | [docs/codex-cli-tooling.md](docs/codex-cli-tooling.md) | Evo, RTK, ICM, CodSpeed, LazyCodex, OpenAI docs MCP, Discrawl, and adjacent CLIs. |
 | Shell setup | [docs/shell-setup.md](docs/shell-setup.md) | Starship, fzf, zoxide, Atuin, PSReadLine, ble.sh, Tabby, Windows, WSL, and Arch parity. |
 | Discrawl wiretap | [docs/discrawl-wiretap.md](docs/discrawl-wiretap.md) | Local Vesktop-cache archive, user systemd timer, limits, and verification. |
@@ -52,9 +53,14 @@ bin/
 docs/
   codex-cli-tooling.md
   discrawl-wiretap.md
+  skill-feedback-loop.md
   shell-setup.md
   skills-updater.md
   wsl-shim.md
+feedback/
+  skills/
+    events/
+    summaries/
 skills/
   confidence-loop/
   discrawl/
@@ -62,6 +68,7 @@ skills/
   icm/
   icm-recall/
   icm-store/
+  improve-skills/
   task-brief/
   tuck/
   yeet/
@@ -150,9 +157,9 @@ user explicitly asks for install or repair work.
   named mutexes.
 - LazyCodex is kept as a Codex plugin in WSL. The `omo@sisyphuslabs` name is
   only the Codex plugin identifier there; full OMO plus OpenCode is Windows-only
-  on this workstation. The WSL runner disables LazyCodex telemetry, auto-update,
-  and config-migration startup paths for T3code app-server sessions while
-  leaving the plugin itself available.
+  on this workstation. The WSL runner allows LazyCodex auto-update by default,
+  while disabling telemetry and config-migration startup paths for T3code
+  app-server sessions and leaving the plugin itself available.
 
 ## Safety Rules
 

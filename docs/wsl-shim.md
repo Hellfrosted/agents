@@ -57,13 +57,12 @@ The WSL runner defaults to:
 
 - `CODEX_HOME=$HOME/.codex`
 - `PATH` prefixed with pnpm, Bun, user-local, and user bin directories
-- LazyCodex startup mutation paths disabled for app-server sessions:
+- LazyCodex auto-update allowed by default, with telemetry and config migration
+  disabled for app-server sessions:
   - `OMO_CODEX_DISABLE_POSTHOG=1`
   - `OMO_CODEX_SEND_ANONYMOUS_TELEMETRY=0`
   - `OMO_DISABLE_POSTHOG=1`
   - `OMO_SEND_ANONYMOUS_TELEMETRY=0`
-  - `LAZYCODEX_AUTO_UPDATE_DISABLED=1`
-  - `OMO_CODEX_AUTO_UPDATE_DISABLED=1`
   - `LAZYCODEX_CONFIG_MIGRATION_DISABLED=1`
   - `OMO_CODEX_CONFIG_MIGRATION_DISABLED=1`
 

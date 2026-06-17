@@ -13,12 +13,6 @@ fi
 
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
 
-# LazyCodex works as a Codex plugin, but its startup hooks can emit anonymous
-# telemetry, spawn a detached self-updater, and migrate Codex config. The shim
-# disables those network/background mutation paths for T3code's long-lived
-# app-server sessions while leaving the plugin itself enabled.
-export LAZYCODEX_AUTO_UPDATE_DISABLED="${LAZYCODEX_AUTO_UPDATE_DISABLED:-1}"
-export OMO_CODEX_AUTO_UPDATE_DISABLED="${OMO_CODEX_AUTO_UPDATE_DISABLED:-1}"
 export LAZYCODEX_CONFIG_MIGRATION_DISABLED="${LAZYCODEX_CONFIG_MIGRATION_DISABLED:-1}"
 export OMO_CODEX_CONFIG_MIGRATION_DISABLED="${OMO_CODEX_CONFIG_MIGRATION_DISABLED:-1}"
 export OMO_CODEX_DISABLE_POSTHOG="${OMO_CODEX_DISABLE_POSTHOG:-1}"
@@ -31,7 +25,7 @@ PATH_PREFIX="$HOME/.local/share/pnpm/bin:$HOME/.local/share/pnpm:$HOME/.bun/bin:
 
 export PATH="$PATH_PREFIX:${PATH:-$DEFAULT_PATH}"
 
-SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(unset CDPATH; cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 PROXY_JS="${CODEX_WSL_PROXY_JS:-$SCRIPT_DIR/codex-wsl-proxy.js}"
 
 if ! command -v node >/dev/null 2>&1; then

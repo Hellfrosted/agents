@@ -1,6 +1,6 @@
 ---
 name: evo-end-to-end
-description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.2+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as $grill-me, $grill-with-docs, and $improve-codebase-architecture when needed.
+description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.2+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as $grilling, $domain-modeling, and $improve-codebase-architecture when needed.
 ---
 
 # Evo End To End
@@ -18,9 +18,11 @@ For companion skill sources, optimize presets, and release-specific notes, see
 Names written as `$skill-name` are agent skills. Load and follow a named skill
 when its trigger applies.
 
-- Use `$grill-with-docs` when the goal, constraints, non-goals, success metric,
-  unclear terminology, ownership, `CONTEXT.md`, ADR decisions, or forbidden
-  changes are unclear after repo inspection.
+- Use `$grilling` when the goal, constraints, non-goals, success metric,
+  ownership, or forbidden changes are unclear after repo inspection.
+- Add `$domain-modeling` alongside `$grilling` when unclear terminology,
+  `CONTEXT.md`, ADR decisions, or domain vocabulary need to be sharpened or
+  updated while planning.
 - Use `$improve-codebase-architecture` when architecture or testability must be
   decomposed before choosing an Evo metric.
 - Use `$evo finetuning` before writing or changing training code, reward design,
