@@ -43,13 +43,29 @@ function startProxy() {
 class ProxyRuntime {
   constructor(options) {
     Object.assign(this, options);
-    this.activeTurnIds = new Set();
-    this.pendingSkillsListRequests = new Map();
+    this.appServerSession =
+      this.appServerSession ||
+      new AppServerSession({
+        debugLog: this.debugLog,
+        enabled: this.childArgv[0] === "app-server",
+        hasChildExited: () => this.childExited,
+        idleTimeoutMs: this.idleTimeoutMs,
+        isShuttingDown: () => this.shuttingDown,
+        requestShutdown: (signal) => this.shutdown(signal),
+      });
+    this.skillsListFallbacks =
+      this.skillsListFallbacks ||
+      new SkillsListFallbacks({
+        debugLog: this.debugLog,
+        normalizeOutboundJsonLine: this.normalizeOutboundJsonLine,
+        skillsFallback: this.skillsFallback,
+        timeoutMs: this.skillsFallbackTimeoutMs,
+        writeOutput: (line) => process.stdout.write(line),
+      });
     this.stdinBuffer = "";
     this.stdoutBuffer = "";
     this.shuttingDown = false;
     this.childExited = false;
-    this.lastActivityAt = Date.now();
   }
 
   attach() {
@@ -58,9 +74,7 @@ class ProxyRuntime {
   }
 
   attachLifecycle() {
-    if (this.childArgv[0] === "app-server" && this.idleTimeoutMs > 0) {
-      setInterval(() => this.reapIdleChild(), Math.min(this.idleTimeoutMs, 60_000)).unref();
-    }
+    this.appServerSession.attachIdleReaper();
 
     process.once("SIGINT", () => this.shutdown("SIGINT"));
     process.once("SIGTERM", () => this.shutdown("SIGTERM"));
@@ -82,7 +96,7 @@ class ProxyRuntime {
       this.child.stdin.end();
     });
     process.stdin.on("close", () => {
-      if (!this.child.killed && this.childArgv[0] === "app-server") this.shutdown("SIGTERM");
+      if (this.appServerSession.shouldShutdownOnInputClose(this.child)) this.shutdown("SIGTERM");
     });
   }
 
@@ -123,7 +137,7 @@ class ProxyRuntime {
     try {
       const parsed = JSON.parse(normalizedLine);
       this.observeProtocolMessage(parsed);
-      if (parsed?.method === "skills/list" && parsed?.id !== undefined) this.registerSkillsListFallback(parsed);
+      this.skillsListFallbacks.observeInboundMessage(parsed);
     } catch {
       // Non-JSON input still belongs to child stdin.
     }
@@ -131,29 +145,7 @@ class ProxyRuntime {
   }
 
   observeProtocolMessage(message) {
-    if (!message || typeof message !== "object") return;
-    this.recordActivity();
-    if (this.childArgv[0] !== "app-server") return;
-    if (message.method === "turn/started") {
-      const turnId = readMessageTurnId(message);
-      if (turnId) this.activeTurnIds.add(turnId);
-      return;
-    }
-    if (message.method === "turn/completed") {
-      const turnId = readMessageTurnId(message);
-      if (turnId) this.activeTurnIds.delete(turnId);
-    }
-  }
-
-  registerSkillsListFallback(message) {
-    const timer = setTimeout(() => {
-      const pending = this.pendingSkillsListRequests.get(message.id);
-      if (!pending) return;
-      pending.responded = true;
-      const response = `${JSON.stringify(this.skillsFallback.makeResponse(message))}\n`;
-      process.stdout.write(this.normalizeOutboundJsonLine(response));
-    }, this.skillsFallbackTimeoutMs);
-    this.pendingSkillsListRequests.set(message.id, { timer, responded: false });
+    this.appServerSession.observeProtocolMessage(message);
   }
 
   handleChildJsonLine(line) {
@@ -165,24 +157,7 @@ class ProxyRuntime {
     }
 
     this.observeProtocolMessage(message);
-    const pending = this.pendingSkillsListRequests.get(message?.id);
-    if (!pending) return false;
-    clearTimeout(pending.timer);
-    this.pendingSkillsListRequests.delete(message.id);
-    if (pending.responded) {
-      this.debugLog("skills-fallback", `suppressed upstream response for id=${message.id}`);
-      return true;
-    }
-    process.stdout.write(this.normalizeOutboundJsonLine(line));
-    return true;
-  }
-
-  reapIdleChild() {
-    if (this.shuttingDown || this.childExited || this.activeTurnIds.size > 0) return;
-    const idleForMs = Date.now() - this.lastActivityAt;
-    if (idleForMs < this.idleTimeoutMs) return;
-    this.debugLog("idle-reaper", `app-server idle for ${idleForMs}ms; shutting down`);
-    this.shutdown("SIGTERM");
+    return this.skillsListFallbacks.handleUpstreamMessage(message, line);
   }
 
   shutdown(signal = "SIGTERM") {
@@ -207,12 +182,102 @@ class ProxyRuntime {
   }
 
   recordActivity() {
-    this.lastActivityAt = Date.now();
+    this.appServerSession.recordActivity();
   }
 
   clearPendingSkillsListFallbacks() {
-    for (const pending of this.pendingSkillsListRequests.values()) clearTimeout(pending.timer);
-    this.pendingSkillsListRequests.clear();
+    this.skillsListFallbacks.clear();
+  }
+}
+
+class AppServerSession {
+  constructor(options) {
+    this.debugLog = options.debugLog;
+    this.enabled = options.enabled;
+    this.hasChildExited = options.hasChildExited || (() => false);
+    this.idleTimeoutMs = options.idleTimeoutMs;
+    this.isShuttingDown = options.isShuttingDown || (() => false);
+    this.now = options.now || (() => Date.now());
+    this.requestShutdown = options.requestShutdown;
+    this.activeTurnIds = new Set();
+    this.lastActivityAt = this.now();
+  }
+
+  attachIdleReaper() {
+    if (!this.enabled || this.idleTimeoutMs <= 0) return;
+    setInterval(() => this.reapIdleChild(), Math.min(this.idleTimeoutMs, 60_000)).unref();
+  }
+
+  shouldShutdownOnInputClose(child) {
+    return this.enabled && !child.killed;
+  }
+
+  observeProtocolMessage(message) {
+    if (!message || typeof message !== "object") return;
+    this.recordActivity();
+    if (!this.enabled) return;
+    if (message.method === "turn/started") {
+      const turnId = readMessageTurnId(message);
+      if (turnId) this.activeTurnIds.add(turnId);
+      return;
+    }
+    if (message.method === "turn/completed") {
+      const turnId = readMessageTurnId(message);
+      if (turnId) this.activeTurnIds.delete(turnId);
+    }
+  }
+
+  reapIdleChild() {
+    if (this.isShuttingDown() || this.hasChildExited() || this.activeTurnIds.size > 0) return;
+    const idleForMs = this.now() - this.lastActivityAt;
+    if (idleForMs < this.idleTimeoutMs) return;
+    this.debugLog("idle-reaper", `app-server idle for ${idleForMs}ms; shutting down`);
+    this.requestShutdown("SIGTERM");
+  }
+
+  recordActivity() {
+    this.lastActivityAt = this.now();
+  }
+}
+
+class SkillsListFallbacks {
+  constructor(options) {
+    this.debugLog = options.debugLog;
+    this.normalizeOutboundJsonLine = options.normalizeOutboundJsonLine;
+    this.pendingRequests = new Map();
+    this.skillsFallback = options.skillsFallback;
+    this.timeoutMs = options.timeoutMs;
+    this.writeOutput = options.writeOutput;
+  }
+
+  observeInboundMessage(message) {
+    if (message?.method !== "skills/list" || message?.id === undefined) return;
+    const timer = setTimeout(() => {
+      const pending = this.pendingRequests.get(message.id);
+      if (!pending) return;
+      pending.responded = true;
+      const response = `${JSON.stringify(this.skillsFallback.makeResponse(message))}\n`;
+      this.writeOutput(this.normalizeOutboundJsonLine(response));
+    }, this.timeoutMs);
+    this.pendingRequests.set(message.id, { timer, responded: false });
+  }
+
+  handleUpstreamMessage(message, line) {
+    const pending = this.pendingRequests.get(message?.id);
+    if (!pending) return false;
+    clearTimeout(pending.timer);
+    this.pendingRequests.delete(message.id);
+    if (pending.responded) {
+      this.debugLog("skills-fallback", `suppressed upstream response for id=${message.id}`);
+      return true;
+    }
+    this.writeOutput(this.normalizeOutboundJsonLine(line));
+    return true;
+  }
+
+  clear() {
+    for (const pending of this.pendingRequests.values()) clearTimeout(pending.timer);
+    this.pendingRequests.clear();
   }
 }
 
@@ -274,4 +339,12 @@ function tryKill(child, signal) {
   } catch {}
 }
 
-module.exports = { ProxyRuntime, buildChildEnv, parseNonNegativeInteger, readMessageTurnId, startProxy };
+module.exports = {
+  AppServerSession,
+  ProxyRuntime,
+  SkillsListFallbacks,
+  buildChildEnv,
+  parseNonNegativeInteger,
+  readMessageTurnId,
+  startProxy,
+};
