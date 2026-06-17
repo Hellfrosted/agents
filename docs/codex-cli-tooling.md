@@ -269,11 +269,11 @@ Agent Browser as an installed CLI workflow: load the version-matched CLI skill
 text with `agent-browser skills get ...` so the instructions match the installed
 CLI version.
 
-The installed version verified on 2026-06-14 was `agent-browser 0.27.3`.
+The installed version verified on 2026-06-17 was `agent-browser 0.28.0`.
 `agent-browser install` reported Chrome for Testing `149.0.7827.115` already
 installed under `/home/crunch/.agent-browser/browsers`. `agent-browser doctor`
-exited successfully; its pass/warn counts can vary when the headless launch
-smoke check is slow.
+exited successfully with 9 pass, 0 warn, and 0 fail; its pass/warn counts can
+vary when the headless launch smoke check is slow.
 
 Before using it, load the version-matched CLI skill text:
 
@@ -336,8 +336,8 @@ unless the repository is enabled on CodSpeed.
 LazyCodex is installed as the `omo@sisyphuslabs` Codex plugin. Keep it enabled
 unless the user explicitly asks to remove it.
 
-The local CLI entrypoint is `omo`. It does not expose a `--version` flag, so
-use `omo help` as the basic availability check.
+The local CLI entrypoint is `omo`. Use `omo version`, `omo --version`, or
+`omo help` as basic availability checks.
 
 ### LazyCodex MCP runtime
 
@@ -347,18 +347,16 @@ direct custom Context7 MCP wiring to `/home/crunch/.codex/config.toml` unless
 the user explicitly asks for a temporary diagnostic override. Prefer
 OMO-provided MCP servers over custom/local alternatives when the OMO servers
 work. The local plugin cache declaration launches the local stdio MCP servers
-through `/bin/bash -c` so it can prepend WSL user tool directories and base WSL
-system paths before execing `/home/crunch/.local/share/pnpm/bin/node`; this is
-needed when the Codex desktop app-server starts with a Windows-heavy PATH.
+with `node` from the plugin root (`cwd = "."` in the plugin `.mcp.json`).
 
 The AST grep server requires the real `@ast-grep/cli` binary. On this
-workstation it is installed globally with `pnpm` and in the OMO plugin cache
-`node_modules`, exposing `sg` and `ast-grep` for the plugin-provided server.
+workstation it is installed globally with `pnpm`, exposing `sg` and `ast-grep`
+for the plugin-provided server.
 
 The plugin server can be checked without Codex by sending an MCP `initialize`,
 `notifications/initialized`, and `tools/list` sequence to the CLI. Use the
-latest installed OMO cache directory. On 2026-06-12 that path was
-`/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.9.2`.
+latest installed OMO cache directory. On 2026-06-17 that path was
+`/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.10.0`.
 
 <!-- markdownlint-disable MD013 -->
 
@@ -367,7 +365,7 @@ printf '%s\n' \
   '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
   '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
   '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.9.2/mcp/ast_grep/dist/cli.js mcp
+| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.10.0/components/ast-grep-mcp/dist/cli.js mcp
 ```
 
 <!-- markdownlint-enable MD013 -->
@@ -450,6 +448,7 @@ actionlint --version
 react-doctor --version
 tokscale --version
 omo help
+omo version
 ```
 
 Some tools are exposed through MCP or plugins rather than plain CLI commands.

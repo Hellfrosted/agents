@@ -18,8 +18,9 @@ For companion skill sources, optimize presets, and release-specific notes, see
 Names written as `$skill-name` are agent skills. Load and follow a named skill
 when its trigger applies.
 
-- Use `$grill-with-docs` when the goal, constraints, non-goals, success metric,  unclear terminology, ownership, `CONTEXT.md`,
-  or ADR decisions., or forbidden changes are unclear after repo inspection.
+- Use `$grill-with-docs` when the goal, constraints, non-goals, success metric,
+  unclear terminology, ownership, `CONTEXT.md`, ADR decisions, or forbidden
+  changes are unclear after repo inspection.
 - Use `$improve-codebase-architecture` when architecture or testability must be
   decomposed before choosing an Evo metric.
 - Use `$evo finetuning` before writing or changing training code, reward design,
