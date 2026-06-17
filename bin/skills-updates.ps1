@@ -1069,19 +1069,52 @@ function Set-SkipEntry {
     }
 }
 
+function New-CompareTempDirectory {
+    $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("skills-updates-compare-{0}" -f [IO.Path]::GetRandomFileName())
+    New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
+    $compareTempPaths.Add($tempRoot)
+    return $tempRoot
+}
+
+function New-CompareArchiveFile {
+    $archiveFile = Join-Path ([IO.Path]::GetTempPath()) ("skills-updates-compare-{0}.tar" -f [IO.Path]::GetRandomFileName())
+    $compareTempFiles.Add($archiveFile)
+    return $archiveFile
+}
+
+function Remove-CompareArchiveFile {
+    param([string]$Path)
+
+    if ($Path -and (Test-Path -LiteralPath $Path -PathType Leaf)) {
+        Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Clear-CompareTempArtifacts {
+    foreach ($tempFile in $compareTempFiles) {
+        Remove-CompareArchiveFile -Path $tempFile
+    }
+
+    if ($preserveCompareTempPaths) {
+        return
+    }
+
+    foreach ($tempPath in $compareTempPaths) {
+        if (Test-Path -LiteralPath $tempPath) {
+            Remove-Item -LiteralPath $tempPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
+
 function New-RemoteComparePath {
     param(
         [string]$Repo,
         [string]$RemoteDir
     )
 
-    $tempRoot = Join-Path ([IO.Path]::GetTempPath()) ("skills-updates-compare-{0}" -f [IO.Path]::GetRandomFileName())
-    New-Item -ItemType Directory -Path $tempRoot -Force | Out-Null
-    $compareTempPaths.Add($tempRoot)
-
+    $tempRoot = New-CompareTempDirectory
+    $archiveFile = New-CompareArchiveFile
     $archiveArgs = @("-C", $Repo, "archive", "--format=tar")
-    $archiveFile = Join-Path ([IO.Path]::GetTempPath()) ("skills-updates-compare-{0}.tar" -f [IO.Path]::GetRandomFileName())
-    $compareTempFiles.Add($archiveFile)
     $archiveArgs += "--output=$archiveFile"
     $archiveArgs += "HEAD"
     if ($RemoteDir -and $RemoteDir -ne ".") {
@@ -1099,13 +1132,34 @@ function New-RemoteComparePath {
         Write-CliError "skills-updates: could not extract clean compare tree for $RemoteDir"
         return $null
     }
-    Remove-Item -LiteralPath $archiveFile -Force -ErrorAction SilentlyContinue
+    Remove-CompareArchiveFile -Path $archiveFile
 
     if ($RemoteDir -and $RemoteDir -ne ".") {
         return Join-Path $tempRoot ($RemoteDir -replace "/", [IO.Path]::DirectorySeparatorChar)
     }
 
     return $tempRoot
+}
+
+function New-RepoUpdateWorkItem {
+    param(
+        [string]$SourceUrl,
+        [object[]]$GroupItems,
+        [int]$Index,
+        [int]$Total
+    )
+
+    $repo = Join-Path $repoRoot (Get-CacheKey $SourceUrl)
+    return [pscustomobject]@{
+        SourceUrl = $SourceUrl
+        SourceLabel = $SourceUrl -replace "^https://github\.com/", "" -replace "\.git$", ""
+        GroupItems = $GroupItems
+        Repo = $repo
+        RemoteDirs = @($GroupItems | ForEach-Object { $_.RemoteDir } | Sort-Object -Unique)
+        HasRepo = Test-Path -LiteralPath (Join-Path $repo ".git") -PathType Container
+        Index = $Index
+        Total = $Total
+    }
 }
 
 function Remove-SkipEntry {
@@ -1371,34 +1425,30 @@ try {
     $repoRunspacePool.Open()
     foreach ($sourceUrl in $sourceUrls) {
         $sourceIndex += 1
-        $groupItems = $groups[$sourceUrl]
-        $repo = Join-Path $repoRoot (Get-CacheKey $sourceUrl)
-        $sourceLabel = $sourceUrl -replace "^https://github\.com/", "" -replace "\.git$", ""
-        $remoteDirs = @($groupItems | ForEach-Object { $_.RemoteDir } | Sort-Object -Unique)
+        $workItem = New-RepoUpdateWorkItem -SourceUrl $sourceUrl -GroupItems $groups[$sourceUrl] -Index $sourceIndex -Total $sourceUrls.Count
 
         if ($showProgress) {
-            Write-StatusLine "CHECK   repo $sourceIndex/$($sourceUrls.Count): $sourceLabel ($($groupItems.Count) skill(s))"
+            Write-StatusLine "CHECK   repo $($workItem.Index)/$($workItem.Total): $($workItem.SourceLabel) ($($workItem.GroupItems.Count) skill(s))"
         }
 
-        $hasRepo = Test-Path -LiteralPath (Join-Path $repo ".git") -PathType Container
         if ($showProgress) {
-            if ($hasRepo) {
-                Write-StatusLine "FETCH   $sourceLabel"
+            if ($workItem.HasRepo) {
+                Write-StatusLine "FETCH   $($workItem.SourceLabel)"
             } else {
-                Write-StatusLine "CLONE   $sourceLabel"
+                Write-StatusLine "CLONE   $($workItem.SourceLabel)"
             }
         }
 
         $job = [powershell]::Create()
         $job.RunspacePool = $repoRunspacePool
-        [void]$job.AddScript($repoUpdateScript.ToString()).AddArgument($sourceUrl).AddArgument($repo).AddArgument($remoteDirs).AddArgument($script:GitCommand)
+        [void]$job.AddScript($repoUpdateScript.ToString()).AddArgument($workItem.SourceUrl).AddArgument($workItem.Repo).AddArgument($workItem.RemoteDirs).AddArgument($script:GitCommand)
         $asyncResult = $job.BeginInvoke()
 
         $repoJobs.Add([pscustomobject]@{
-            SourceUrl = $sourceUrl
-            SourceLabel = $sourceLabel
-            GroupItems = $groupItems
-            Repo = $repo
+            SourceUrl = $workItem.SourceUrl
+            SourceLabel = $workItem.SourceLabel
+            GroupItems = $workItem.GroupItems
+            Repo = $workItem.Repo
             Job = $job
             AsyncResult = $asyncResult
         })
@@ -1421,6 +1471,9 @@ try {
                 Message = $_.Exception.Message
             }
         } finally {
+            if ($repoJob.AsyncResult -and $repoJob.AsyncResult.AsyncWaitHandle) {
+                $repoJob.AsyncResult.AsyncWaitHandle.Dispose()
+            }
             $repoJob.Job.Dispose()
         }
 
@@ -1657,16 +1710,5 @@ try {
         $repoRunspacePool.Close()
         $repoRunspacePool.Dispose()
     }
-    foreach ($tempFile in $compareTempFiles) {
-        if (Test-Path -LiteralPath $tempFile) {
-            Remove-Item -LiteralPath $tempFile -Force -ErrorAction SilentlyContinue
-        }
-    }
-    if (-not $preserveCompareTempPaths) {
-        foreach ($tempPath in $compareTempPaths) {
-            if (Test-Path -LiteralPath $tempPath) {
-                Remove-Item -LiteralPath $tempPath -Recurse -Force -ErrorAction SilentlyContinue
-            }
-        }
-    }
+    Clear-CompareTempArtifacts
 }
