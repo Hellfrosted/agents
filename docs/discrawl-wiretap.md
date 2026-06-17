@@ -157,7 +157,7 @@ systemctl --user cat discrawl-sync.timer
 systemctl --user is-active discrawl-sync.timer
 ```
 
-Last observed from this repo on 2026-06-13: Discrawl `0.11.0`, config/database
+Last observed from this repo on 2026-06-17: Discrawl `0.11.0`, config/database
 OK, Discord token disabled by config, embeddings disabled, FTS OK, share
-disabled, primary archive `3190 messages across 1278 channels`, and the
+disabled, primary archive `4449 messages across 1324 channels`, and the
 `discrawl-sync.timer` was both enabled and active with `OnUnitActiveSec=30min`.

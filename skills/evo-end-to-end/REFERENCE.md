@@ -4,10 +4,20 @@
 
 | Skill | Use in this workflow | GitHub source if missing |
 | --- | --- | --- |
+| `$ask-matt` | Choose the Matt Pocock flow when a request is not yet clearly planning, triage, implementation, or codebase health work. | `https://github.com/mattpocock/skills.git` at `skills/engineering/ask-matt/SKILL.md` |
 | `$grill-me` | Clarify ambiguous goals, constraints, non-goals, success metrics, or forbidden changes. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grill-me/SKILL.md` |
 | `$grill-with-docs` | Challenge a plan against project terminology, `CONTEXT.md`, or ADRs, and update docs as decisions crystallize. | `https://github.com/mattpocock/skills.git` at `skills/engineering/grill-with-docs/SKILL.md` |
+| `$codebase-design` | Use Matt's deep-module vocabulary when evaluating module interfaces, seams, leverage, locality, and testability. | `https://github.com/mattpocock/skills.git` at `skills/engineering/codebase-design/SKILL.md` |
+| `$domain-modeling` | Sharpen `CONTEXT.md` and ADR vocabulary when a workflow needs to add or change domain terms. | `https://github.com/mattpocock/skills.git` at `skills/engineering/domain-modeling/SKILL.md` |
 | `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
+| `$implement` | Execute a single PRD or issue after the plan has been split and the implementation scope is fresh. | `https://github.com/mattpocock/skills.git` at `skills/engineering/implement/SKILL.md` |
+| `$tdd` | Drive implementation test-first when an Evo setup task needs behavior locked by public-interface tests. | `https://github.com/mattpocock/skills.git` at `skills/engineering/tdd/SKILL.md` |
 | `$evo discover`, `$evo optimize`, `$evo finetuning`, `$evo infra-setup` | Evo plugin skills installed by `evo install <host>`. Use the bundle whose `evo_version` matches `evo --version`. | `https://github.com/evo-hq/evo.git` under `plugins/evo/skills/` |
+
+The current `mattpocock/skills` package is installed through the Skills CLI and
+may record `pluginName: "mattpocock-skills"` in the universal skill lockfile.
+That metadata does not make it a Codex plugin; resolve missing Matt skills from
+`https://github.com/mattpocock/skills.git`, not from the Codex plugin cache.
 
 ## Optimize Presets
 
@@ -41,6 +51,23 @@ repeatable, and the approved scope can absorb broader exploration.
 - Override individual calls with `evo run <exp_id> --timeout <seconds>` only
   when the configured per-experiment timeout is not appropriate.
 
+## Evo v0.5.3 Notes
+
+- Keep the Codex CLI and plugin bundle in lockstep with
+  `evo update codex --version 0.5.3 --trust-hooks`, then verify with
+  `evo doctor codex`.
+- The installed Evo plugin skills advertise `evo_version: 0.5.3`; stop and fix
+  CLI/plugin drift before using `$evo discover`, `$evo optimize`,
+  `$evo finetuning`, or `$evo infra-setup`.
+- `$evo optimize` remains the canonical post-discover loop even when resource
+  constraints force `subagents=1`. Read Evo's `sizing-the-round.md` before
+  choosing width, and use `evo wait` or bounded liveness checks instead of
+  unbounded polling for long-running subagents, training, or evaluations.
+- `autonomous` and `subagents-only` default to on in the installed
+  `$evo optimize` skill unless the current user instruction or stored Evo
+  defaults resolve them differently. Resolve and arm both modes before starting
+  an optimize loop.
+
 ## Evo v0.5.2 Notes
 
 - v0.5.2 improves the optimize meta controller: meta ticks keep a journal,
@@ -48,7 +75,7 @@ repeatable, and the approved scope can absorb broader exploration.
   the meta can harden verifier prompts during a run.
 - Meta and hard implement/revise agents follow the session model instead of a
   stale pinned model; easy briefs still route to the lighter model.
-- Keep the Codex CLI and plugin bundle in lockstep with
+- On the v0.5.2 line, keep the Codex CLI and plugin bundle in lockstep with
   `evo update codex --version 0.5.2 --trust-hooks`, then verify with
   `evo doctor codex`.
 - If Codex is pinned to a stale local marketplace such as

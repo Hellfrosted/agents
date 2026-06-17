@@ -3,7 +3,9 @@
 The skills updater maintains globally installed Codex skills under the user's
 universal `.agents/skills` directory. It compares installed skill directories
 with upstream repository content, opens diffs, installs changed or missing
-skills, records temporary skips, and removes global skills cleanly.
+skills, records temporary skips, and removes global skills cleanly. It does not
+install Codex plugins; use `codex plugin ...` for plugin marketplaces and use
+this updater for Skills CLI packages such as `mattpocock/skills`.
 
 ## Entry Points
 
@@ -81,10 +83,12 @@ operations.
 skill directories from `%AGENTS_HOME%\skills`; `--global` checks only skills
 with lockfile metadata. If a skill appears in `--list` but not `--global`, treat
 it as unmanaged drift until it is either intentionally documented as local-only
-or reinstalled through the managed flow.
+or reinstalled through the managed flow. If a lockfile entry has a `pluginName`,
+that is Skills CLI package metadata, not a Codex plugin installation.
 
-Last observed unmanaged drift on this workstation: `tdd` is installed under
-`%USERPROFILE%\.agents\skills` but absent from `.skill-lock.json`.
+Last observed unmanaged drift on this workstation: `tdd` was installed under
+`%USERPROFILE%\.agents\skills` but absent from `.skill-lock.json` before the
+Matt Pocock package refresh.
 
 ## State Paths
 
@@ -140,7 +144,9 @@ pnpm dlx skills@latest add <source> -g -y --agent universal
 
 Named installs use lockfile sources. Source installs accept URL, SSH, `.git`,
 or `owner/repo` arguments and do not mix with named lockfile installs in the
-same command.
+same command. Package installs can add multiple lockfile entries at once; for
+example, `mattpocock/skills` records the active selected skills with
+`pluginName: "mattpocock-skills"`.
 
 Uninstall operations require `pnpm` and call:
 
@@ -152,6 +158,30 @@ After the Skills CLI returns, uninstall also removes the installed skill
 directory, clears any saved skip for that skill, and removes the lockfile entry.
 If post-CLI cleanup fails, the script restores the pre-uninstall lockfile
 snapshot so directory and lockfile state do not silently diverge.
+
+## Matt Pocock Skills Package Notes
+
+The current `mattpocock/skills` package exposes `/ask-matt` as the router for
+choosing a flow. Its active package manifest includes user-invoked skills such
+as `ask-matt`, `grill-with-docs`, `triage`,
+`improve-codebase-architecture`, `setup-matt-pocock-skills`, `to-prd`,
+`to-issues`, `implement`, `prototype`, `grill-me`, `handoff`, `teach`, and
+`writing-great-skills`, plus model-invoked skills such as `diagnosing-bugs`,
+`tdd`, `domain-modeling`, `codebase-design`, and `grilling`.
+
+Matt skills that are outside the active package manifest can still appear in a
+lockfile if they were installed individually before the package refresh. Treat
+entries under `skills/deprecated/`, `skills/in-progress/`, or `skills/personal/`
+as explicit legacy installs when they do not include `pluginName:
+"mattpocock-skills"`. Remove them only when the user asks to retire that skill:
+
+```bat
+sk-up -r request-refactor-plan
+```
+
+Do not treat the upstream `.claude-plugin/plugin.json` as a Codex plugin
+manifest. For this workstation, Matt's package is managed through the Skills
+CLI and the universal `.agents/skills` install.
 
 ## Lockfile Safety
 

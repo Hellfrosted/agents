@@ -131,10 +131,10 @@ Before running it:
 - Check `evo --version`. It should report `evo-hq-cli`, not the unrelated SLAM
   package named `evo`.
 - Keep the CLI and Codex plugin bundle in lockstep. Use
-  `evo update codex --version 0.5.2 --trust-hooks` for the v0.5.2 line, then
+  `evo update codex --version 0.5.3 --trust-hooks` for the current line, then
   verify with `evo doctor codex`.
 - If Codex is pinned to a stale local `evo-hq` marketplace, remove that
-  marketplace source and add `evo-hq/evo --ref v0.5.2` before reinstalling.
+  marketplace source and add `evo-hq/evo --ref v0.5.3` before reinstalling.
 - Do not install or upgrade it unless the user asks.
 - Write a short experiment brief first: goal, metric, baseline, gate, editable
   scope, read-only context, forbidden changes, backend, runtime/env,
@@ -249,6 +249,21 @@ save or remove skips, and uninstall global skills. See
 [Skills Updater](skills-updater.md) for the full command table, state paths,
 lockfile behavior, and verification.
 
+For Matt Pocock's skills, use the updater as a Skills CLI package manager, not
+as a Codex plugin manager:
+
+```powershell
+bin\sk-up.cmd -i mattpocock/skills
+bin\sk-up.cmd -g
+```
+
+The current package uses `/ask-matt` as the flow router. Its lockfile entries
+may include `pluginName: "mattpocock-skills"` because the Skills CLI imports
+from the upstream `.claude-plugin/plugin.json`; that does not mean a Codex
+plugin was installed. Deprecated Matt skills, such as `request-refactor-plan`,
+remain only if they were installed separately and should be removed explicitly
+when no longer wanted.
+
 ## OpenAI Developer Docs MCP
 
 The OpenAI Developer Docs MCP server is configured as `openaiDeveloperDocs`. Use
@@ -349,30 +364,24 @@ OMO-provided MCP servers over custom/local alternatives when the OMO servers
 work. The local plugin cache declaration launches the local stdio MCP servers
 with `node` from the plugin root (`cwd = "."` in the plugin `.mcp.json`).
 
-The AST grep server requires the real `@ast-grep/cli` binary. On this
-workstation it is installed globally with `pnpm`, exposing `sg` and `ast-grep`
-for the plugin-provided server.
+The AST grep integration requires the real `@ast-grep/cli` binary. On this
+workstation it is installed globally with `pnpm`, exposing `sg` and `ast-grep`.
+OMO v4.11.0 no longer ships the old bundled `ast-grep-mcp` path; it provisions
+AST grep through the shared ast-grep skill / `sg` resolver flow instead.
 
-The plugin server can be checked without Codex by sending an MCP `initialize`,
-`notifications/initialized`, and `tools/list` sequence to the CLI. Use the
-latest installed OMO cache directory. On 2026-06-17 that path was
-`/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.10.0`.
-
-<!-- markdownlint-disable MD013 -->
+Check the current Codex plugin and AST grep runtime with:
 
 ```bash
-printf '%s\n' \
-  '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"codex-check","version":"0"}}}' \
-  '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' \
-  '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' \
-| /home/crunch/.local/share/pnpm/bin/node /home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.10.0/components/ast-grep-mcp/dist/cli.js mcp
+omo --version
+codex plugin list | rg 'omo@sisyphuslabs|VERSION|Marketplace `sisyphuslabs`' -C 2
+sg --version
 ```
 
-<!-- markdownlint-enable MD013 -->
+On 2026-06-17 the installed OMO cache path was
+`/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.11.0` and `sg --version`
+reported `ast-grep 0.43.0`.
 
-The response should include `search` and `replace`. Replace the version segment
-with the latest installed OMO cache version before running the command. The
-runtime also requires the real `@ast-grep/cli` binary. OMO Context7 is a remote
+OMO Context7 is a remote
 streamable HTTP MCP server at `https://mcp.context7.com/mcp`; use the OMO
 declaration instead of the old local Context7 compat proxy when the remote
 initializes successfully.
