@@ -2,13 +2,11 @@ Codex personal plugin backup.
 
 Source paths:
 - /home/crunch/.codex/plugins/cache/personal/agent-loop-designer/0.1.0+codex.20260608002551
-- /home/crunch/.codex/plugins/cache/personal/codex-goal-control/0.1.0
 
 Restore target base:
 
 /home/crunch/.codex/plugins/cache/personal
 
 Restore sketch:
-mkdir -p /home/crunch/.codex/plugins/cache/personal/agent-loop-designer /home/crunch/.codex/plugins/cache/personal/codex-goal-control
+mkdir -p /home/crunch/.codex/plugins/cache/personal/agent-loop-designer
 cp -a plugins/agent-loop-designer /home/crunch/.codex/plugins/cache/personal/agent-loop-designer/0.1.0+codex.20260608002551
-cp -a plugins/codex-goal-control /home/crunch/.codex/plugins/cache/personal/codex-goal-control/0.1.0

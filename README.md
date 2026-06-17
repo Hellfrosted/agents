@@ -20,7 +20,7 @@ when the user asks to install, repair, or republish the local setup.
 | --- | --- | --- |
 | WSL Codex shim | [docs/wsl-shim.md](docs/wsl-shim.md) | Windows `.cmd`, WSL runner, Node proxy runtime, path translation, skills fallback, and T3code app-server behavior. |
 | Skills updater | [docs/skills-updater.md](docs/skills-updater.md) | `sk-up` and `skills-updates` flags, state paths, locking, install/uninstall behavior, and verification. |
-| Companion tools | [docs/codex-cli-tooling.md](docs/codex-cli-tooling.md) | Evo, RTK, ICM, CodSpeed, OMO/LazyCodex, OpenAI docs MCP, Discrawl, and adjacent CLIs. |
+| Companion tools | [docs/codex-cli-tooling.md](docs/codex-cli-tooling.md) | Evo, RTK, ICM, CodSpeed, LazyCodex, OpenAI docs MCP, Discrawl, and adjacent CLIs. |
 | Shell setup | [docs/shell-setup.md](docs/shell-setup.md) | Starship, fzf, zoxide, Atuin, PSReadLine, ble.sh, Tabby, Windows, WSL, and Arch parity. |
 | Discrawl wiretap | [docs/discrawl-wiretap.md](docs/discrawl-wiretap.md) | Local Vesktop-cache archive, user systemd timer, limits, and verification. |
 | Local skills | [skills/](skills/) | Repo-owned skill sources. In this repo, "work on skills" means this directory, not installed global skill copies. |
@@ -148,9 +148,11 @@ user explicitly asks for install or repair work.
 - The skills updater is PowerShell-first because it manages Windows global skill
   installs, Windows `%USERPROFILE%` paths, console codepages, Zed launching, and
   named mutexes.
-- LazyCodex / OMO is kept as a Codex plugin. The WSL runner disables its
-  telemetry, auto-update, and config-migration startup paths for T3code
-  app-server sessions while leaving the plugin itself available.
+- LazyCodex is kept as a Codex plugin in WSL. The `omo@sisyphuslabs` name is
+  only the Codex plugin identifier there; full OMO plus OpenCode is Windows-only
+  on this workstation. The WSL runner disables LazyCodex telemetry, auto-update,
+  and config-migration startup paths for T3code app-server sessions while
+  leaving the plugin itself available.
 
 ## Safety Rules
 

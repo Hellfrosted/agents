@@ -18,10 +18,14 @@ contracts:
   docs lookup.
 - CodSpeed: CLI plus hosted MCP for performance runs, comparisons, and
   flamegraph analysis.
-- LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin.
+- LazyCodex: installed as the `omo@sisyphuslabs` Codex plugin. The `omo` name
+  here is the Codex marketplace/plugin identifier, not the full OpenCode OMO
+  install.
 - LazyCodex local MCP: LSP, AST grep, Context7, and grep.app search are provided
-  by the OMO plugin when their servers work on this host.
-- OMO CLI: local `omo` entrypoint for LazyCodex-specific helpers.
+  by the LazyCodex plugin when their servers work on this host.
+- LazyCodex CLI: local `lazycodex-ai` / `lazycodex` entrypoints for Codex
+  plugin install and update helpers. Do not keep a WSL `omo` launcher; full OMO
+  plus OpenCode belongs on Windows for this workstation.
 - Discrawl: local Discord cache archive/search for Vesktop wiretap-only use.
 - Skills updater: Windows wrappers for checking and updating globally installed
   Codex skills.
@@ -349,47 +353,51 @@ unless the repository is enabled on CodSpeed.
 ## LazyCodex
 
 LazyCodex is installed as the `omo@sisyphuslabs` Codex plugin. Keep it enabled
-unless the user explicitly asks to remove it.
+unless the user explicitly asks to remove it. In WSL, treat `omo@sisyphuslabs`
+as the Codex marketplace/plugin name only; the full OMO plus OpenCode setup is
+Windows-only on this workstation.
 
-The local CLI entrypoint is `omo`. Use `omo version`, `omo --version`, or
-`omo help` as basic availability checks.
+The local CLI entrypoints are `lazycodex-ai` and `lazycodex`. Use
+`lazycodex-ai version` or `lazycodex-ai --help` as basic availability checks.
+Do not keep a WSL `omo` wrapper, because stale wrappers can dispatch to the
+full `oh-my-openagent` package.
 
 ### LazyCodex MCP runtime
 
-The OMO plugin declares the local LazyCodex MCP servers in its bundled
+The LazyCodex plugin declares the local MCP servers in its bundled
 `.mcp.json`. Do not add direct `mcp_servers.lsp`, `mcp_servers.ast_grep`, or
 direct custom Context7 MCP wiring to `/home/crunch/.codex/config.toml` unless
 the user explicitly asks for a temporary diagnostic override. Prefer
-OMO-provided MCP servers over custom/local alternatives when the OMO servers
+LazyCodex-provided MCP servers over custom/local alternatives when those servers
 work. The local plugin cache declaration launches the local stdio MCP servers
 with `node` from the plugin root (`cwd = "."` in the plugin `.mcp.json`).
 
 The AST grep integration requires the real `@ast-grep/cli` binary. On this
 workstation it is installed globally with `pnpm`, exposing `sg` and `ast-grep`.
-OMO v4.11.0 no longer ships the old bundled `ast-grep-mcp` path; it provisions
-AST grep through the shared ast-grep skill / `sg` resolver flow instead.
+LazyCodex v4.11.0 no longer ships the old bundled `ast-grep-mcp` path; it
+provisions AST grep through the shared ast-grep skill / `sg` resolver flow
+instead.
 
 Check the current Codex plugin and AST grep runtime with:
 
 ```bash
-omo --version
+lazycodex-ai version
 codex plugin list | rg 'omo@sisyphuslabs|VERSION|Marketplace `sisyphuslabs`' -C 2
 sg --version
 ```
 
-On 2026-06-17 the installed OMO cache path was
+On 2026-06-17 the installed LazyCodex plugin cache path was
 `/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.11.0` and `sg --version`
 reported `ast-grep 0.43.0`.
 
-OMO Context7 is a remote
-streamable HTTP MCP server at `https://mcp.context7.com/mcp`; use the OMO
-declaration instead of the old local Context7 compat proxy when the remote
-initializes successfully.
+LazyCodex Context7 is a remote streamable HTTP MCP server at
+`https://mcp.context7.com/mcp`; use the plugin declaration instead of the old
+local Context7 compat proxy when the remote initializes successfully.
 
 Keep `plugins."omo@sisyphuslabs".mcp_servers.git_bash` disabled in the WSL
-Codex config until OMO `git_bash` supports this host. Its current server exits
-on non-Windows hosts before returning tools, so it does not satisfy the
-"prefer OMO when it works" rule here.
+Codex config until LazyCodex `git_bash` supports this host. Its current server
+exits on non-Windows hosts before returning tools, so it does not satisfy the
+"prefer LazyCodex when it works" rule here.
 
 Keep the top-level `mcp_servers.grep_app` entry pointed at
 `/home/crunch/.codex/mcp/grep-app-compat/grep-app-compat.mjs`, with
@@ -456,15 +464,15 @@ agent-browser doctor
 actionlint --version
 react-doctor --version
 tokscale --version
-omo help
-omo version
+lazycodex-ai --help
+lazycodex-ai version
 ```
 
 Some tools are exposed through MCP or plugins rather than plain CLI commands.
 For those, verify them through the Codex config or the tool list in the running
-session. `codex plugin list` confirms that OMO is installed and enabled, but a
-fresh thread is still needed to confirm that the `lsp` and `ast_grep` MCP
-namespaces mounted.
+session. `codex plugin list` confirms that the LazyCodex plugin is installed
+and enabled, but a fresh thread is still needed to confirm that the `lsp` and
+`ast_grep` MCP namespaces mounted.
 
 For Browser use, check the current thread directly. Official Codex docs say the
 in-app browser is controlled through the Browser plugin and `@Browser`

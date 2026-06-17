@@ -1,5 +1,5 @@
-bcfaabbe37cdbd2dcdac45e36b3058af3e2afef1df8ac77f13a0e56162693012  ./RESTORE.txt
-6e73864e68f556dcd77e7b542c8440129fa55975da658b8014c98f759999553e  ./file-list.txt
+8abe4d9bc0a709746725e8943a62cfa80478aeb59bf71aa053e12b93a51a5788  ./RESTORE.txt
+5fdbab2cd0376a433eacc9f3a32219b25c197a0c1adfb02716b8546633822b04  ./file-list.txt
 896b7f62ddd192199a8ce64323ede3dc7cadc084c6db81aa34e935e6b6f40591  ./plugins/agent-loop-designer/.codex-plugin/plugin.json
 ace276e4dfbd36f9a8f1b58ea8627fdb1fecbb0f4a308091e2148120aee2d2ff  ./plugins/agent-loop-designer/scripts/loop_spec.py
 bc22151569e82319bf209a1898b463187c36c4a17fda999add6f0316a31faf8f  ./plugins/agent-loop-designer/scripts/wsl_worktree_plan.py
@@ -14,17 +14,3 @@ da1a552db4326bc852b7c569ed1e9f3061bf8607b57a2f7cdd41fd017ac2cec8  ./plugins/agen
 6dd2b1e3a9522f04968325f274c9d146fa3cf5c9cf497e638e8513505f91874c  ./plugins/agent-loop-designer/skills/agent-loop-designer/references/worktree-threads.md
 ca1350e930f4f51aac254b26e24ea23bb5f0444b31787e2d97112f281cc93b2e  ./plugins/agent-loop-designer/skills/architecture-cascade/SKILL.md
 1ac0d52cbbf2009c5867f2a2a22a27648f52e472b45b412ce644b9005e8f96b9  ./plugins/agent-loop-designer/skills/architecture-cascade/references/cascade-reference.md
-398f8c53136bd0c7f560b9fc11577d6ba11ef9b2eaf8162846b6c35e57caf015  ./plugins/codex-goal-control/.codex-plugin/plugin.json
-d59c7f28b6f6db9966fb3f861d208c1af5d9689254b18a319dce348316e04bcc  ./plugins/codex-goal-control/skills/codex-goal-control/SKILL.md
-7b70f61cdd87a8233031725872e49c7b1e03c7e7c6f6947c9e14e73a2dd871e4  ./plugins/codex-goal-control/skills/codex-goal-control/agents/openai.yaml
-f59f7e80fc181054f6c59868dd849fe7628e6a156ccf2a5f3739e4ff0f5a7778  ./plugins/codex-goal-control/skills/codex-goal-control/assets/panel/app.js
-e6b4064e5a7e1359ee9a4cf9a1c28664618b2e1eb05600060195a9e425f69e94  ./plugins/codex-goal-control/skills/codex-goal-control/assets/panel/index.html
-5f1ff661d0350a560dca5e4d30d3532d53852a1c05a28f126acb9a10ed55f936  ./plugins/codex-goal-control/skills/codex-goal-control/assets/panel/styles.css
-e06a0bdf4873c339c64751ad0c6c7a21ab4b665f0770049105b73efdb43862e1  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/codex_app_server_client.js
-776e9e0ee5ebba98636abd5c0334797709a44bdb385913fe4b59d470ab69fc87  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/codex_goal.js
-96ba3e24e268ebfaccd370f2582c2c64ed7f98df897d156f046d05f7c7429c5b  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/codex_goal_panel_open.js
-3dde726595321735dd6df8a51cfa54096cf670c70255c3c161419af986ca43f2  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/codex_goal_panel_server.js
-5b64b11e79708e17e4161874d1dcce7d88ac642ecc91f045089ec90bce9d0e50  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/codex_goal_panel_server.test.js
-f4d0b9b3488c7cf64df0a667fcd3c29699a540e4516be2fdee8aa3b3d5a28055  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/goal_panel_server_probe.js
-0cd4cc0a122b1010c3cf48177c5efb87309b9382271320ef5c23e960b3ad8258  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/goal_panel_session.js
-a33de3a7d9a0a875a765dbfb03b28978c88d27ce6924e82dbbce71323c18b9d3  ./plugins/codex-goal-control/skills/codex-goal-control/scripts/goal_panel_session.test.js
