@@ -28,6 +28,10 @@ source = "wiretap"
 path = "/mnt/c/Users/nguco/AppData/Roaming/Vesktop/sessionData"
 full_cache = true
 
+[search.embeddings]
+enabled = false
+vector_backend = "turbovec"
+
 [share]
 auto_update = false
 media = false
@@ -40,6 +44,12 @@ the archive.
 The `[remote]` block may still contain an environment-token setting for remote
 features, but remote archive settings are empty and normal local search does not
 use them.
+
+The optional vector backend is prepared for future semantic or hybrid search:
+`CRAWLKIT_TURBOVEC_PYTHON` points at
+`/home/crunch/.local/share/discrawl/turbovec-venv/bin/python`, which has
+`turbovec` installed. Embeddings are still disabled, so normal searches remain
+FTS-only and no archived message text is sent to an embedding provider.
 
 ## Normal Use
 
@@ -151,13 +161,21 @@ discrawl --version
 discrawl check-update
 discrawl doctor --json
 discrawl status --json
-rg -n '^(token_source|source|path|full_cache|auto_update|media) =' /home/crunch/.config/discrawl/config.toml
+rg -n '^(token_source|source|path|full_cache|auto_update|media|enabled|provider|model|api_key_env|batch_size|vector_backend) =' /home/crunch/.config/discrawl/config.toml
+printf '%s\n' "$CRAWLKIT_TURBOVEC_PYTHON"
+"$CRAWLKIT_TURBOVEC_PYTHON" -E -c 'import turbovec, numpy; print("turbovec_import=ok")'
 systemctl --user is-enabled discrawl-sync.timer
 systemctl --user cat discrawl-sync.timer
 systemctl --user is-active discrawl-sync.timer
 ```
 
-Last observed from this repo on 2026-06-17: Discrawl `0.11.0`, config/database
+Discrawl `0.11.0` still reports `"vector": "not configured"` from
+`discrawl doctor --json`; that field is not a turbovec bridge probe. Verify the
+bridge with the Python import command above or with an end-to-end semantic
+search against a temporary database.
+
+Last observed from this repo on 2026-06-18: Discrawl `0.11.0`, config/database
 OK, Discord token disabled by config, embeddings disabled, FTS OK, share
-disabled, primary archive `4449 messages across 1324 channels`, and the
-`discrawl-sync.timer` was both enabled and active with `OnUnitActiveSec=30min`.
+disabled, turbovec import OK, primary archive `4830 messages across 1412
+channels`, and the `discrawl-sync.timer` was both enabled and active with
+`OnUnitActiveSec=30min`.
