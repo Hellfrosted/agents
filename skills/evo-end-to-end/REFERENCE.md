@@ -67,13 +67,8 @@ repeatable, and the approved scope can absorb broader exploration.
   defaults resolve them differently. Resolve and arm both modes before starting
   an optimize loop.
 
-## Evo v0.5.2 Notes
+## Evo v0.5.2 Compatibility
 
-- v0.5.2 improves the optimize meta controller: meta ticks keep a journal,
-  appended prompt directives accumulate instead of overwriting each other, and
-  the meta can harden verifier prompts during a run.
-- Meta and hard implement/revise agents follow the session model instead of a
-  stale pinned model; easy briefs still route to the lighter model.
 - On the v0.5.2 line, keep the Codex CLI and plugin bundle in lockstep with
   `evo update codex --version 0.5.2 --trust-hooks`, then verify with
   `evo doctor codex`.
@@ -83,7 +78,7 @@ repeatable, and the approved scope can absorb broader exploration.
 - SDK packages such as `evo-hq-agent`, `@evo-hq/evo-agent`, and `@evo-hq/pi-evo`
   should match the 0.5.2 line when SDK instrumentation is used.
 
-## Evo v0.5.1 Notes
+## Legacy Hook Recovery
 
 - v0.5.1 moves the durable hook binary to `~/.evo/bin` and leaves a host-plugin
   fallback at the hook path, so host plugin cache rebuilds no longer delete the
@@ -93,28 +88,6 @@ repeatable, and the approved scope can absorb broader exploration.
   `/hooks`.
 - `evo doctor codex` verifies hook trust and catches plugin updates that changed
   `hooks.json` enough to invalidate trust.
-
-## Evo v0.5.0 Notes
-
-- v0.5.0 adds `$evo finetuning` for SFT, LoRA, preference optimization, RFT, and
-  RL training moves.
-- Training runs must keep the held-out benchmark out of training data, perform
-  literature research before the first train experiment, and use smoke-run
-  validation before full budget.
-- New workspaces should set a realistic per-experiment timeout at init with
-  `--per-exp-timeout <seconds>` or later with
-  `evo config set per-exp-timeout <seconds>`.
-- `task-skills` records task-category skills, such as `finetuning`, that
-  subagents should load on demand. Inspect it with `evo config get task-skills`.
-- `$evo optimize` requires resource-bound round sizing. Read Evo's
-  `sizing-the-round.md` before passing a concrete `subagents=N`.
-- `evo wait` has process, log, GPU, and ideator selectors for long-running work.
-- `evo abort` stops the experiment subprocess tree cross-platform, including
-  detached benchmark or training children.
-- The dashboard supports live log tailing, per-experiment annotations, and
-  `EVO_DASHBOARD_HOST` for binding on cloud or Modal hosts.
-
-## Evo v0.4.5 Notes
 
 - v0.4.5 fixes Codex hook installation for Codex 0.130+ by registering and
   staging the plugin under the owner-name path Codex resolves (`evo@evo-hq`) and
@@ -127,7 +100,7 @@ repeatable, and the approved scope can absorb broader exploration.
   trust them through `/hooks` or run `evo install codex --trust-hooks` only when
   the user explicitly approves skipping hook review.
 
-## Evo v0.4.4 Notes
+## Backend Notes
 
 - `evo init --host <claude-code|codex|cursor|opencode|openclaw|hermes|pi|generic>`
   is required for new workspaces. For this skill on Codex, use `codex`.

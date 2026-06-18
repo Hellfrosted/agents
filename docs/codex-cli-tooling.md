@@ -288,12 +288,6 @@ Agent Browser as an installed CLI workflow: load the version-matched CLI skill
 text with `agent-browser skills get ...` so the instructions match the installed
 CLI version.
 
-The installed version verified on 2026-06-17 was `agent-browser 0.28.0`.
-`agent-browser install` reported Chrome for Testing `149.0.7827.115` already
-installed under `/home/crunch/.agent-browser/browsers`. `agent-browser doctor`
-exited successfully with 9 pass, 0 warn, and 0 fail; its pass/warn counts can
-vary when the headless launch smoke check is slow.
-
 Before using it, load the version-matched CLI skill text:
 
 ```bash
@@ -385,10 +379,6 @@ lazycodex-ai version
 codex plugin list | rg 'omo@sisyphuslabs|VERSION|Marketplace `sisyphuslabs`' -C 2
 sg --version
 ```
-
-On 2026-06-17 the installed LazyCodex plugin cache path was
-`/home/crunch/.codex/plugins/cache/sisyphuslabs/omo/4.11.0` and `sg --version`
-reported `ast-grep 0.43.0`.
 
 LazyCodex Context7 is a remote streamable HTTP MCP server at
 `https://mcp.context7.com/mcp`; use the plugin declaration instead of the old
