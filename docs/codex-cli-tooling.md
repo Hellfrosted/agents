@@ -7,6 +7,7 @@ contracts:
 
 - [Codex WSL Shim](wsl-shim.md)
 - [Skills Updater](skills-updater.md)
+- [AgentsView](agentsview.md)
 - [Discrawl Vesktop Wiretap](discrawl-wiretap.md)
 
 ## Main list
@@ -27,6 +28,9 @@ contracts:
   plugin install and update helpers. Do not keep a WSL `omo` launcher; full OMO
   plus OpenCode belongs on Windows for this workstation.
 - Discrawl: local Discord cache archive/search for Vesktop wiretap-only use.
+- AgentsView: loopback-only browser for local Codex and OpenCode session
+  history. See [AgentsView](agentsview.md) for indexed roots, lazy systemd URL,
+  and control commands.
 - Skills updater: Windows wrappers for checking and updating globally installed
   Codex skills.
 - Agent Browser: CLI-driven Chrome/Chromium automation for browser QA,

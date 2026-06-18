@@ -23,6 +23,7 @@ when the user asks to install, repair, or republish the local setup.
 | Skill feedback loop | [docs/skill-feedback-loop.md](docs/skill-feedback-loop.md) | Repo-local feedback events, `$improve-skills`, source-first Skill diffs, and the weekly review prompt. |
 | Companion tools | [docs/codex-cli-tooling.md](docs/codex-cli-tooling.md) | Evo, RTK, ICM, CodSpeed, LazyCodex, OpenAI docs MCP, Discrawl, and adjacent CLIs. |
 | Shell setup | [docs/shell-setup.md](docs/shell-setup.md) | Starship, fzf, zoxide, Atuin, PSReadLine, ble.sh, Tabby, Windows, WSL, and Arch parity. |
+| AgentsView | [docs/agentsview.md](docs/agentsview.md) | Local Codex/OpenCode session browser, indexed roots, lazy systemd URL, and verification. |
 | Discrawl wiretap | [docs/discrawl-wiretap.md](docs/discrawl-wiretap.md) | Local Vesktop-cache archive, user systemd timer, limits, and verification. |
 | Local skills | [skills/](skills/) | Repo-owned skill sources. In this repo, "work on skills" means this directory, not installed global skill copies. |
 | Learning artifacts | [lessons/](lessons/) and [reference/](reference/) | Static HTML terminal-addon lesson and cheatsheet. |
@@ -51,6 +52,7 @@ bin/
   skills-updates.cmd
   sk-up.cmd
 docs/
+  agentsview.md
   codex-cli-tooling.md
   discrawl-wiretap.md
   skill-feedback-loop.md
