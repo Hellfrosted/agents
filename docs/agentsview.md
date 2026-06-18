@@ -15,7 +15,7 @@ serves the UI on a loopback-only URL.
   - `/home/crunch/.config/systemd/user/agentsview-backend.service`
 
 Last observed from this repo on 2026-06-18: AgentsView `v0.33.1`, database
-`160M`, with `1723` Codex sessions and `86` OpenCode sessions indexed.
+`166M`, with `1757` Codex sessions and `86` OpenCode sessions indexed.
 
 ## Indexed Roots
 
