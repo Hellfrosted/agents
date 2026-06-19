@@ -1,6 +1,6 @@
 ---
 name: evo-end-to-end
-description: Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.2+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as $grilling, $domain-modeling, and $improve-codebase-architecture when needed.
+description: "Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.2+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as [$grilling](codex://skills), [$domain-modeling](codex://skills), and [$improve-codebase-architecture](codex://skills) when needed."
 ---
 
 # Evo End To End
@@ -15,21 +15,21 @@ For companion skill sources, optimize presets, and release-specific notes, see
 
 ## Companion Skills
 
-Names written as `$skill-name` are agent skills. Load and follow a named skill
-when its trigger applies.
+Names written as [`$skill-name`](codex://skills) are agent skills. Load and
+follow a named skill when its trigger applies.
 
-- Use `$grilling` when the goal, constraints, non-goals, success metric,
+- Use [`$grilling`](codex://skills) when the goal, constraints, non-goals, success metric,
   ownership, or forbidden changes are unclear after repo inspection.
-- Add `$domain-modeling` alongside `$grilling` when unclear terminology,
+- Add [`$domain-modeling`](codex://skills) alongside [`$grilling`](codex://skills) when unclear terminology,
   `CONTEXT.md`, ADR decisions, or domain vocabulary need to be sharpened or
   updated while planning.
-- Use `$improve-codebase-architecture` when architecture or testability must be
+- Use [`$improve-codebase-architecture`](codex://skills) when architecture or testability must be
   decomposed before choosing an Evo metric.
-- Use `$evo finetuning` before writing or changing training code, reward design,
+- Use [`$evo finetuning`](codex://skills) before writing or changing training code, reward design,
   model-weight update recipes, or post-training workflows.
 - Use installed Evo plugin skills whose `evo_version` matches `evo --version`.
 
-If a referenced `$xxx` skill is not installed, check the host's skill list and
+If a referenced [`$xxx`](codex://skills) skill is not installed, check the host's skill list and
 then the user's skill lockfile for `sourceUrl` and `skillPath`. Cite the source
 before continuing with the best available fallback or hardstop as needed.
 
@@ -50,7 +50,7 @@ before continuing with the best available fallback or hardstop as needed.
 4. Stop for approval before Evo edits production behavior, APIs, persistence,
    auth/security, tests, packaging, dependencies, deployment, user-visible
    behavior, dependency manifests, or remote/cloud infrastructure.
-5. Run `$evo discover` with the approved brief. Optimize only after discovery
+5. Run [`$evo discover`](codex://skills) with the approved brief. Optimize only after discovery
    records a baseline and the benchmark reviewer gate has passed.
 6. Configure backend/runtime explicitly for pool, remote, or non-default
    runtimes. Keep benchmark variables in `evo env`, not in committed scripts or
@@ -59,7 +59,7 @@ before continuing with the best available fallback or hardstop as needed.
    <seconds>` for long benchmarks or training runs.
 8. Run `evo run <exp_id> --check` when wiring risk is material and non-mutating
    validation is available.
-9. Resolve `autonomous` and `subagents-only` the same way `$evo optimize` does,
+9. Resolve `autonomous` and `subagents-only` the same way [`$evo optimize`](codex://skills) does,
    then arm that state with `evo autonomous on|off` and `evo subagents-only
    on|off`.
 10. Size `subagents=<n>` from benchmark/backend resources first. Use width 1
@@ -70,14 +70,14 @@ before continuing with the best available fallback or hardstop as needed.
     split the work into independent lanes and launch role-specific workers in
     parallel without full history. Give each Codex worker a dedicated lane goal:
     before launching the lane worker, spawn a dedicated goal-writer subagent
-    that uses `$goalcraft` to turn the approved brief and lane scope into the
+    that uses [`$goalcraft`](codex://skills) to turn the approved brief and lane scope into the
     lane goal, then returns only that goal to the main agent. The main agent
     passes the returned goal to the lane worker. In the current `spawn_agent`
     tool, omit `fork_context` or set `fork_context: false`; on tool surfaces
     that use `fork_turns`, set `fork_turns: "none"`. Put the role, returned
     goal, lane scope, and needed context in the message; do not override
     `agent_type`, `model`, or `reasoning_effort` on a full-history fork.
-11. Run `$evo optimize subagents=<n> budget=<n> stall=<n>` within the approved
+11. Run [`$evo optimize subagents=<n> budget=<n> stall=<n>`](codex://skills) within the approved
     scope.
 12. Use `evo direct "<text>"` only to steer an already-running Evo session. If
     an agent receives an `[EVO DIRECTIVE id=...]` banner, it must run

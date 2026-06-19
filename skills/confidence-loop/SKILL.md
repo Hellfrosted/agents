@@ -47,7 +47,8 @@ Always use sub-agent reviewers. The mode controls only how many reviewers to use
 - **extreme/s/sr/ssr**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
 
 Give each reviewer a dedicated goal. The main agent must not draft that goal
-itself. First spawn a dedicated goal-writer subagent that uses `$goalcraft` to
+itself. First spawn a dedicated goal-writer subagent that uses
+[`$goalcraft`](codex://skills) to
 turn the task, criteria, and assigned angle into a reviewer goal, then returns
 only that goal to the main agent. The main agent then passes the returned goal
 to the reviewer. The goal must preserve the reviewer boundary: read-only, no
@@ -79,7 +80,7 @@ Prompt shape:
 
 ```
 TASK: act as a read-only confidence-loop reviewer. Angle: {reviewer angle}.
-GOAL: {dedicated reviewer goal returned by the $goalcraft goal-writer subagent}
+GOAL: {dedicated reviewer goal returned by the goalcraft goal-writer subagent}
 DELIVERABLE: material loopholes with evidence, verification checks, speculative objections labeled as such, and confidence: 0-100.
 SCOPE: no file edits, no spawned agents, no final decision.
 VERIFY: cite the evidence or reasoning used for every material objection.
