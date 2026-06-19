@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }}</title>
+  <script type="application/json" id="visual-canvas-metadata">
+  {{ metadata_json }}
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111315;
+      --surface: #1a1d20;
+      --border: rgba(255,255,255,0.12);
+      --text: #f4f1ea;
+      --muted: #b9b3aa;
+      --accent: #d4a73a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 ui-sans-serif, system-ui, sans-serif;
+    }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 48px 0;
+    }
+    .lede {
+      max-width: 72ch;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+    section {
+      border-top: 1px solid var(--border);
+      margin-top: 36px;
+      padding-top: 28px;
+    }
+    h1, h2 { line-height: 1.1; letter-spacing: 0; }
+    h1 { font-size: 4.75rem; margin: 0 0 16px; }
+    h2 { font-size: 1.4rem; margin: 0 0 12px; }
+    a { color: var(--accent); }
+    @media (max-width: 640px) {
+      main { width: min(100% - 32px, 1120px); padding: 44px 0; }
+      h1 { font-size: 2.15rem; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>{{ title }}</h1>
+      <p class="lede">Replace this starter with the report answer, diagrams, evidence, and decisions.</p>
+    </header>
+    <section>
+      <h2>Canvas</h2>
+      <p>This template is a compact baseline, not a finished design.</p>
+    </section>
+  </main>
+</body>
+</html>
