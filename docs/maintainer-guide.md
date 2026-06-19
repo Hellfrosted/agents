@@ -59,6 +59,20 @@ This covers protocol path translation, outbound Linux path conversion,
 proxy-only environment cleanup, `skills/list` fallback schema, Windows path-list
 handling, turn-id parsing, and timeout parsing.
 
+### Workstation hooks
+
+Run the focused source test before publishing changes to the active global hook:
+
+```bash
+python3 -m unittest hooks/test_wsl_command_guardrails.py
+```
+
+The active global copy lives under `$CODEX_HOME/hooks/`. When repairing the
+installed guardrail, copy `hooks/wsl_command_guardrails.py` to
+`$CODEX_HOME/hooks/wsl_command_guardrails.py` and keep `$CODEX_HOME/hooks.json`
+matching Codex shell tool names used by the current runtime. The source-side
+reference snippet is `hooks/global-pretooluse-hooks.example.json`.
+
 ### Skills updater help path
 
 From Windows PowerShell:
@@ -69,12 +83,8 @@ bin\sk-up.cmd -h
 ```
 
 On this workstation, run the skills-updater PowerShell checks from Windows
-PowerShell. From WSL, launch Windows PowerShell through WSL init because Windows
-drive mounts can make `.exe` files appear non-executable:
-
-```bash
-/init /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
-```
+PowerShell, preferably through an existing Tabby PowerShell session when an
+agent needs to drive the check.
 
 Windows PowerShell can still target slash paths when needed:
 

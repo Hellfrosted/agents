@@ -1,18 +1,21 @@
 # agents-toolkit
 
-Codex workstation tooling, scripts, and local skills.
+Codex tooling source, scripts, hooks, and local skills.
 
-This repository is public source for a mostly personal setup. It is not a
-general-purpose installer, but the pieces are kept documented and testable so
-they can be reused, audited, or repaired without relying on memory.
+This repository is public source for the Codex-adjacent tools owned here. It is
+not the workstation dotfiles or setup repo; machine setup, shell configuration,
+automation definitions, and restore payloads live in the dotfiles repository.
 
 ## What Is Here
 
 - `bin/`: Windows-to-WSL Codex launch scripts, protocol proxy modules, and
   skills updater wrappers.
+- `hooks/`: source copies of local Codex workstation hooks and focused
+  regression tests.
+- `plugins/`: repo-owned Codex plugin sources.
 - `skills/`: repo-owned Codex skill sources.
-- `docs/`: focused operator documentation for the shim, updater, shell setup,
-  companion tools, and local archives.
+- `docs/`: focused operator documentation for the shim, updater, hooks, and
+  repo-owned skill workflows.
 - `feedback/`: repo-local feedback capture for skill improvement work.
 - `tests/`: focused regression checks for workstation scripts.
 

@@ -13,11 +13,10 @@ workstation install without relying on remembered local state.
 
 ## Product Purpose
 
-agents-toolkit keeps Codex-adjacent workstation tooling understandable,
-repairable, and reproducible. It is the source of truth for Windows-to-WSL
-Codex launch behavior, app-server proxy behavior, global skills maintenance
-wrappers, repo-owned local skills, and operator documentation for companion
-tools and local archives.
+agents-toolkit keeps repo-owned Codex tooling understandable, repairable, and
+reproducible. It is the source of truth for Windows-to-WSL Codex launch
+behavior, app-server proxy behavior, global skills maintenance wrappers,
+repo-owned local skills, and Codex hook source.
 
 Success means a maintainer can quickly identify the file that owns a behavior,
 change it in source first, validate it with the smallest relevant check, and
@@ -35,8 +34,8 @@ installed runtime files, plugin caches, local docs, and generated artifacts.
 
 This should not feel like generic SaaS polish, decorative AI-generated UI, or a
 broad workflow redesign without a concrete request. Avoid stale setup
-archaeology, duplicated flag lists, vague automation provenance, and ornamental
-visual treatment that makes operational facts harder to scan.
+archaeology, duplicated flag lists, workstation dotfile material, and
+ornamental visual treatment that makes operational facts harder to scan.
 
 Avoid the generic AI gradient feel at all costs. Gradients are acceptable only
 when they serve a deliberate UI or visualization purpose and do not create the

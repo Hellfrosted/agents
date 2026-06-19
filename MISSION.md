@@ -11,7 +11,7 @@ Maintain the local source of truth for:
 - T3code app-server proxy behavior;
 - globally installed Codex skill maintenance wrappers;
 - repo-owned local skills;
-- shell, companion-tool, and local archive operator docs.
+- repo-owned Codex hook source and focused verification docs.
 
 The repo should answer what is true now, how to verify it, and where to make the
 next source change. Historical notes belong only where they explain a current
@@ -24,8 +24,8 @@ design constraint or repair path.
 - Script and workflow changes have matching human-facing docs.
 - Local skills describe current invocation and safety rules without relying on
   remembered installed paths.
-- Shell and companion-tool docs are task-oriented enough to debug normal local
-  failures without generic setup archaeology.
+- Docs are task-oriented enough to debug repo-owned tool failures without
+  generic setup archaeology.
 
 ## Constraints
 
@@ -44,3 +44,5 @@ design constraint or repair path.
 - Maintaining external plugin/cache contents as part of ordinary repo docs.
 - Replacing installed global skills unless the user asks.
 - Turning backup payloads into living documentation.
+- Maintaining workstation dotfiles, shell setup, automation definitions, or
+  restore payloads; those belong in the dotfiles repository.

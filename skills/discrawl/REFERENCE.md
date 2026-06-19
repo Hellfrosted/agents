@@ -12,7 +12,7 @@
 - Embeddings: disabled by default
 - Vector backend: `turbovec`
 - TurboVec Python: `/home/crunch/.local/share/discrawl/turbovec-venv/bin/python`
-- Setup doc: `/mnt/e/dev/agents-toolkit/docs/discrawl-wiretap.md`
+- Setup doc: `/mnt/e/dev/dotfiles/docs/codex-workstation/discrawl-wiretap.md`
 
 ## Troubleshooting
 

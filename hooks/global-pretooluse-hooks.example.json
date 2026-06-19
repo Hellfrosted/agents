@@ -1,0 +1,11 @@
+{
+  "matcher": "Bash|exec_command|functions\\.exec_command|shell_command|functions\\.shell_command|multi_tool_use\\.parallel",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "/home/crunch/.codex/hooks/wsl_command_guardrails.py",
+      "timeout": 5,
+      "statusMessage": "Checking WSL command guardrails"
+    }
+  ]
+}
