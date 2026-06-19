@@ -1,6 +1,6 @@
 {
   "name": "visual-canvas",
-  "version": "0.1.0",
+  "version": "0.1.0+codex.20260619082125",
   "description": "Single-entry Codex-native visual report and HTML artifact workflow.",
   "author": {
     "name": "agents-toolkit"
@@ -12,7 +12,13 @@
     "longDescription": "Visual Canvas provides one public router skill for producing compact project-backed visual HTML artifacts with diagrams, charts, SVG, optional generated images, persistent profiles, and reusable HTML output policy guidance.",
     "developerName": "agents-toolkit",
     "category": "Productivity",
-    "capabilities": ["Write", "Interactive"],
+    "capabilities": [
+      "Write",
+      "Interactive"
+    ],
+    "brandColor": "#D4A73A",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/icon.svg",
     "defaultPrompt": [
       "Use $visual-canvas to make a visual report.",
       "Use $visual-canvas to review this branch visually.",
