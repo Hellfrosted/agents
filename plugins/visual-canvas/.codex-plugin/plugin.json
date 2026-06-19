@@ -1,6 +1,6 @@
 {
   "name": "visual-canvas",
-  "version": "0.1.0+codex.20260619082125",
+  "version": "0.1.0+codex.20260619082635",
   "description": "Single-entry Codex-native visual report and HTML artifact workflow.",
   "author": {
     "name": "agents-toolkit"
@@ -17,8 +17,8 @@
       "Interactive"
     ],
     "brandColor": "#D4A73A",
-    "composerIcon": "./assets/icon.svg",
-    "logo": "./assets/icon.svg",
+    "composerIcon": "./assets/icon.png",
+    "logo": "./assets/icon.png",
     "defaultPrompt": [
       "Use $visual-canvas to make a visual report.",
       "Use $visual-canvas to review this branch visually.",
