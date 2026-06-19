@@ -1,10 +1,10 @@
 interface:
   display_name: "Confidence Loop"
-  short_description: "Stress-test strategies, with optional hard-mode second opinions"
+  short_description: "Stress-test strategies and Codex loops with second opinions"
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
   brand_color: "#1D4ED8"
-  default_prompt: "Use $confidence-loop to audit this strategy until every real loophole has a concrete fix. Add `hard` when sub-agent second opinions are worth the extra time."
+  default_prompt: "Use $confidence-loop to audit this strategy or Codex loop until every real loophole has a concrete fix. Add `h` for hard mode or `x` for extreme mode."
 
 policy:
   allow_implicit_invocation: true
