@@ -1,6 +1,6 @@
 ---
 name: confidence-loop
-description: Stress-tests a strategy, plan, implementation approach, answer, or Codex loop design with sub-agent second opinions until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, asks to harden a Codex loop, invokes $confident-loop or $confidence-loop, or invokes $confident-loop/$confidence-loop normal/hard/extreme/n/h/x.
+description: Stress-tests a strategy, plan, implementation approach, answer, or Codex loop design with sub-agent second opinions until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, asks to harden a Codex loop, invokes $confident-loop or $confidence-loop, or invokes $confident-loop/$confidence-loop normal/hard/extreme/c/b/a/s/sr/ssr.
 ---
 
 # Confidence Loop
@@ -11,15 +11,14 @@ Adversarially verify a strategy, plan, implementation, or answer. Treat "100% co
 
 If the user invokes bare `$confident-loop` or `$confidence-loop`, ask which mode to use before running:
 
-- **normal** or **n**: default mode; use one sub-agent reviewer.
-- **hard** or **h**: use two to four sub-agent reviewers.
-- **extreme** or **x**: use as many sub-agent reviewers as the uncertainty, scope, and risk justify.
+- **normal**, **c**, or **b**: default mode; use one sub-agent reviewer.
+- **hard** or **a**: use two to four sub-agent reviewers.
+- **extreme**, **s**, **sr**, or **ssr**: use as many sub-agent reviewers as the uncertainty, scope, and risk justify.
 
-If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, `$confident-loop n`, `$confident-loop h`, `$confident-loop x`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default` as `normal`, `n` as `normal`, `h` as `hard`, and `x` as `extreme`.
+If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, `$confident-loop c`, `$confident-loop b`, `$confident-loop a`, `$confident-loop s`, `$confident-loop sr`, `$confident-loop ssr`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default`, `c`, and `b` as `normal`; `a` as `hard`; and `s`, `sr`, and `ssr` as `extreme`.
 
-Do not accept numeric shorthand as a mode. If the user appends a number such as
-`1`, `2`, or `3`, treat it as ambiguous because agents may interpret it as a
-requested sub-agent count. Ask whether they meant `n`, `h`, or `x`.
+Gacha ranks collapse to the three review-width modes above. Do not invent
+additional modes from higher ranks.
 
 ## Standard Loop
 
@@ -43,9 +42,9 @@ requested sub-agent count. Ask whether they meant `n`, `h`, or `x`.
 
 Always use sub-agent reviewers. The mode controls only how many reviewers to use:
 
-- **normal/default/n**: spawn one read-only reviewer.
-- **hard/h**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
-- **extreme/x**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
+- **normal/default/c/b**: spawn one read-only reviewer.
+- **hard/a**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
+- **extreme/s/sr/ssr**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
 
 Give each reviewer a dedicated goal. The main agent must not draft that goal
 itself. First spawn a dedicated goal-writer subagent that uses `$goalcraft` to

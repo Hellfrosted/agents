@@ -4,7 +4,7 @@ interface:
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
   brand_color: "#1D4ED8"
-  default_prompt: "Use $confidence-loop n to audit this strategy or Codex loop until every real loophole has a concrete fix. Use `h` for hard mode or `x` for extreme mode."
+  default_prompt: "Use $confidence-loop c to audit this strategy or Codex loop until every real loophole has a concrete fix. Use `a` for hard mode or `s` for extreme mode."
 
 policy:
   allow_implicit_invocation: true
