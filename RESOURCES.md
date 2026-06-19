@@ -4,18 +4,22 @@ Use these references when changing this repo or validating its docs.
 
 ## Repo-Owned Contracts
 
-- [README.md](README.md): project map, current surface area, and common checks.
+- [README.md](README.md): public project overview and entry points.
+- [docs/README.md](docs/README.md): maintained documentation index.
+- [docs/maintainer-guide.md](docs/maintainer-guide.md): source-first workflow,
+  common checks, install freshness checks, and design rationale.
 - [docs/wsl-shim.md](docs/wsl-shim.md): Windows-to-WSL Codex shim contract.
 - [docs/skills-updater.md](docs/skills-updater.md): skills updater contract.
+- [docs/skill-feedback-loop.md](docs/skill-feedback-loop.md): repo-local skill
+  feedback and improvement workflow.
 - [docs/codex-cli-tooling.md](docs/codex-cli-tooling.md): companion-tool
   operator notes.
 - [docs/shell-setup.md](docs/shell-setup.md): shell setup and terminal-addon
   parity.
+- [docs/agentsview.md](docs/agentsview.md): local Codex/OpenCode session
+  browser notes.
 - [docs/discrawl-wiretap.md](docs/discrawl-wiretap.md): local Discrawl archive
   setup.
-- [CONTEXT.md](CONTEXT.md): shared local terms.
-- [AGENTS.md](AGENTS.md): workstation-local agent instructions for this repo.
-- [RTK.md](RTK.md): local shell command wrapper rule.
 
 ## WSL And Windows Interop
 
@@ -74,10 +78,3 @@ Use these references when changing this repo or validating its docs.
   and edit mode.
 - [PSFzf README](https://github.com/kelleyma49/PSFzf)
   Use for: how PowerShell wraps fzf and maps it into PSReadLine key chords.
-
-## Local Learning Artifacts
-
-- [lessons/0001-terminal-addon-ownership.html](lessons/0001-terminal-addon-ownership.html):
-  interactive terminal-addon ownership lesson.
-- [reference/0001-terminal-addons-cheatsheet.html](reference/0001-terminal-addons-cheatsheet.html):
-  terminal-addon cheatsheet.
