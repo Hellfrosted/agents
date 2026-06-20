@@ -9,10 +9,12 @@ import (
 	"strings"
 
 	"github.com/Hellfrosted/agents/internal/skup/compare"
+	"github.com/Hellfrosted/agents/internal/skup/output"
 )
 
-func ensureRepo(ctx context.Context, runner compare.CommandRunner, gitPath string, source skillSource) error {
+func ensureRepo(ctx context.Context, runner compare.CommandRunner, gitPath string, source skillSource, progress ProgressFunc) error {
 	if _, err := os.Stat(filepath.Join(source.repoDir, ".git")); err == nil {
+		emitProgress(progress, repoProgressEvent(output.EventFetch, source))
 		if err := runGit(ctx, runner, gitPath, "-c", "core.autocrlf=false", "-C", source.repoDir, "remote", "set-url", "origin", source.sourceURL); err != nil {
 			return err
 		}
@@ -20,10 +22,12 @@ func ensureRepo(ctx context.Context, runner compare.CommandRunner, gitPath strin
 			return err
 		}
 		if err := runGit(ctx, runner, gitPath, "-c", "core.autocrlf=false", "-C", source.repoDir, "reset", "--quiet", "--soft", "FETCH_HEAD"); err != nil {
+			emitProgress(progress, repoProgressEvent(output.EventRepair, source))
 			staleDir, err := moveStaleRepo(source.repoDir)
 			if err != nil {
 				return err
 			}
+			emitProgress(progress, repoProgressEvent(output.EventClone, source))
 			if err := cloneRepo(ctx, runner, gitPath, source); err != nil {
 				return restoreStaleRepo(staleDir, source.repoDir, err)
 			}
@@ -34,6 +38,7 @@ func ensureRepo(ctx context.Context, runner compare.CommandRunner, gitPath strin
 			return nil
 		}
 	} else {
+		emitProgress(progress, repoProgressEvent(output.EventClone, source))
 		if err := cloneRepo(ctx, runner, gitPath, source); err != nil {
 			return err
 		}

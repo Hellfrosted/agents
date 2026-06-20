@@ -37,6 +37,8 @@ func TestCheck_returnsStatusesFromLockfileBackedComparison(t *testing.T) {
 			"skills/skipped": "hash-skipped",
 		},
 	}
+	var progressMu sync.Mutex
+	var progressEvents []output.Event
 
 	// When
 	got, err := Check(context.Background(), runner, Input{
@@ -44,6 +46,11 @@ func TestCheck_returnsStatusesFromLockfileBackedComparison(t *testing.T) {
 		AgentsHome: agentsHome,
 		CacheDir:   cacheDir,
 		StateDir:   stateDir,
+		Progress: func(event output.Event) {
+			progressMu.Lock()
+			defer progressMu.Unlock()
+			progressEvents = append(progressEvents, event)
+		},
 	})
 
 	// Then
@@ -84,6 +91,12 @@ func TestCheck_returnsStatusesFromLockfileBackedComparison(t *testing.T) {
 	}
 	if got := countCommandWithArg(runner.commands, "clone"); got != 1 {
 		t.Fatalf("clone command count = %d, want 1", got)
+	}
+	if got := countProgressEvent(progressEvents, output.EventClone); got != 1 {
+		t.Fatalf("clone progress event count = %d, want 1; events=%#v", got, progressEvents)
+	}
+	if got := countProgressEvent(progressEvents, output.EventCompare); got != 3 {
+		t.Fatalf("compare progress event count = %d, want 3; events=%#v", got, progressEvents)
 	}
 }
 
@@ -212,6 +225,16 @@ func countCommandWithArg(commands []compare.Command, want string) int {
 	count := 0
 	for _, command := range commands {
 		if containsArg(command.Args, want) {
+			count++
+		}
+	}
+	return count
+}
+
+func countProgressEvent(events []output.Event, want output.EventName) int {
+	count := 0
+	for _, event := range events {
+		if event.Event == want {
 			count++
 		}
 	}

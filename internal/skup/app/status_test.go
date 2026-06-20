@@ -66,6 +66,7 @@ func TestExecute_writesStatusJSON_whenGlobalJSONRequested(t *testing.T) {
 func TestExecute_writesStatusLines_whenGlobalHumanRequested(t *testing.T) {
 	// Given
 	var stdout bytes.Buffer
+	var stderr bytes.Buffer
 	root := t.TempDir()
 	agentsHome := filepath.Join(root, "agents")
 	cacheDir := filepath.Join(root, "cache")
@@ -84,7 +85,7 @@ func TestExecute_writesStatusLines_whenGlobalHumanRequested(t *testing.T) {
 		Args:      []string{"-g", "--agents-home", agentsHome, "--cache-dir", cacheDir, "--state-dir", filepath.Join(root, "state")},
 		Env:       map[string]string{"HOME": "/home/alice"},
 		Stdout:    &stdout,
-		Stderr:    &bytes.Buffer{},
+		Stderr:    &stderr,
 		GitRunner: runner,
 	})
 
@@ -94,6 +95,12 @@ func TestExecute_writesStatusLines_whenGlobalHumanRequested(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "UPDATE  alpha") {
 		t.Fatalf("stdout missing update line: %q", stdout.String())
+	}
+	if !strings.Contains(stderr.String(), "CLONE   https://github.com/example/skills.git") {
+		t.Fatalf("stderr missing clone progress: %q", stderr.String())
+	}
+	if !strings.Contains(stderr.String(), "CHECK   alpha") {
+		t.Fatalf("stderr missing check progress: %q", stderr.String())
 	}
 }
 

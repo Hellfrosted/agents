@@ -65,7 +65,7 @@ func ensureSources(ctx context.Context, runner compare.CommandRunner, input Inpu
 		go func() {
 			defer wg.Done()
 			for source := range jobs {
-				if err := ensureRepo(ctx, runner, input.GitPath, source); err != nil {
+				if err := ensureRepo(ctx, runner, input.GitPath, source, input.Progress); err != nil {
 					select {
 					case errs <- err:
 					default:
@@ -149,6 +149,7 @@ func checkSources(ctx context.Context, runner compare.CommandRunner, input Input
 }
 
 func checkSource(ctx context.Context, runner compare.CommandRunner, input Input, skips state.Skips, source skillSource) (output.SkillStatus, error) {
+	emitProgress(input.Progress, skillProgressEvent(output.EventCompare, source))
 	hash, err := remoteHash(ctx, runner, input.GitPath, source)
 	if err != nil {
 		return output.SkillStatus{}, err

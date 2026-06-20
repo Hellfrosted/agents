@@ -8,8 +8,11 @@ type Input struct {
 	CacheDir   string
 	StateDir   string
 	Targets    []string
+	Progress   ProgressFunc
 }
 
 type Result struct {
 	Statuses []output.SkillStatus
 }
+
+type ProgressFunc func(output.Event)

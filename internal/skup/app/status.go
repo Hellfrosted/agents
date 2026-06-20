@@ -15,12 +15,17 @@ import (
 )
 
 func executeStatus(ctx context.Context, parsed cli.Parsed, resolved config.Resolved, request Request) int {
+	progress := status.ProgressFunc(nil)
+	if parsed.Output == cli.OutputHuman {
+		progress = humanProgress(request.Stderr, resolved.Color)
+	}
 	result, err := status.Check(ctx, gitRunner(request), status.Input{
 		GitPath:    "git",
 		AgentsHome: resolved.AgentsHome,
 		CacheDir:   resolved.CacheDir,
 		StateDir:   resolved.StateDir,
 		Targets:    parsed.Targets,
+		Progress:   progress,
 	})
 	if err != nil {
 		writeError(request.Stderr, err)

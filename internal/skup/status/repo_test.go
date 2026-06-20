@@ -65,7 +65,7 @@ func TestEnsureRepo_reclonesCache_whenExistingResetFails(t *testing.T) {
 	}
 
 	// When
-	err := ensureRepo(context.Background(), runner, "git", source)
+	err := ensureRepo(context.Background(), runner, "git", source, nil)
 
 	// Then
 	if err != nil {
@@ -100,7 +100,7 @@ func TestEnsureRepo_restoresStaleCache_whenFallbackSparseCheckoutFails(t *testin
 	}
 
 	// When
-	err := ensureRepo(context.Background(), runner, "git", source)
+	err := ensureRepo(context.Background(), runner, "git", source, nil)
 
 	// Then
 	if err == nil {
@@ -126,7 +126,7 @@ func TestEnsureRepo_restoresStaleCache_whenFallbackCloneLeavesPartialRepo(t *tes
 	}
 
 	// When
-	err := ensureRepo(context.Background(), runner, "git", source)
+	err := ensureRepo(context.Background(), runner, "git", source, nil)
 
 	// Then
 	if err == nil {
