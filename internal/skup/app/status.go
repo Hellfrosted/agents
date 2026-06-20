@@ -3,6 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/Hellfrosted/agents/internal/skup/cli"
@@ -47,7 +49,7 @@ func executeStatus(ctx context.Context, parsed cli.Parsed, resolved config.Resol
 		}
 	default:
 		for _, status := range result.Statuses {
-			writeText(request.Stdout, fmt.Sprintf("%-7s %s\n", strings.ToUpper(string(status.Status)), status.Name))
+			writeText(request.Stdout, fmt.Sprintf("%s %s\n", humanStatusLabel(status.Status, resolved.Color, request.Stdout), status.Name))
 		}
 	}
 	return ExitOK
@@ -58,4 +60,46 @@ func gitRunner(request Request) compare.CommandRunner {
 		return request.GitRunner
 	}
 	return compare.ExecRunner{}
+}
+
+func humanStatusLabel(status output.Status, colorMode string, writer io.Writer) string {
+	label := fmt.Sprintf("%-7s", strings.ToUpper(string(status)))
+	if !statusColorEnabled(colorMode, writer) {
+		return label
+	}
+	if color, ok := statusColor(status); ok {
+		return color + label + "\x1b[0m"
+	}
+	return label
+}
+
+func statusColor(status output.Status) (string, bool) {
+	switch status {
+	case output.StatusOK:
+		return "\x1b[32m", true
+	case output.StatusUpdate:
+		return "\x1b[33m", true
+	case output.StatusMissing, output.StatusError:
+		return "\x1b[31m", true
+	case output.StatusSkipped:
+		return "\x1b[36m", true
+	default:
+		return "", false
+	}
+}
+
+func statusColorEnabled(colorMode string, writer io.Writer) bool {
+	switch colorMode {
+	case "always":
+		return true
+	case "never":
+		return false
+	default:
+		file, ok := writer.(*os.File)
+		if !ok {
+			return false
+		}
+		info, err := file.Stat()
+		return err == nil && info.Mode()&os.ModeCharDevice != 0
+	}
 }

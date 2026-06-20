@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/Hellfrosted/agents/internal/skup/compare"
@@ -81,6 +82,9 @@ func TestCheck_returnsStatusesFromLockfileBackedComparison(t *testing.T) {
 	if len(runner.commands) == 0 {
 		t.Fatal("runner commands empty")
 	}
+	if got := countCommandWithArg(runner.commands, "clone"); got != 1 {
+		t.Fatalf("clone command count = %d, want 1", got)
+	}
 }
 
 func TestCheck_filtersTargets_whenTargetsProvided(t *testing.T) {
@@ -116,13 +120,16 @@ func TestCheck_filtersTargets_whenTargetsProvided(t *testing.T) {
 }
 
 type fakeGitRunner struct {
+	mu       sync.Mutex
 	commands []compare.Command
 	archives map[string][]byte
 	hashes   map[string]string
 }
 
 func (r *fakeGitRunner) Run(_ context.Context, command compare.Command) (compare.CommandResult, error) {
+	r.mu.Lock()
 	r.commands = append(r.commands, command)
+	r.mu.Unlock()
 	if containsArg(command.Args, "archive") {
 		remoteDir := command.Args[len(command.Args)-1]
 		return compare.CommandResult{Stdout: r.archives[remoteDir]}, nil
@@ -199,4 +206,14 @@ func containsArg(args []string, want string) bool {
 		}
 	}
 	return false
+}
+
+func countCommandWithArg(commands []compare.Command, want string) int {
+	count := 0
+	for _, command := range commands {
+		if containsArg(command.Args, want) {
+			count++
+		}
+	}
+	return count
 }

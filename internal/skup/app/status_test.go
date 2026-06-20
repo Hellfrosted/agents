@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/Hellfrosted/agents/internal/skup/compare"
@@ -96,7 +97,42 @@ func TestExecute_writesStatusLines_whenGlobalHumanRequested(t *testing.T) {
 	}
 }
 
+func TestExecute_colorsUpdateStatus_whenColorAlways(t *testing.T) {
+	// Given
+	var stdout bytes.Buffer
+	root := t.TempDir()
+	agentsHome := filepath.Join(root, "agents")
+	cacheDir := filepath.Join(root, "cache")
+	writeAppFile(t, filepath.Join(agentsHome, ".skill-lock.json"), appLockfile())
+	writeAppFile(t, filepath.Join(agentsHome, "skills", "alpha", "SKILL.md"), "old\n")
+	runner := &appFakeGitRunner{
+		archives: map[string][]byte{
+			"skills/alpha": appTarArchive(t, appTarFile{name: "skills/alpha/SKILL.md", contents: "new\n"}),
+		},
+		hashes: map[string]string{"skills/alpha": "hash-alpha"},
+	}
+
+	// When
+	code := Execute(context.Background(), Request{
+		Argv0:     "sk-up",
+		Args:      []string{"-g", "--color", "always", "--agents-home", agentsHome, "--cache-dir", cacheDir, "--state-dir", filepath.Join(root, "state")},
+		Env:       map[string]string{"HOME": "/home/alice"},
+		Stdout:    &stdout,
+		Stderr:    &bytes.Buffer{},
+		GitRunner: runner,
+	})
+
+	// Then
+	if code != 0 {
+		t.Fatalf("exit code = %d, want 0", code)
+	}
+	if !strings.Contains(stdout.String(), "\x1b[33mUPDATE ") {
+		t.Fatalf("stdout missing colored update line: %q", stdout.String())
+	}
+}
+
 type appFakeGitRunner struct {
+	mu         sync.Mutex
 	archives   map[string][]byte
 	hashes     map[string]string
 	commands   []compare.Command
@@ -104,7 +140,9 @@ type appFakeGitRunner struct {
 }
 
 func (r *appFakeGitRunner) Run(_ context.Context, command compare.Command) (compare.CommandResult, error) {
+	r.mu.Lock()
 	r.commands = append(r.commands, command)
+	r.mu.Unlock()
 	if hasAppArg(command.Args, "archive") {
 		return compare.CommandResult{Stdout: r.archives[command.Args[len(command.Args)-1]]}, nil
 	}
@@ -119,6 +157,8 @@ func (r *appFakeGitRunner) Run(_ context.Context, command compare.Command) (comp
 }
 
 func (r *appFakeGitRunner) lastCommandWithArg(arg string) compare.Command {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	for index := len(r.commands) - 1; index >= 0; index-- {
 		if hasAppArg(r.commands[index].Args, arg) {
 			return r.commands[index]

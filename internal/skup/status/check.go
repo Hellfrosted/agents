@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 
 	"github.com/Hellfrosted/agents/internal/skup/compare"
 	"github.com/Hellfrosted/agents/internal/skup/lockfile"
@@ -22,29 +24,131 @@ func Check(ctx context.Context, runner compare.CommandRunner, input Input) (Resu
 		return Result{}, err
 	}
 
-	statuses := make([]output.SkillStatus, 0, len(doc.SkillNames()))
+	sources := make([]skillSource, 0, len(doc.SkillNames()))
 	for _, name := range doc.SkillNames() {
 		if !targetSelected(name, input.Targets) {
 			continue
 		}
-		status, err := checkSkill(ctx, runner, input, doc, skips, name)
+		source, err := skillSourceFor(input, doc, name)
 		if err != nil {
 			return Result{}, err
 		}
-		statuses = append(statuses, status)
+		sources = append(sources, source)
+	}
+
+	if err := ensureSources(ctx, runner, input, sources); err != nil {
+		return Result{}, err
+	}
+	statuses, err := checkSources(ctx, runner, input, skips, sources)
+	if err != nil {
+		return Result{}, err
 	}
 	return Result{Statuses: statuses}, nil
 }
 
-func checkSkill(ctx context.Context, runner compare.CommandRunner, input Input, doc lockfile.Document, skips state.Skips, name string) (output.SkillStatus, error) {
+func skillSourceFor(input Input, doc lockfile.Document, name string) (skillSource, error) {
 	entry, ok := doc.Skill(name)
 	if !ok {
-		return output.SkillStatus{}, fmt.Errorf("skill %s not found in lockfile", name)
+		return skillSource{}, fmt.Errorf("skill %s not found in lockfile", name)
 	}
-	source := newSkillSource(name, entry, input)
-	if err := ensureRepo(ctx, runner, input.GitPath, source); err != nil {
-		return output.SkillStatus{}, err
+	return newSkillSource(name, entry, input), nil
+}
+
+func ensureSources(ctx context.Context, runner compare.CommandRunner, input Input, sources []skillSource) error {
+	unique := uniqueRepoSources(sources)
+	jobs := make(chan skillSource)
+	errs := make(chan error, 1)
+	var wg sync.WaitGroup
+
+	for range statusWorkers(len(unique)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for source := range jobs {
+				if err := ensureRepo(ctx, runner, input.GitPath, source); err != nil {
+					select {
+					case errs <- err:
+					default:
+					}
+				}
+			}
+		}()
 	}
+	for _, source := range unique {
+		select {
+		case jobs <- source:
+		case err := <-errs:
+			close(jobs)
+			wg.Wait()
+			return err
+		}
+	}
+	close(jobs)
+	wg.Wait()
+	select {
+	case err := <-errs:
+		return err
+	default:
+		return nil
+	}
+}
+
+func uniqueRepoSources(sources []skillSource) []skillSource {
+	seen := make(map[string]struct{}, len(sources))
+	unique := make([]skillSource, 0, len(sources))
+	for _, source := range sources {
+		if _, ok := seen[source.repoDir]; ok {
+			continue
+		}
+		seen[source.repoDir] = struct{}{}
+		unique = append(unique, source)
+	}
+	return unique
+}
+
+func checkSources(ctx context.Context, runner compare.CommandRunner, input Input, skips state.Skips, sources []skillSource) ([]output.SkillStatus, error) {
+	statuses := make([]output.SkillStatus, len(sources))
+	jobs := make(chan int)
+	errs := make(chan error, 1)
+	var wg sync.WaitGroup
+
+	for range statusWorkers(len(sources)) {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for index := range jobs {
+				status, err := checkSource(ctx, runner, input, skips, sources[index])
+				if err != nil {
+					select {
+					case errs <- err:
+					default:
+					}
+					continue
+				}
+				statuses[index] = status
+			}
+		}()
+	}
+	for index := range sources {
+		select {
+		case jobs <- index:
+		case err := <-errs:
+			close(jobs)
+			wg.Wait()
+			return nil, err
+		}
+	}
+	close(jobs)
+	wg.Wait()
+	select {
+	case err := <-errs:
+		return nil, err
+	default:
+		return statuses, nil
+	}
+}
+
+func checkSource(ctx context.Context, runner compare.CommandRunner, input Input, skips state.Skips, source skillSource) (output.SkillStatus, error) {
 	hash, err := remoteHash(ctx, runner, input.GitPath, source)
 	if err != nil {
 		return output.SkillStatus{}, err
@@ -59,7 +163,24 @@ func checkSkill(ctx context.Context, runner compare.CommandRunner, input Input, 
 	if err != nil {
 		return output.SkillStatus{}, err
 	}
-	return statusFor(name, source, hash, result.Status, skips), nil
+	return statusFor(source.name, source, hash, result.Status, skips), nil
+}
+
+func statusWorkers(count int) int {
+	if count < 2 {
+		return count
+	}
+	workers := runtime.NumCPU()
+	if workers < 2 {
+		workers = 2
+	}
+	if workers > 8 {
+		workers = 8
+	}
+	if count < workers {
+		return count
+	}
+	return workers
 }
 
 func readLockfile(agentsHome string) (lockfile.Document, error) {
