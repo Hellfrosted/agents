@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -127,7 +128,14 @@ func (r *fakeGitRunner) Run(_ context.Context, command compare.Command) (compare
 		return compare.CommandResult{Stdout: r.archives[remoteDir]}, nil
 	}
 	if containsArg(command.Args, "rev-parse") {
-		remoteDir := strings.TrimPrefix(command.Args[len(command.Args)-1], "HEAD:")
+		arg := command.Args[len(command.Args)-1]
+		if arg == "HEAD:." {
+			return compare.CommandResult{}, fmt.Errorf("root tree must not use HEAD:.")
+		}
+		remoteDir := "."
+		if arg != "HEAD^{tree}" {
+			remoteDir = strings.TrimPrefix(arg, "HEAD:")
+		}
 		return compare.CommandResult{Stdout: []byte(r.hashes[remoteDir] + "\n")}, nil
 	}
 	return compare.CommandResult{}, nil
