@@ -17,7 +17,13 @@ Output bias:
 
 ## Review
 
-Use for branches, diffs, PRs, implementation plans, or technical proposals.
+Use for standalone local HTML reviews of systems, decisions, technical
+proposals, or artifacts when the user explicitly wants a portable Visual Canvas
+report.
+
+Route branch, diff, pull request, and agent-work recaps to the installed
+`/visual-recap` Agent-Native skill unless the user specifically asks for a local
+HTML report instead.
 
 Output bias:
 
@@ -29,8 +35,13 @@ Output bias:
 
 ## Plan
 
-Use for implementation plans, architecture proposals, migrations, and staged
-technical work.
+Visual Canvas does not own the general visual-plan workflow. Route
+implementation plans, architecture proposals, migrations, and staged technical
+work to the installed `/visual-plan` Agent-Native skill unless the user
+specifically asks for a local HTML report instead.
+
+Use this mode only for local HTML planning artifacts that must remain portable
+outside the hosted plan app.
 
 Output bias:
 

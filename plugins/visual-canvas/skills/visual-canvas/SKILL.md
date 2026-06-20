@@ -1,6 +1,6 @@
 ---
 name: visual-canvas
-description: Single public entrypoint for Visual Canvas. Use when the user asks for a polished visual HTML report, visual explanation, project recap, implementation plan, branch review, diagram-rich artifact, persistent visual profile, or reusable user-facing HTML policy.
+description: Single public entrypoint for Visual Canvas. Use when the user asks for a polished local HTML report, visual explanation, diagram-rich artifact, persistent visual profile, or reusable user-facing HTML policy.
 ---
 
 # Visual Canvas
@@ -9,6 +9,17 @@ Create compact, project-backed visual HTML artifacts for developers. Visual
 Canvas is a meta-skill: it owns the report pipeline and delegates taste,
 image generation, browser checks, and specialist review to existing skills when
 they are available.
+
+## Agent-Native Delegation
+
+Do not use Visual Canvas for the general Agent-Native plan and recap lanes. If
+the request is primarily an implementation plan, architecture plan, migration
+plan, branch recap, pull request recap, diff recap, or agent-work recap, route
+to the installed `/visual-plan` or `/visual-recap` skill instead.
+
+Keep Visual Canvas for portable local HTML reports, reusable HTML output policy,
+visual profiles, static checks, and report artifacts that should remain outside
+the hosted plan app.
 
 ## Route Internally
 

@@ -42,6 +42,8 @@ Common entry points:
 
 - [WSL shim](docs/wsl-shim.md): Windows-to-WSL Codex launch and proxy behavior.
 - [Skills updater](docs/skills-updater.md): global skill update wrappers.
+- [Agent-Native boundary](docs/agent-native-boundary.md): what the installed
+  BuilderIO/Agent-Native skills own versus what stays in this repo.
 - [Skill feedback loop](docs/skill-feedback-loop.md): local feedback capture
   and improvement workflow.
 - [Maintainer guide](docs/maintainer-guide.md): source-first workflow,

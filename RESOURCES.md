@@ -10,6 +10,9 @@ Use these references when changing this repo or validating its docs.
   common checks, install freshness checks, and design rationale.
 - [docs/wsl-shim.md](docs/wsl-shim.md): Windows-to-WSL Codex shim contract.
 - [docs/skills-updater.md](docs/skills-updater.md): skills updater contract.
+- [docs/agent-native-boundary.md](docs/agent-native-boundary.md):
+  BuilderIO/Agent-Native ownership boundary for plan/recap skills and
+  Visual Canvas.
 - [docs/skill-feedback-loop.md](docs/skill-feedback-loop.md): repo-local skill
   feedback and improvement workflow.
 
@@ -38,6 +41,9 @@ Use these references when changing this repo or validating its docs.
   Use for MCP lifecycle and tool server behavior.
 - [Skills package source conventions](https://github.com/mattpocock/skills)
   Use only when maintaining skills that originate from that ecosystem.
+- [BuilderIO Agent-Native skills](https://github.com/BuilderIO/skills)
+  Use for the installed Agent-Native plan, recap, orchestration, and managed
+  instruction-block workflows. Do not duplicate those skills in this repo.
 - [LazyCodex / OMO plugin cache](https://github.com/sisyphuslabs)
   Use as external context only when the user asks for OMO/plugin work. Do not
   edit installed plugin/cache copies as part of ordinary agents-toolkit changes.

@@ -3,6 +3,8 @@
 Visual Canvas runs as a compact artifact pipeline, not as an ad hoc HTML dump.
 
 1. Classify intent and choose the public mode.
+   Route general visual plans and recaps to the installed Agent-Native skills
+   before creating a Visual Canvas artifact.
 2. Resolve profiles in project-first order.
 3. For artifact-producing modes, create or update `canvas.json` with title, mode, output path, profile
    summary, section outline, assets, and validation summary.

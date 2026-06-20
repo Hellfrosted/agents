@@ -22,10 +22,13 @@ Default project layout:
 SVG, inline Mermaid source, and inline metadata are acceptable when they keep
 the artifact portable and readable.
 
-Only artifact-producing modes create a project directory. `Report`, `Review`,
-and `Plan` normally produce artifacts. `Style Profile` edits profile guidance,
-and `HTML Output Policy` can run as policy/check guidance against an existing
-HTML file without creating a Visual Canvas project.
+Only artifact-producing modes create a project directory. `Report` and local
+HTML `Review` normally produce artifacts. Agent-Native owns the general
+`/visual-plan` and `/visual-recap` workflows; use Visual Canvas planning or
+review artifacts only when the user specifically needs a portable local HTML
+report. `Style Profile` edits profile guidance, and `HTML Output Policy` can
+run as policy/check guidance against an existing HTML file without creating a
+Visual Canvas project.
 
 `canvas.json` is the single compact run contract. It should include:
 

@@ -7,9 +7,11 @@
 
 """Create a compact Visual Canvas artifact project directory.
 
-This script is for artifact-producing modes: visual-report, visual-review, and
-visual-plan. Profile editing and HTML policy checks usually do not need a
-project scaffold.
+This script is for Visual Canvas local HTML artifact-producing modes:
+visual-report, visual-review, and visual-plan. Agent-Native owns general visual
+plan and recap artifacts; use visual-plan here only for portable local HTML
+planning artifacts. Profile editing and HTML policy checks usually do not need
+a project scaffold.
 """
 
 from __future__ import annotations
