@@ -50,14 +50,18 @@ repeatable, and the approved scope can absorb broader exploration.
 - Override individual calls with `evo run <exp_id> --timeout <seconds>` only
   when the configured per-experiment timeout is not appropriate.
 
-## Evo v0.5.3 Notes
+## Evo v0.6.2 Notes
 
 - Keep the Codex CLI and plugin bundle in lockstep with
-  `evo update codex --version 0.5.3 --trust-hooks`, then verify with
+  `evo update codex --version 0.6.2 --trust-hooks`, then verify with
   `evo doctor codex`.
-- The installed Evo plugin skills advertise `evo_version: 0.5.3`; stop and fix
+- The installed Evo plugin skills advertise `evo_version: 0.6.2`; stop and fix
   CLI/plugin drift before using `$evo discover`, `$evo optimize`,
   `$evo finetuning`, or `$evo infra-setup`.
+- If `evo doctor codex` reports Codex hooks still referencing
+  `CLAUDE_PLUGIN_ROOT`, do not launch Evo workflows. Report the required repair
+  command, `evo install codex --force`, for explicit user approval because it
+  mutates the active Codex plugin/cache install.
 - `$evo optimize` remains the canonical post-discover loop even when resource
   constraints force `subagents=1`. Read Evo's `sizing-the-round.md` before
   choosing width, and use `evo wait` or bounded liveness checks instead of
