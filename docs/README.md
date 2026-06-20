@@ -7,7 +7,8 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 | Topic | Doc | Use it for |
 | --- | --- | --- |
 | WSL shim | [wsl-shim.md](wsl-shim.md) | Windows-to-WSL Codex launch behavior, proxy runtime, path translation, fallback skills listing, and focused verification. |
-| Skills updater | [skills-updater.md](skills-updater.md) | `skills-updates` and `sk-up` behavior, install and uninstall modes, state paths, locking, and PowerShell checks. |
+| Skills updater | [skills-updater.md](skills-updater.md) | `skills-updates` and `sk-up` behavior, install and uninstall modes, state paths, locking, and Go wrapper checks. |
+| Go sk-up port | [sk-up-go-port.md](sk-up-go-port.md) | Control brief, command contract, output schemas, validation matrix, and progress ledger for the portable Go updater. |
 | Agent-Native boundary | [agent-native-boundary.md](agent-native-boundary.md) | What BuilderIO/Agent-Native skills own now, what this repo still owns, and how Visual Canvas delegates plan/recap work. |
 | Skill feedback loop | [skill-feedback-loop.md](skill-feedback-loop.md) | Repo-local feedback events, weekly review flow, and source-first skill updates. |
 | Maintainer guide | [maintainer-guide.md](maintainer-guide.md) | Source-first workflow, common checks, install freshness checks, and design rationale. |

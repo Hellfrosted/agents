@@ -73,33 +73,36 @@ installed guardrail, copy `hooks/wsl_command_guardrails.py` to
 matching Codex shell tool names used by the current runtime. The source-side
 reference snippet is `hooks/global-pretooluse-hooks.example.json`.
 
-### Skills updater help path
+### Skills updater
 
-From Windows PowerShell:
+The promoted updater implementation is Go. Source wrappers under `bin/` expect
+an adjacent `sk-up.exe`; `skills-updates.cmd` is a compatibility alias that
+sets `SK_UP_ENTRYPOINT=skills-updates` before invoking that binary. Do not ship
+`skills-updates.exe` on Windows, and do not use PowerShell as an updater
+fallback.
 
-```powershell
-bin\skills-updates.cmd --help
-bin\sk-up.cmd -h
+From WSL, run the Go package checks:
+
+```bash
+go test ./...
+go test -race -shuffle=on -count=1 ./cmd/sk-up ./internal/skup/...
 ```
 
-On this workstation, run the skills-updater PowerShell checks from Windows
-PowerShell, preferably through an existing Tabby PowerShell session when an
-agent needs to drive the check.
+Build release archives without installing them:
 
-Windows PowerShell can still target slash paths when needed:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/skills-updates.ps1 --cmd-name skills-updates --help
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File bin/skills-updates.ps1 --cmd-name sk-up -h
+```bash
+SK_UP_VERSION=dev bin/build-sk-up-release.sh
 ```
 
-For the source-install regression check:
+From Windows PowerShell, run the wrapper/source-install regression. It builds
+temporary Go executables next to copied wrappers and does not mutate the active
+workstation install:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
 ```
 
-The slash path form is also accepted from Windows PowerShell:
+Windows PowerShell can still target slash paths when needed:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
@@ -130,9 +133,9 @@ task explicitly asks for install or repair work.
 - The Node proxy is split into runtime, path translation, and skills fallback
   modules so path-policy changes and app-server lifecycle changes are testable
   without exercising the Windows batch file.
-- The skills updater is PowerShell-first because it manages Windows global skill
-  installs, Windows `%USERPROFILE%` paths, console codepages, editor launching,
-  and named mutexes.
+- The skills updater is Go-first so the same implementation owns Linux, macOS,
+  and Windows behavior. Windows `.cmd` files are launchers only; they preserve
+  UTF-8 console setup and invoke the adjacent Go executable.
 - LazyCodex is kept as a Codex plugin in WSL. The WSL runner allows LazyCodex
   auto-update by default while disabling telemetry and config-migration startup
   paths for app-server sessions.

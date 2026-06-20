@@ -2,35 +2,33 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$skUpWrapperPath = Join-Path $repoRoot "bin\sk-up.cmd"
-$skillsUpdatesWrapperPath = Join-Path $repoRoot "bin\skills-updates.cmd"
 $caseRoot = Join-Path ([IO.Path]::GetTempPath()) ("sk-up-install-test-{0}" -f [IO.Path]::GetRandomFileName())
-$fakeBin = Join-Path $caseRoot "bin"
+$caseBin = Join-Path $caseRoot "bin"
 $agentsHome = Join-Path $caseRoot "agents"
+$cacheDir = Join-Path $caseRoot "cache"
+$stateDir = Join-Path $caseRoot "state"
 
 function Invoke-CapturedProcess {
     param(
         [string]$FileName,
         [string]$Arguments,
-        [hashtable]$Environment = @{},
-        [int]$TimeoutMilliseconds = 8000
+        [int]$TimeoutMilliseconds = 15000
     )
 
     $startInfo = [Diagnostics.ProcessStartInfo]::new()
     $startInfo.FileName = $FileName
     $startInfo.Arguments = $Arguments
+    $startInfo.WorkingDirectory = $repoRoot
     $startInfo.UseShellExecute = $false
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
-    foreach ($entry in $Environment.GetEnumerator()) {
-        $startInfo.EnvironmentVariables[$entry.Key] = [string]$entry.Value
-    }
 
     $process = [Diagnostics.Process]::Start($startInfo)
     if (-not $process.WaitForExit($TimeoutMilliseconds)) {
         $process.Kill()
         $stdout = $process.StandardOutput.ReadToEnd()
-        throw "$FileName $Arguments timed out. stdout: $stdout"
+        $stderr = $process.StandardError.ReadToEnd()
+        throw "$FileName $Arguments timed out. stdout: $stdout stderr: $stderr"
     }
 
     return [pscustomobject]@{
@@ -40,44 +38,47 @@ function Invoke-CapturedProcess {
     }
 }
 
-New-Item -ItemType Directory -Path $fakeBin, $agentsHome -Force | Out-Null
+function Assert-Ok {
+    param(
+        [object]$Result,
+        [string]$Label
+    )
+
+    if ($Result.ExitCode -ne 0) {
+        throw "$Label exited $($Result.ExitCode). stdout: $($Result.Stdout) stderr: $($Result.Stderr)"
+    }
+}
+
+New-Item -ItemType Directory -Path $caseBin, $agentsHome, $cacheDir, $stateDir -Force | Out-Null
 try {
-    $skUpHelp = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments "/d /c ""$skUpWrapperPath"" -h"
-    if ($skUpHelp.ExitCode -ne 0 -or $skUpHelp.Stdout -notmatch "sk-up -g") {
-        throw "sk-up wrapper help did not expose short aliases. stdout: $($skUpHelp.Stdout) stderr: $($skUpHelp.Stderr)"
+    Copy-Item -LiteralPath (Join-Path $repoRoot "bin\sk-up.cmd") -Destination (Join-Path $caseBin "sk-up.cmd")
+    Copy-Item -LiteralPath (Join-Path $repoRoot "bin\skills-updates.cmd") -Destination (Join-Path $caseBin "skills-updates.cmd")
+
+    $buildSkUp = Invoke-CapturedProcess -FileName "go" -Arguments "build -o ""$caseBin\sk-up.exe"" .\cmd\sk-up"
+    Assert-Ok -Result $buildSkUp -Label "go build sk-up"
+    if (Test-Path -LiteralPath (Join-Path $caseBin "skills-updates.exe")) {
+        throw "Windows install test must not create skills-updates.exe"
     }
 
-    $skillsUpdatesHelp = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments "/d /c ""$skillsUpdatesWrapperPath"" --help"
-    if ($skillsUpdatesHelp.ExitCode -ne 0 -or $skillsUpdatesHelp.Stdout -notmatch "skills-updates --global") {
-        throw "skills-updates wrapper help did not expose long aliases. stdout: $($skillsUpdatesHelp.Stdout) stderr: $($skillsUpdatesHelp.Stderr)"
+    $skUpHelp = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments "/d /c ""$caseBin\sk-up.cmd"" -h"
+    Assert-Ok -Result $skUpHelp -Label "sk-up help"
+    if ($skUpHelp.Stdout -notmatch "sk-up -g") {
+        throw "sk-up wrapper help did not expose short aliases. stdout: $($skUpHelp.Stdout)"
     }
 
-    Set-Content -LiteralPath (Join-Path $agentsHome ".skill-lock.json") -Value '{"version":1,"skills":{}}' -Encoding UTF8
-    Set-Content -LiteralPath (Join-Path $fakeBin "pnpm.ps1") -Encoding UTF8 -Value @'
-Write-Host ("FAKE_PNPM_ARGS:" + (($args | ForEach-Object { " [$_]" }) -join ""))
-exit 0
-'@
-
-    function Assert-SkUpInstall {
-        param([string]$SourceUrl)
-
-        $installArgs = '/d /s /c ""' + $skUpWrapperPath + '" -i ' + $SourceUrl + '"'
-        $installResult = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments $installArgs -Environment @{
-            PATH = "$fakeBin;$env:PATH"
-            AGENTS_HOME = $agentsHome
-        }
-        if ($installResult.ExitCode -ne 0) {
-            throw "skills-updates install exited $($installResult.ExitCode). stdout: $($installResult.Stdout) stderr: $($installResult.Stderr)"
-        }
-
-        $escapedSourceUrl = [regex]::Escape($SourceUrl)
-        if ($installResult.Stdout -notmatch "FAKE_PNPM_ARGS:\s+\[dlx\]\s+\[skills@latest\]\s+\[add\]\s+\[$escapedSourceUrl\]") {
-            throw "skills-updates install did not invoke pnpm with expected args. stdout: $($installResult.Stdout)"
-        }
+    $skillsUpdatesHelp = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments "/d /c ""$caseBin\skills-updates.cmd"" --help"
+    Assert-Ok -Result $skillsUpdatesHelp -Label "skills-updates help"
+    if ($skillsUpdatesHelp.Stdout -notmatch "skills-updates --global") {
+        throw "skills-updates wrapper help did not expose long aliases. stdout: $($skillsUpdatesHelp.Stdout)"
     }
 
-    Assert-SkUpInstall -SourceUrl "https://example.com/test.git"
-    Assert-SkUpInstall -SourceUrl "https://example.com/a%2Fb.git"
+    $dryRunArgs = "/d /c ""$caseBin\sk-up.cmd"" -I owner/repo --dry-run --json --agents-home ""$agentsHome"" --cache-dir ""$cacheDir"" --state-dir ""$stateDir"""
+    $dryRun = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments $dryRunArgs
+    Assert-Ok -Result $dryRun -Label "sk-up install-source dry-run"
+    $json = $dryRun.Stdout | ConvertFrom-Json
+    if (-not $json.ok -or -not $json.dryRun -or $json.actions[0].action -ne "install-source") {
+        throw "install-source dry-run returned unexpected JSON: $($dryRun.Stdout)"
+    }
 } finally {
     if (Test-Path -LiteralPath $caseRoot) {
         Remove-Item -LiteralPath $caseRoot -Recurse -Force -ErrorAction SilentlyContinue

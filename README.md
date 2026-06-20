@@ -21,17 +21,18 @@ automation definitions, and restore payloads live in the dotfiles repository.
 
 ## Quick Checks
 
-Run the Node proxy regression tests from the repo root:
+Run the Go updater and Node proxy regression tests from the repo root:
 
 ```bash
+go test ./...
 node --test bin/codex-wsl-proxy-runtime.test.js
 ```
 
-Probe the Windows skills updater wrappers from Windows PowerShell:
+Probe the Windows skills updater wrappers from Windows PowerShell. The test
+builds temporary Go executables and does not mutate the active install:
 
 ```powershell
-bin\skills-updates.cmd --help
-bin\sk-up.cmd -h
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
 ```
 
 ## Documentation

@@ -11,14 +11,23 @@ this updater for Skills CLI packages such as `mattpocock/skills`.
 
 | File | Use |
 | --- | --- |
-| `bin/sk-up.cmd` | Short Windows command names and flags. |
-| `bin/skills-updates.cmd` | Long Windows command names and flags. |
-| `bin/skills-updates.ps1` | PowerShell implementation. |
-| `tests/skills-updates-install.ps1` | Regression test for source URL installs. |
+| `cmd/sk-up/` | Go source for the updater binary. |
+| `bin/sk-up.cmd` | Windows launcher for adjacent `sk-up.exe`. |
+| `bin/skills-updates.cmd` | Windows long-name alias for adjacent `sk-up.exe`. |
+| `bin/build-sk-up-release.sh` | Cross-platform archive builder. |
+| `tests/skills-updates-install.ps1` | Windows wrapper/source-install dry-run regression. |
 
-Both `.cmd` wrappers switch the console to UTF-8, run the PowerShell script with
-`-NoProfile -ExecutionPolicy Bypass`, pass `--cmd-name` so help text matches the
-invoked wrapper, then restore the previous codepage.
+Both `.cmd` wrappers switch the console to UTF-8, invoke the adjacent promoted
+Go executable, then restore the previous codepage. They do not call PowerShell
+as an updater fallback. Windows builds intentionally ship only `sk-up.exe`;
+`skills-updates.cmd` sets `SK_UP_ENTRYPOINT=skills-updates` for the child
+process so long-form help and structured `entrypoint` fields remain compatible
+without placing a `skills-updates.exe` updater-looking binary on `PATH`.
+
+## Portable Go Implementation
+
+This page describes the promoted Go implementation. The implementation brief
+and progress ledger remain in [sk-up-go-port.md](sk-up-go-port.md).
 
 ## Commands
 
@@ -31,7 +40,7 @@ sk-up -d confidence-loop
 sk-up -z confidence-loop evo-end-to-end
 sk-up -i
 sk-up -i confidence-loop
-sk-up -i owner/repo
+sk-up -I owner/repo
 sk-up -s confidence-loop
 sk-up -u confidence-loop
 sk-up -S
@@ -47,7 +56,7 @@ skills-updates --diff confidence-loop
 skills-updates --zed confidence-loop evo-end-to-end
 skills-updates --install
 skills-updates --install confidence-loop
-skills-updates --install owner/repo
+skills-updates --install-source owner/repo
 skills-updates --skip confidence-loop
 skills-updates --unskip confidence-loop
 skills-updates --skips
@@ -70,7 +79,8 @@ Aliases:
 - `--zed` / `-z [skill ...]`: open Zed diff views for changed skills.
 - `--install` / `-i`: install every changed or missing unskipped skill.
 - `--install` / `-i <skill ...>`: install named lockfile skills.
-- `--install` / `-i <source>`: install a source URL or `owner/repo` package.
+- `--install-source` / `-I <source ...>`: install source URLs, SSH remotes,
+  `.git` URLs, or `owner/repo` packages explicitly.
 - `--skip` / `-s <skill>`: save a skip for the current upstream tree hash.
 - `--unskip` / `-u <skill>`: remove one saved skip.
 - `--skips` / `-S`: list saved skips.
@@ -106,14 +116,19 @@ When `AGENTS_HOME` is not set, it falls back to:
 %USERPROFILE%\.agents\skills
 ```
 
-Repository clones and skip state live under:
+Repository clones and skip state live in OS-native updater directories unless
+overridden:
 
 ```text
-%LOCALAPPDATA%\skills-updates
+Linux cache: $XDG_CACHE_HOME/sk-up or $HOME/.cache/sk-up
+Linux state: $XDG_STATE_HOME/sk-up or $HOME/.local/state/sk-up
+macOS cache: $HOME/Library/Caches/sk-up
+macOS state: $HOME/Library/Application Support/sk-up
+Windows cache/state: %LOCALAPPDATA%\sk-up\cache and %LOCALAPPDATA%\sk-up\state
 ```
 
-When `LOCALAPPDATA` is unavailable, the script uses a temp directory named
-`skills-updates-state`.
+Use `--cache-dir`, `--state-dir`, `SK_UP_CACHE_DIR`, and `SK_UP_STATE_DIR` for
+explicit overrides.
 
 ## Comparison Model
 
@@ -135,29 +150,38 @@ visible again.
 
 ## Install And Uninstall
 
-Install operations require `pnpm` and call:
+Install operations delegate to the Skills CLI runner. The default runner order
+is `pnpm dlx skills@latest`, `bunx skills@latest`,
+`deno run -A npm:skills@latest`, then `npx -y skills@latest`. Override with
+`--skills-command` or `SK_UP_SKILLS_COMMAND`.
+
+Named install commands call the runner as:
 
 ```text
-pnpm dlx skills@latest add <source> -g -y --agent universal --skill <skill-name>
-pnpm dlx skills@latest add <source> -g -y --agent universal
+<skills-runner> add <source> -g -y --agent universal --skill <skill-name>
 ```
 
-Named installs use lockfile sources. Source installs accept URL, SSH, `.git`,
-or `owner/repo` arguments and do not mix with named lockfile installs in the
-same command. Package installs can add multiple lockfile entries at once; for
-example, `mattpocock/skills` records the active selected skills with
-`pluginName: "mattpocock-skills"`.
-
-Uninstall operations require `pnpm` and call:
+Source install commands use explicit `-I` / `--install-source` and call:
 
 ```text
-pnpm dlx skills@latest remove -g -y --agent universal --skill <skill-name>
+<skills-runner> add <source> -g -y --agent universal
+```
+
+Named installs use lockfile sources. Source installs accept URL, SSH, `.git`, or
+`owner/repo` arguments. Package installs can add multiple lockfile entries at
+once; for example, `mattpocock/skills` records the active selected skills with
+`pluginName: "mattpocock-skills"`.
+
+Uninstall operations call:
+
+```text
+<skills-runner> remove -g -y --agent universal --skill <skill-name>
 ```
 
 After the Skills CLI returns, uninstall also removes the installed skill
 directory, clears any saved skip for that skill, and removes the lockfile entry.
-If post-CLI cleanup fails, the script restores the pre-uninstall lockfile
-snapshot so directory and lockfile state do not silently diverge.
+Install and remove operations preserve existing lockfile entries and unrelated
+lockfile fields around delegated Skills CLI mutations.
 
 ## Matt Pocock Skills Package Notes
 
@@ -185,28 +209,28 @@ CLI and the universal `.agents/skills` install.
 
 ## Lockfile Safety
 
-Lockfile writes are guarded with a named mutex derived from the lockfile path.
-The script also writes an adjacent backup before raw lockfile replacement and
-repairs from that backup if it detects an interrupted prior write.
+Lockfile writes are guarded with advisory lock files next to
+`.skill-lock.json`, not OS-specific named mutexes.
 
 Skills CLI operations are wrapped in state transactions so existing lockfile
 entries and unrelated lockfile fields survive add/remove commands.
 
 ## Verification
 
-Run these verification commands from Windows PowerShell on this workstation.
-From WSL, launch Windows PowerShell through WSL init because the Windows drive
-mount can make `.exe` files appear non-executable:
+Run Go validation from WSL:
+
+```bash
+go test ./...
+go test -race -shuffle=on -count=1 ./cmd/sk-up ./internal/skup/...
+SK_UP_DIST_DIR="$(mktemp -d)" SK_UP_VERSION=test bin/build-sk-up-release.sh
+```
+
+Run the Windows wrapper regression from Windows PowerShell. From WSL, launch
+Windows PowerShell through WSL init because the Windows drive mount can make
+`.exe` files appear non-executable:
 
 ```bash
 /init /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
-```
-
-Help-path smoke checks:
-
-```powershell
-bin\skills-updates.cmd --help
-bin\sk-up.cmd -h
 ```
 
 Source install regression:
@@ -215,9 +239,9 @@ Source install regression:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
 ```
 
-That test creates a temporary `AGENTS_HOME`, places a fake `pnpm` first on
-`PATH`, runs a source URL install, asserts the expected `pnpm dlx skills@latest
-add <source>` invocation, and removes its temp directory.
+That test builds temporary `sk-up.exe` beside copied wrappers, checks both help
+entrypoint names, verifies no `skills-updates.exe` is created, runs
+`-I owner/repo --dry-run --json`, and removes its temp directory.
 
 Inventory drift check:
 
