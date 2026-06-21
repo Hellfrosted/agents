@@ -18,13 +18,8 @@ git branch --show-current
 ```
 
 If `grit` is missing and the user asked for Grit-backed coordination or plugin
-setup, report the install command and ask for explicit approval before running
-networked dependency installation. The upstream README command may fail when
-the repository has multiple packages; use the package selector after approval:
-
-```bash
-cargo install --git https://github.com/rtk-ai/grit grit
-```
+setup, consult the upstream README for the current install command, report it,
+and ask for explicit approval before running networked dependency installation.
 
 ## Initialization
 

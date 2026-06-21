@@ -7,10 +7,10 @@ description: ICM recall for past-session or project memory. Use when the user in
 
 Search ICM for the user's query and report only relevant memories concisely.
 Prefer the ICM MCP recall tool. If MCP is unavailable, use the local ICM CLI
-through `rtk run`:
+directly:
 
 ```bash
-rtk run 'icm recall --read-only "<query>"'
+icm recall --read-only "<query>"
 ```
 
 Use non-read-only recall only when updating memory access bookkeeping is

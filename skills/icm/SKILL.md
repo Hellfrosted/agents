@@ -12,10 +12,10 @@ Do not treat this Skill as a universal start/end hook.
 
 At task start, search relevant past context only when the active request makes
 past-session memory useful. Prefer the ICM MCP recall tool. If MCP is
-unavailable, use the local ICM CLI through `rtk run`:
+unavailable, use the local ICM CLI:
 
 ```bash
-rtk run 'icm recall --read-only "query"'
+icm recall --read-only "query"
 ```
 
 Use non-read-only recall only when updating memory access bookkeeping is
@@ -34,10 +34,10 @@ did not request storage:
 - Long run with meaningful reusable progress: save a concise progress summary.
 
 Prefer ICM MCP store when available. If MCP is unavailable, use the local ICM
-CLI through `rtk run`:
+CLI:
 
 ```bash
-rtk run 'icm store -t "topic" -c "summary" -i high'
+icm store -t "topic" -c "summary" -i high
 ```
 
 Read-only permits recall only. No-store, no-memory, blank-context, and
