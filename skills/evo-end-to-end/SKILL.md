@@ -1,6 +1,6 @@
 ---
 name: evo-end-to-end
-description: "Run a Codex planning-to-Evo workflow for evo-hq/evo v0.5.2+. Use when the user wants to turn a vague performance, architecture, refactor, flaky-test, slow-build, fine-tuning, post-training, or code-quality problem into an Evo-ready experiment brief, using companion skills such as [$grilling](codex://skills), [$domain-modeling](codex://skills), and [$improve-codebase-architecture](codex://skills) when needed."
+description: "Evo brief and gated Codex launch plan for evo-hq/evo v0.5.2+. Use only when the user names Evo/evo-hq as the optimization/autoresearch tool, invokes $evo-end-to-end, asks for an Evo-ready experiment brief, or asks to plan/run an Evo optimization/autoresearch campaign. Not for ordinary optimization, refactor, testing, training, or non-tool meanings of Evo."
 ---
 
 # Evo End To End
@@ -13,10 +13,16 @@ Target Evo release line: `evo-hq/evo` v0.5.2 or newer.
 For companion skill sources, optimize presets, and release-specific notes, see
 [REFERENCE.md](REFERENCE.md).
 
+Approval boundary: commands in this Skill or `REFERENCE.md` that update,
+install, force reinstall, trust hooks, change remote providers, change
+credentials, garbage-collect workspaces, or arm autonomous execution are
+report-only until the user explicitly approves that action and target.
+
 ## Companion Skills
 
-Names written as [`$skill-name`](codex://skills) are agent skills. Load and
-follow a named skill when its trigger applies.
+Names written as [`$skill-name`](codex://skills) or plugin IDs such as
+`evo:discover` are agent skills. Load and follow a named skill when its trigger
+applies.
 
 - Use [`$grilling`](codex://skills) when the goal, constraints, non-goals, success metric,
   ownership, or forbidden changes are unclear after repo inspection.
@@ -25,7 +31,7 @@ follow a named skill when its trigger applies.
   updated while planning.
 - Use [`$improve-codebase-architecture`](codex://skills) when architecture or testability must be
   decomposed before choosing an Evo metric.
-- Use [`$evo finetuning`](codex://skills) before writing or changing training code, reward design,
+- Use [`evo:finetuning`](codex://skills) before writing or changing training code, reward design,
   model-weight update recipes, or post-training workflows.
 - Use installed Evo plugin skills whose `evo_version` matches `evo --version`.
 
@@ -50,7 +56,7 @@ before continuing with the best available fallback or hardstop as needed.
 4. Stop for approval before Evo edits production behavior, APIs, persistence,
    auth/security, tests, packaging, dependencies, deployment, user-visible
    behavior, dependency manifests, or remote/cloud infrastructure.
-5. Run [`$evo discover`](codex://skills) with the approved brief. Optimize only after discovery
+5. Run [`evo:discover`](codex://skills) with the approved brief. Optimize only after discovery
    records a baseline and the benchmark reviewer gate has passed.
 6. Configure backend/runtime explicitly for pool, remote, or non-default
    runtimes. Keep benchmark variables in `evo env`, not in committed scripts or
@@ -59,31 +65,47 @@ before continuing with the best available fallback or hardstop as needed.
    <seconds>` for long benchmarks or training runs.
 8. Run `evo run <exp_id> --check` when wiring risk is material and non-mutating
    validation is available.
-9. Resolve `autonomous` and `subagents-only` the same way [`$evo optimize`](codex://skills) does,
+9. Resolve `autonomous` and `subagents-only` the same way [`evo:optimize`](codex://skills) does,
    then arm that state with `evo autonomous on|off` and `evo subagents-only
-   on|off`.
+   on|off` only after the user has approved the values.
 10. Size `subagents=<n>` from benchmark/backend resources first. Use width 1
     for exclusive GPUs, fixed ports, shared databases, singleton services, or
     timing-sensitive harnesses unless the harness isolates them.
     This is Evo CLI worker sizing, not Codex `spawn_agent` fork behavior. If
-    this workflow also uses Codex subagents for planning, review, or triage,
+    this workflow also uses Codex subagents for planning, review, or triage and
+    the user has authorized Codex subagents, delegation, or parallel agent work,
     split the work into independent lanes and launch role-specific workers in
     parallel without full history. Give each Codex worker a dedicated lane goal:
     before launching the lane worker, spawn a dedicated goal-writer subagent
     that uses [`$goalcraft`](codex://skills) to turn the approved brief and lane scope into the
-    lane goal, then returns only that goal to the main agent. The main agent
-    passes the returned goal to the lane worker. In the current `spawn_agent`
+    lane goal, then returns only that goal to the main agent. The goal-writer
+    must not edit files, run side-effectful commands, or spawn agents. The main
+    agent passes the returned goal to the lane worker. In the current `spawn_agent`
     tool, omit `fork_context` or set `fork_context: false`; on tool surfaces
     that use `fork_turns`, set `fork_turns: "none"`. Put the role, returned
     goal, lane scope, and needed context in the message; do not override
     `agent_type`, `model`, or `reasoning_effort` on a full-history fork.
-11. Run [`$evo optimize subagents=<n> budget=<n> stall=<n>`](codex://skills) within the approved
+    Without Codex subagent authorization, keep this as a single-agent planning
+    workflow or ask before launching Codex workers.
+11. Run [`evo:optimize`](codex://skills) with `subagents=<n> budget=<n> stall=<n>` within the approved
     scope.
 12. Use `evo direct "<text>"` only to steer an already-running Evo session. If
     an agent receives an `[EVO DIRECTIVE id=...]` banner, it must run
     `evo ack <event_id>` before proceeding.
 13. Manually review Evo output before merging behavior, API, persistence,
     security, packaging, deployment, or user-visible changes.
+
+## Output
+
+Report the approved brief plus the evidence that exists so far:
+
+- Evo CLI and plugin versions checked.
+- Discovery or optimize experiment id, when created.
+- Baseline command/data and pass gate proof.
+- Backend, runtime/env, budget, stall rule, autonomous value, and
+  subagents-only value.
+- `--check`, discover, optimize, and manual-review results.
+- Remaining approvals before merge, install, cleanup, push, or deploy.
 
 ## Brief Template
 

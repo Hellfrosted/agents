@@ -1,10 +1,10 @@
 interface:
   display_name: "Tuck"
-  short_description: "Create local commits with batched review"
+  short_description: "Create local commits with subagent review"
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
   brand_color: "#111827"
-  default_prompt: "Use $tuck to create focused, reviewed local commits for my changes."
+  default_prompt: "Use $tuck with subagent reviewers to create focused local commits for my changes."
 
 policy:
   allow_implicit_invocation: true

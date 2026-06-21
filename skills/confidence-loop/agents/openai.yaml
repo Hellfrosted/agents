@@ -1,10 +1,10 @@
 interface:
   display_name: "Confidence Loop"
-  short_description: "Stress-test strategies and Codex loops with second opinions"
+  short_description: "Audit confidence with bounded second opinions"
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
   brand_color: "#1D4ED8"
-  default_prompt: "Use $confidence-loop c to audit this strategy or Codex loop until every real loophole has a concrete fix. Use `a` for hard mode or `s` for extreme mode."
+  default_prompt: "Use $confidence-loop c with subagent reviewers to produce a confidence score and find material loopholes in this proposed strategy. Use `a` for hard mode or `s` for extreme mode."
 
 policy:
   allow_implicit_invocation: true

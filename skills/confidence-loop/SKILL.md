@@ -1,6 +1,6 @@
 ---
 name: confidence-loop
-description: Stress-tests a strategy, plan, implementation approach, answer, or Codex loop design with sub-agent second opinions until remaining uncertainty is explicit and evidence-backed, then reports a 0-100 confidence score. Use when the user asks whether Codex is 100% confident, asks to find loopholes or failure modes, requests a confidence audit, says to run a loop until the strategy is factually solid, asks to harden a Codex loop, invokes $confident-loop or $confidence-loop, or invokes $confident-loop/$confidence-loop normal/hard/extreme/c/b/a/s/sr/ssr.
+description: Confidence audit for proposed strategies, answers, plans, or Codex loops with bounded subagent review and a 0-100 score. Use when the user invokes $confidence-loop/$confident-loop with normal/hard/extreme/c/b/a/s/sr/ssr, asks for a confidence score or 100% certainty, or asks to red-team/premortem a proposed strategy for loopholes, failure modes, or independent-reviewer objections. Not for ordinary review, implementation, Skill trigger/activation evals, cross-Skill collision evals, or named operational loops unless auditing confidence.
 ---
 
 # Confidence Loop
@@ -13,12 +13,30 @@ If the user invokes bare `$confident-loop` or `$confidence-loop`, ask which mode
 
 - **normal**, **c**, or **b**: default mode; use one sub-agent reviewer.
 - **hard** or **a**: use two to four sub-agent reviewers.
-- **extreme**, **s**, **sr**, or **ssr**: use as many sub-agent reviewers as the uncertainty, scope, and risk justify.
+- **extreme**, **s**, **sr**, or **ssr**: use up to six sub-agent reviewers unless the user gives a larger budget.
 
 If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, `$confident-loop c`, `$confident-loop b`, `$confident-loop a`, `$confident-loop s`, `$confident-loop sr`, `$confident-loop ssr`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default`, `c`, and `b` as `normal`; `a` as `hard`; and `s`, `sr`, and `ssr` as `extreme`.
 
 Gacha ranks collapse to the three review-width modes above. Do not invent
 additional modes from higher ranks.
+
+Do not trigger on named operational loops such as feedback loops, automation
+loops, CI loops, or workflow loops unless the user explicitly asks for a
+confidence/loophole audit of that loop. If the user forbids subagents, do not
+run this Skill; perform an ordinary non-skill review if possible or report the
+conflict.
+
+If the current tool surface requires explicit user authorization before
+spawning subagents and the user has not authorized subagents, delegation, or
+parallel review in the current request, ask before spawning reviewers or perform
+a single-agent confidence audit and label it as such.
+
+Default loop budgets:
+
+- **normal/default/c/b**: one reviewer and one repair pass.
+- **hard/a**: two to four reviewers and at most two repair passes.
+- **extreme/s/sr/ssr**: at most six reviewers and three repair passes unless
+  the user gives an explicit larger budget.
 
 ## Standard Loop
 
@@ -36,23 +54,30 @@ additional modes from higher ranks.
    - Loop budget: max iterations, wakeups, wall time, spend, or scope.
    - Failure learning: what durable skill/plugin/doc update prevents repeats.
 6. Run the smallest relevant verification: source read, command, test, search, or reasoning proof.
-7. Repeat until no material unresolved loopholes remain.
+7. Repeat within the selected budget until no material unresolved loopholes
+   remain, or stop with the remaining uncertainty explicit.
+
+Only make file edits, network calls, installs, credential access, destructive
+commands, automations, commits, or pushes when the active user request already
+authorizes that action. Otherwise report the needed fix or approval gate.
 
 ## Sub-Agent Review
 
-Always use sub-agent reviewers. The mode controls only how many reviewers to use:
+When subagents are authorized and in scope, use sub-agent reviewers. The mode
+controls only how many reviewers to use:
 
 - **normal/default/c/b**: spawn one read-only reviewer.
 - **hard/a**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
-- **extreme/s/sr/ssr**: spawn as many read-only reviewers as needed to cover the material uncertainty. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
+- **extreme/s/sr/ssr**: spawn up to six read-only reviewers unless the user gives a larger budget. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
 
 Give each reviewer a dedicated goal. The main agent must not draft that goal
 itself. First spawn a dedicated goal-writer subagent that uses
 [`$goalcraft`](codex://skills) to
 turn the task, criteria, and assigned angle into a reviewer goal, then returns
-only that goal to the main agent. The main agent then passes the returned goal
-to the reviewer. The goal must preserve the reviewer boundary: read-only, no
-spawned agents, and no final decision.
+only that goal to the main agent. The goal-writer must not edit files, run
+side-effectful commands, or spawn agents. The main agent then passes the
+returned goal to the reviewer. The goal must preserve the reviewer boundary:
+read-only, no spawned agents, and no final decision.
 
 When spawning reviewers in Codex, use non-full-history forks for role-specific
 review. In the current `spawn_agent` tool, omit `fork_context` or set
@@ -90,7 +115,8 @@ Evidence: {facts}
 Open questions: {unknowns}
 ```
 
-Integrate results yourself. Accept evidence-backed issues, reject unsupported ones, fix valid gaps, then verify.
+Integrate results yourself. Accept evidence-backed issues, reject unsupported
+ones, fix valid gaps only when edits are in scope, then verify.
 
 ## Codex Loop Audit
 
@@ -121,4 +147,4 @@ If 100% is impossible, say why and what evidence would close the gap.
 
 ## Output
 
-Keep it compact: Strategy, Codex loop shape when relevant, Loopholes found, Second opinions, Verification, Confidence score. Do not pad with hypothetical risks that do not apply.
+Keep it compact: Strategy, Codex loop shape when relevant, Loopholes found, Second opinions, Verification, Mode/reviewer count/pass count, Confidence score. Do not pad with hypothetical risks that do not apply.

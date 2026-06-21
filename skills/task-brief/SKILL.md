@@ -1,12 +1,13 @@
 ---
 name: task-brief
-description: Turns rough user intent into compact, actionable Codex task briefs. Use when shaping prompts, handoffs, issue briefs, or ambiguous requests before execution, especially for fix, research, review, build, operate, or deploy work.
+description: Task brief generator for compact Codex execution briefs, prompts, tickets, or handoffs. Use when the user asks for a Codex task brief/prompt, an implementation ticket or future-work handoff for delegation, or an execution brief that turns rough intent into concrete scope and evidence. Not for ordinary implementation/review, confidence audits, conversation-compaction handoffs, Evo/evo-hq experiment briefs, long PRDs, image prompts, generic writing prompts, or non-Codex prompt engineering.
 ---
 # Task Brief
-Create a brief that reduces rework from broad asks, unclear referents, and
-domain-term drift. Keep it compact and actionable. Ask only when the missing
-detail materially changes outcome, risk, credentials, deployment, hardware, or
-destructive actions.
+Create or rewrite a brief that reduces rework from broad asks, unclear
+referents, and domain-term drift. Keep it compact and actionable. Ask only when
+the missing detail materially changes outcome, risk, credentials, deployment,
+hardware, or destructive actions. If the user wants an audit or confidence
+check of an existing brief, use a review/confidence workflow instead.
 
 ## Output Shape
 ```text

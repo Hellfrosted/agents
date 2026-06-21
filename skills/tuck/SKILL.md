@@ -1,13 +1,21 @@
 ---
 name: tuck
-description: Tucks local changes into focused local commits with token-aware subagent review. Commit-only workflow; do not push unless the user explicitly asks after tuck completes. Use when the user says $tuck or tuck, not for ordinary commit requests.
+description: Tuck git workflow for reviewed local commits with subagent review. Use only when the user invokes $tuck, says `tuck` as a git commit command, or asks to tuck local changes into reviewed local commits. Not for ordinary commits, yeet commit-and-push shortcuts, stash, or non-git phrases like "tuck this away".
 ---
 
 # Tuck
 
-Use after `$tuck` or a plain `tuck` request. Keep review out of the main context:
-use subagents, but batch them so review stays token-aware. The primary output is
-local commit(s), not a push.
+Use after `$tuck` or a plain `tuck` request where `tuck` is being used as the
+git commit workflow. Keep review out of the main context: use subagents, but
+batch them so review stays token-aware. The primary output is local commit(s),
+not a push.
+
+If the user forbids subagents, do not run this Skill; ask whether they want an
+ordinary commit workflow instead.
+
+If the current tool surface requires explicit user authorization before
+spawning subagents and the user has not authorized subagents or the tuck
+workflow in the current request, ask before spawning reviewers.
 
 ## Flow
 
@@ -18,7 +26,8 @@ local commit(s), not a push.
    path checks; do not deep-review diffs in main context.
 5. Before staging each commit, spawn batched read-only subagent reviewers.
 6. Fix blocking findings, then stage only intended paths or hunks.
-7. Re-check `git diff --cached`, commit with a concise imperative message, then run the smallest relevant check.
+7. Re-check `git diff --cached`, run the smallest relevant check, then commit
+   with a concise imperative message. Report any skipped check.
 8. Stop after the local commit summary and verification result. Do not offer push as part of the default tuck flow.
 
 ## Subagent Review
@@ -31,8 +40,9 @@ Give each reviewer a dedicated commit-review goal. The main agent must not
 draft that goal itself. First spawn a dedicated goal-writer subagent that uses
 [`$goalcraft`](codex://skills) to turn the commit scope, assigned paths, and risk focus into a
 reviewer goal, then returns only that goal to the main agent. The main agent
-then passes the returned goal to the reviewer. The goal must keep the reviewer
-read-only and commit-scoped.
+then passes the returned goal to the reviewer. The goal-writer must not edit
+files, run side-effectful commands, or spawn agents. The goal must keep the
+reviewer read-only and commit-scoped.
 
 When spawning Codex reviewers, use non-full-history forks for role-specific
 review. In the current `spawn_agent` tool, omit `fork_context` or set
@@ -73,7 +83,8 @@ changes reviewed risk. If subagents are unavailable, stop and ask the user.
 
 Do not stage untracked files by default. Use `git add <specific paths>` or non-interactive patch staging. No destructive commands.
 
-If the user separately asks to push after tuck, run `git branch --show-current`
-and `git remote -v`. Recommend the current branch when it exists and is not
-`main`; otherwise recommend a new branch. Never push or force-push without
-explicit confirmation.
+If the same request asks to push after tuck, complete the reviewed local commit
+first, then run `git branch --show-current` and `git remote -v` for the explicit
+push gate. Do not invoke Yeet as a second workflow. Recommend the current branch
+when it exists and is not `main`; otherwise recommend a new branch. Never push
+or force-push without explicit confirmation.

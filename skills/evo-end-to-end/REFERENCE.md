@@ -11,7 +11,7 @@
 | `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
 | `$implement` | Execute a single PRD or issue after the plan has been split and the implementation scope is fresh. | `https://github.com/mattpocock/skills.git` at `skills/engineering/implement/SKILL.md` |
 | `$tdd` | Drive implementation test-first when an Evo setup task needs behavior locked by public-interface tests. | `https://github.com/mattpocock/skills.git` at `skills/engineering/tdd/SKILL.md` |
-| `$evo discover`, `$evo optimize`, `$evo finetuning`, `$evo infra-setup` | Evo plugin skills installed by `evo install <host>`. Use the bundle whose `evo_version` matches `evo --version`. | `https://github.com/evo-hq/evo.git` under `plugins/evo/skills/` |
+| `evo:discover`, `evo:optimize`, `evo:finetuning`, `evo:infra-setup` | Evo plugin skills installed by `evo install <host>`. Use the bundle whose `evo_version` matches `evo --version`. | `https://github.com/evo-hq/evo.git` under `skills/`; npm mirrors may expose the same files under `npm/skills/`. |
 
 The current `mattpocock/skills` package is installed through the Skills CLI and
 may record `pluginName: "mattpocock-skills"` in the universal skill lockfile.
@@ -52,29 +52,34 @@ repeatable, and the approved scope can absorb broader exploration.
 
 ## Evo v0.6.2 Notes
 
-- Keep the Codex CLI and plugin bundle in lockstep with
-  `evo update codex --version 0.6.2 --trust-hooks`, then verify with
-  `evo doctor codex`.
+- Keep the Codex CLI and plugin bundle in lockstep. Report the update command
+  first; run `evo update codex --version 0.6.2` only after explicit user
+  approval. Add `--trust-hooks` only when the user explicitly approves trusting
+  hooks without interactive review, then verify with `evo doctor codex`.
 - The installed Evo plugin skills advertise `evo_version: 0.6.2`; stop and fix
-  CLI/plugin drift before using `$evo discover`, `$evo optimize`,
-  `$evo finetuning`, or `$evo infra-setup`.
+  CLI/plugin drift before using `evo:discover`, `evo:optimize`,
+  `evo:finetuning`, or `evo:infra-setup`.
 - If `evo doctor codex` reports Codex hooks still referencing
   `CLAUDE_PLUGIN_ROOT`, do not launch Evo workflows. Report the required repair
   command, `evo install codex --force`, for explicit user approval because it
   mutates the active Codex plugin/cache install.
-- `$evo optimize` remains the canonical post-discover loop even when resource
-  constraints force `subagents=1`. Read Evo's `sizing-the-round.md` before
-  choosing width, and use `evo wait` or bounded liveness checks instead of
-  unbounded polling for long-running subagents, training, or evaluations.
+- `evo:optimize` remains the canonical post-discover loop even when resource
+  constraints force `subagents=1`. Load `$evo discover`'s sizing reference
+  (`skills/discover/references/sizing-the-round.md` in the installed Evo plugin
+  bundle) before choosing width, and use `evo wait` or bounded liveness checks
+  instead of unbounded polling for long-running subagents, training, or
+  evaluations.
 - `autonomous` and `subagents-only` default to on in the installed
-  `$evo optimize` skill unless the current user instruction or stored Evo
+  `evo:optimize` skill unless the current user instruction or stored Evo
   defaults resolve them differently. Resolve and arm both modes before starting
   an optimize loop.
 
 ## Evo v0.5.2 Compatibility
 
-- On the v0.5.2 line, keep the Codex CLI and plugin bundle in lockstep with
-  `evo update codex --version 0.5.2 --trust-hooks`, then verify with
+- On the v0.5.2 line, keep the Codex CLI and plugin bundle in lockstep. Report
+  the update command first; run `evo update codex --version 0.5.2` only after
+  explicit user approval. Add `--trust-hooks` only when the user explicitly
+  approves trusting hooks without interactive review, then verify with
   `evo doctor codex`.
 - If Codex is pinned to a stale local marketplace such as
   `evo-hq-0.5.0-hookdrain`, remove that marketplace and add
@@ -124,7 +129,7 @@ repeatable, and the approved scope can absorb broader exploration.
   worktrees or docs.
 - `evo run <exp_id> --check` validates benchmark/gate wiring without committing,
   evaluating, or consuming retry budget.
-- `$evo optimize` defaults to autonomous, subagents-only operation. The user can
+- `evo:optimize` defaults to autonomous, subagents-only operation. The user can
   override either explicitly or via Evo defaults/config.
 - `evo direct "<text>" --wait` expects an agent to acknowledge delivered
   directives with `evo ack <event_id>`.

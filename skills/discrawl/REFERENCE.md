@@ -20,7 +20,6 @@ For setup or troubleshooting, run:
 
 ```bash
 discrawl --version
-discrawl check-update
 discrawl doctor --json
 discrawl status --json
 rg -n '^(token_source|source|path|full_cache|auto_update|media|enabled|provider|model|api_key_env|batch_size|vector_backend) =' /home/crunch/.config/discrawl/config.toml
@@ -28,11 +27,17 @@ printf '%s\n' "$CRAWLKIT_TURBOVEC_PYTHON"
 "$CRAWLKIT_TURBOVEC_PYTHON" -E -c 'import turbovec, numpy; print("turbovec_import=ok")'
 ```
 
+Optional network-approved update check:
+
+```bash
+discrawl check-update
+```
+
 The expected setup is wiretap-only with Vesktop's `sessionData` path. If the
 cache path stops working, inspect the Vesktop data directories under
 `/mnt/c/Users/nguco/AppData/Roaming/`.
 
-Discrawl `0.11.0` reports `"vector": "not configured"` from
+Discrawl `0.11.x` (observed on `0.11.0` and `0.11.1`) reports `"vector": "not configured"` from
 `discrawl doctor --json` even when `[search.embeddings].vector_backend` is set
 to `turbovec`; the doctor command does not probe the vector bridge. Verify the
 bridge with the Python import command above or with an end-to-end semantic
