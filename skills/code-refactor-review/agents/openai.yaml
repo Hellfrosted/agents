@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Refactor Review"
+  short_description: "Review diffs for reuse, consistency, and slop"
+  default_prompt: "Use $code-refactor-review to review my current diff for reuse, composition, codebase consistency, and slop."
