@@ -47,7 +47,7 @@ For failures caused by this plugin's own instructions, see `self-improvement.md`
 
 ## Consistency Layer
 
-Use `scripts/loop_spec.py` when a loop will become a skill, automation, plugin-backed workflow, Worktree-thread workflow, or subagent workflow. Validate the spec before creating durable files. This catches missing decision points, unclear state, and ambiguous worker ownership.
+Use `$PLUGIN_ROOT/scripts/loop_spec.py` when a loop will become a skill, automation, plugin-backed workflow, Worktree-thread workflow, or subagent workflow. Set `PLUGIN_ROOT` to the agent-loop-designer plugin root first; from this reference directory, use `PLUGIN_ROOT="$(cd ../../.. && pwd)"`. Validate the spec before creating durable files. This catches missing decision points, unclear state, and ambiguous worker ownership.
 
 If a spec names tools, Worktree threads, or subagents, include `docs_checked`. The validator rejects specs that do not record which docs, local help, or official references were read.
 Every spec includes `failure_learning` so repeat agent failures have an explicit plugin-update path or an explicit skip rule.
@@ -71,5 +71,6 @@ When creating or updating a plugin-backed loop:
 - Put bundled skills under `skills/<skill-name>/SKILL.md`.
 - Put optional detailed instructions under `references/`.
 - Validate the plugin and the bundled skill.
-- Use the plugin cachebuster/reinstall flow for existing local plugins.
+- Use the plugin cachebuster/reinstall flow for existing local plugins only
+  when the user explicitly asks to install or refresh the active plugin.
 - Add or preserve a self-improvement rule for failures caused by the plugin's own instructions.

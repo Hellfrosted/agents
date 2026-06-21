@@ -17,7 +17,10 @@ git status --short
 git branch --show-current
 ```
 
-If `grit` is missing and the user asked for Grit-backed coordination or plugin setup, install with Cargo. The upstream README command may fail when the repository has multiple packages; use the package selector:
+If `grit` is missing and the user asked for Grit-backed coordination or plugin
+setup, report the install command and ask for explicit approval before running
+networked dependency installation. The upstream README command may fail when
+the repository has multiple packages; use the package selector after approval:
 
 ```bash
 cargo install --git https://github.com/rtk-ai/grit grit
@@ -33,7 +36,7 @@ grit config set-local
 grit symbols
 ```
 
-Use the local backend by default. Do not configure Azure, S3, R2, MinIO, or other remote lock stores unless the user explicitly asks for distributed team coordination and provides the required non-secret parameters through an approved channel.
+Use the local backend by default. Do not configure Azure, S3, R2, MinIO, or other remote lock stores unless the user explicitly asks for distributed team coordination and provides the required non-secret parameters through an approved channel. When a durable loop uses a non-local backend, include `remote_backend_authorization` in `grit_coordination` with the explicit user request and the approved non-secret parameter source.
 
 Keep `.grit/` local. If the repo has a `.git` directory and `.grit/` is not already excluded, add it to `.git/info/exclude`, not `.gitignore`. If `grit init` creates a new untracked `.gitignore` whose only purpose is ignoring `.grit`, migrate that entry to `.git/info/exclude` and remove the generated `.gitignore`. If `.gitignore` already existed, do not rewrite it unless the repo intentionally tracks local agent-state ignores.
 
@@ -114,6 +117,7 @@ At loop end, run `grit status`. Release only locks owned by this loop. Use `grit
 For durable loops, include `grit_coordination` in the loop spec with:
 
 - backend: `local`
+- remote backend authorization, only when backend is not `local`
 - init policy
 - claim strategy
 - done policy

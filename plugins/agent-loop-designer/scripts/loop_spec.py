@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Create, validate, and render Agent Loop Designer specs."""
 
+# allow: SIZE_OK - standalone plugin helper script shipped as one file.
+
 from __future__ import annotations
 
 import argparse
@@ -40,7 +42,54 @@ VALID_SURFACES = {
 DOCS_REQUIRED_SURFACES = {"automation-prompt", "worktree-policy", "plugin-backed-skill"}
 VALID_WRITE_INTENTS = {"none", "artifact-only", "code-editing"}
 VALID_SANDBOXES = {"read-only", "workspace-write", "permission-profile", "danger-full-access"}
-VALID_WORKTREE_LOCATION_STRATEGIES = {"wsl-manual", "codex-managed"}
+VALID_WORKTREE_LOCATION_STRATEGIES = {
+    "wsl-manual",
+    "wsl-same-project-manual",
+    "wsl-external-manual",
+    "codex-managed",
+}
+VALID_WORKTREE_COORDINATION_BACKENDS = {"manual-worktree", "grit"}
+
+REQUIRED_SUBAGENT_FIELDS = [
+    "role",
+    "spawn_policy",
+    "ownership",
+    "write_intent",
+    "sandbox_expectation",
+    "approval_expectation",
+    "output_contract",
+    "coordination_rule",
+    "context_budget",
+]
+
+REQUIRED_WORKTREE_THREAD_FIELDS = [
+    "role",
+    "ownership",
+    "write_intent",
+    "starting_state",
+    "project_scope",
+    "location_strategy",
+    "worker_cwd",
+    "output_contract",
+    "integration_rule",
+    "coordination_backend",
+    "visibility",
+]
+
+REQUIRED_GRIT_COORDINATION_FIELDS = [
+    "backend",
+    "init_policy",
+    "claim_strategy",
+    "done_policy",
+    "thread_context_rule",
+    "cleanup_rule",
+]
+
+NEGATED_MENTION_PREFIX_RE = re.compile(
+    r"(?:^|\s)(?:no|without|never|avoid|skip|exclude|disable|not|don't|dont|"
+    r"do not|must not|cannot|can't|cant)\s+"
+    r"(?:[\w-]+\s+){0,4}$"
+)
 
 
 def empty_spec(task: str) -> dict[str, Any]:
@@ -95,9 +144,46 @@ def list_mentions(values: Any, needles: tuple[str, ...]) -> bool:
     if not isinstance(values, list):
         return False
     return any(
-        isinstance(value, str) and any(needle in value.lower() for needle in needles)
+        isinstance(value, str)
+        and any(text_has_active_mention(value, needle) for needle in needles)
         for value in values
     )
+
+
+def list_mentions_grit(values: Any) -> bool:
+    if not isinstance(values, list):
+        return False
+    return any(
+        isinstance(value, str) and text_has_grit_contract(value)
+        for value in values
+    )
+
+
+def mention_pattern(needle: str) -> re.Pattern[str]:
+    words = [word for word in re.split(r"[-\s]+", needle.lower()) if word]
+    body = r"[-\s]+".join(re.escape(word) for word in words)
+    return re.compile(rf"\b{body}s?\b")
+
+
+def text_has_active_mention(text: str, needle: str) -> bool:
+    normalized = text.lower()
+    pattern = mention_pattern(needle)
+    return any(
+        not mention_is_negated(normalized, match.start())
+        for match in pattern.finditer(normalized)
+    )
+
+
+def text_has_grit_contract(text: str) -> bool:
+    normalized = text.lower()
+    if re.search(r"\bgrit[-\s]+(?:assign|claim|claims|done|init|status|worktree|worktrees)\b", normalized):
+        return True
+    return text_has_active_mention(text, "grit")
+
+
+def mention_is_negated(text: str, start: int) -> bool:
+    clause_prefix = re.split(r"[.;:]", text[:start])[-1]
+    return bool(NEGATED_MENTION_PREFIX_RE.search(clause_prefix))
 
 
 def spawn_policy_encodes_safe_fork(policy: str) -> bool:
@@ -130,16 +216,7 @@ def validate_subagent(index: int, subagent: Any) -> list[str]:
     if not isinstance(subagent, dict):
         return [f"{prefix} must be an object"]
 
-    for field in [
-        "role",
-        "spawn_policy",
-        "ownership",
-        "write_intent",
-        "sandbox_expectation",
-        "approval_expectation",
-        "output_contract",
-        "coordination_rule",
-    ]:
+    for field in REQUIRED_SUBAGENT_FIELDS:
         if not non_empty(subagent.get(field)):
             errors.append(f"{prefix}.{field} is required")
 
@@ -176,15 +253,7 @@ def validate_worktree_thread(index: int, thread: Any) -> list[str]:
     if not isinstance(thread, dict):
         return [f"{prefix} must be an object"]
 
-    for field in [
-        "role",
-        "ownership",
-        "write_intent",
-        "starting_state",
-        "location_strategy",
-        "output_contract",
-        "integration_rule",
-    ]:
+    for field in REQUIRED_WORKTREE_THREAD_FIELDS:
         if not non_empty(thread.get(field)):
             errors.append(f"{prefix}.{field} is required")
 
@@ -200,6 +269,12 @@ def validate_worktree_thread(index: int, thread: Any) -> list[str]:
             f"{prefix}.location_strategy must be one of {', '.join(sorted(VALID_WORKTREE_LOCATION_STRATEGIES))}"
         )
 
+    coordination_backend = thread.get("coordination_backend")
+    if coordination_backend and coordination_backend not in VALID_WORKTREE_COORDINATION_BACKENDS:
+        errors.append(
+            f"{prefix}.coordination_backend must be one of {', '.join(sorted(VALID_WORKTREE_COORDINATION_BACKENDS))}"
+        )
+
     return errors
 
 
@@ -211,6 +286,28 @@ def validate_failure_learning(value: Any) -> list[str]:
     for field in ["trigger", "evidence", "update_target", "validation", "skip_when"]:
         if not non_empty(value.get(field)):
             errors.append(f"failure_learning.{field} is required")
+    return errors
+
+
+def validate_grit_coordination(value: Any) -> list[str]:
+    if not isinstance(value, dict):
+        return ["grit_coordination must be an object"]
+
+    errors: list[str] = []
+    for field in REQUIRED_GRIT_COORDINATION_FIELDS:
+        if not non_empty(value.get(field)):
+            errors.append(f"grit_coordination.{field} is required")
+
+    backend = value.get("backend")
+    if (
+        backend
+        and backend != "local"
+        and not non_empty(value.get("remote_backend_authorization"))
+    ):
+        errors.append(
+            "grit_coordination.remote_backend_authorization is required when backend is not local"
+        )
+
     return errors
 
 
@@ -243,14 +340,23 @@ def validate_spec(spec: dict[str, Any]) -> list[str]:
 
     workers = spec.get("workers", [])
     workers_mention_worktree_thread = list_mentions(
-        workers, ("worktree thread", "worktree threads", "worktree-thread", "codex worktree")
+        workers,
+        (
+            "worktree thread",
+            "worktree threads",
+            "worktree-thread",
+            "worktree-backed",
+            "codex worktree",
+        ),
     )
     if workers_mention_worktree_thread:
         docs_required_reasons.append("workers mention worktree threads")
         if not spec.get("worktree_threads"):
             errors.append("workers mention worktree threads; add structured worktree_threads")
 
-    workers_mention_subagent = list_mentions(workers, ("subagent", "custom agent"))
+    workers_mention_subagent = list_mentions(
+        workers, ("subagent", "sub-agent", "sub agent", "custom agent")
+    )
     if workers_mention_subagent:
         docs_required_reasons.append("workers mention subagents/custom agents")
         if not spec.get("subagents"):
@@ -270,6 +376,8 @@ def validate_spec(spec: dict[str, Any]) -> list[str]:
     if "failure_learning" in spec:
         errors.extend(validate_failure_learning(spec.get("failure_learning")))
 
+    uses_grit_coordination = False
+
     worktree_threads = spec.get("worktree_threads", [])
     if worktree_threads is None:
         worktree_threads = []
@@ -280,6 +388,8 @@ def validate_spec(spec: dict[str, Any]) -> list[str]:
             errors.append("docs_checked is required when worktree_threads are specified")
         for index, thread in enumerate(worktree_threads):
             errors.extend(validate_worktree_thread(index, thread))
+            if isinstance(thread, dict) and thread.get("coordination_backend") == "grit":
+                uses_grit_coordination = True
 
     subagents = spec.get("subagents", [])
     if subagents is None:
@@ -291,6 +401,17 @@ def validate_spec(spec: dict[str, Any]) -> list[str]:
             errors.append("docs_checked is required when subagents are specified")
         for index, subagent in enumerate(subagents):
             errors.extend(validate_subagent(index, subagent))
+
+    if list_mentions_grit(spec.get("tools", [])) or list_mentions_grit(workers):
+        uses_grit_coordination = True
+
+    if "grit_coordination" in spec:
+        uses_grit_coordination = True
+
+    if uses_grit_coordination and not non_empty(spec.get("grit_coordination")):
+        errors.append("grit_coordination is required when the loop uses Grit")
+    elif uses_grit_coordination:
+        errors.extend(validate_grit_coordination(spec.get("grit_coordination")))
 
     return errors
 
@@ -342,6 +463,7 @@ def render_markdown(spec: dict[str, Any]) -> str:
                     f"- Approval: {subagent.get('approval_expectation', '')}",
                     f"- Output: {subagent.get('output_contract', '')}",
                     f"- Coordination: {subagent.get('coordination_rule', '')}",
+                    f"- Context budget: {subagent.get('context_budget', '')}",
                 ]
             )
     worktree_threads = spec.get("worktree_threads") or []
@@ -355,11 +477,31 @@ def render_markdown(spec: dict[str, Any]) -> str:
                     f"- Ownership: {thread.get('ownership', '')}",
                     f"- Write intent: {thread.get('write_intent', '')}",
                     f"- Starting state: {thread.get('starting_state', '')}",
+                    f"- Project scope: {thread.get('project_scope', '')}",
                     f"- Location strategy: {thread.get('location_strategy', '')}",
+                    f"- Worker cwd: {thread.get('worker_cwd', '')}",
                     f"- Output: {thread.get('output_contract', '')}",
                     f"- Integration: {thread.get('integration_rule', '')}",
+                    f"- Coordination backend: {thread.get('coordination_backend', '')}",
+                    f"- Visibility: {thread.get('visibility', '')}",
                 ]
             )
+    grit_coordination = spec.get("grit_coordination") or {}
+    if grit_coordination:
+        lines.extend(
+            [
+                "",
+                "## Grit Coordination",
+                f"- Backend: {grit_coordination.get('backend', '')}",
+                f"- Init policy: {grit_coordination.get('init_policy', '')}",
+                f"- Claim strategy: {grit_coordination.get('claim_strategy', '')}",
+                f"- Done policy: {grit_coordination.get('done_policy', '')}",
+                f"- Thread context rule: {grit_coordination.get('thread_context_rule', '')}",
+                f"- Cleanup rule: {grit_coordination.get('cleanup_rule', '')}",
+                "- Remote backend authorization: "
+                f"{grit_coordination.get('remote_backend_authorization', '')}",
+            ]
+        )
     return "\n".join(lines) + "\n"
 
 

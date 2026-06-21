@@ -1,6 +1,6 @@
 ---
 name: agent-loop-designer
-description: Turns `$agent-loop-designer` plus a plain-language recurring task into a simple repeatable Codex loop, skill, automation prompt, Worktree-thread workflow, or plugin-backed workflow. Use when the user wants to stop remembering prompts for recurring Codex work, candidate fan-out, triage/discovery workflows, or skill/plugin design.
+description: Turns `$agent-loop-designer` plus a plain-language recurring task into a simple repeatable Codex loop, skill, automation prompt, Worktree-thread workflow, or plugin-backed workflow. Use when the user wants to stop remembering prompts for recurring Codex work, candidate fan-out, triage/discovery workflows, or repeatable skill/plugin workflows. Not for one-off skill/plugin creation or editing.
 ---
 
 # Agent Loop Designer
@@ -33,10 +33,10 @@ Do not put subagent plans, Worktree-thread plans, worker topology, or control-pl
 If the user asks to actually make it repeatable, implement the durable surface rather than only explaining it.
 
 Use [workflow-rules.md](references/workflow-rules.md) for surface selection, safety defaults, and packaging rules.
-When consistency matters, produce and validate a loop spec with `scripts/loop_spec.py`; see [loop-spec.md](references/loop-spec.md).
+When consistency matters, produce and validate a loop spec with `$PLUGIN_ROOT/scripts/loop_spec.py`; see [loop-spec.md](references/loop-spec.md). Resolve `PLUGIN_ROOT` to the plugin root before running helper scripts; from this skill directory, use `PLUGIN_ROOT="$(cd ../.. && pwd)"`.
 Before proposing or using CLIs, tools, Worktree threads, subagents, automations, plugins, MCP/connectors, or config changes, follow [docs-first.md](references/docs-first.md).
 For parallel code-editing loops with symbol-level ownership, use [grit-coordination.md](references/grit-coordination.md) as the coordination backend. If Grit is not initialized in the target repo, the loop starts local initialization itself.
-When an Agent Loop Designer run fails because the skill encoded a bad assumption, missed a guardrail, or produced a fragile instruction, apply [self-improvement.md](references/self-improvement.md) before the final response.
+When an Agent Loop Designer run fails because the skill encoded a bad assumption, missed a guardrail, or produced a fragile instruction, apply [self-improvement.md](references/self-improvement.md) before the final response only when source edits are in scope. For read-only, diagnosis-only, or planning-only runs, report the proposed source fix instead.
 
 If the request is about running `improve-codebase-architecture` and then automatically exploring or acting on all candidates, do not produce the old "pick one candidate" radar. Route it to `$architecture-cascade <optional repo area or problem>`.
 
@@ -70,7 +70,9 @@ Keep the Required Loop Shape and worker plan internal. The visible answer should
    plugin-backed skill. Use reusable prompt only as the fallback above.
 4. Explain the choice in one sentence.
 5. Define the failure-learning rule for the loop.
-6. If the user asked to create it, edit the needed files, validate, reinstall when plugin-backed, and report the new one-line command.
+6. If the user asked to create it, edit the needed files, validate, and report
+   the new one-line command. Reinstall plugin-backed loops only when the user
+   explicitly asks to install or refresh the active plugin.
 
 ## Quiet State
 

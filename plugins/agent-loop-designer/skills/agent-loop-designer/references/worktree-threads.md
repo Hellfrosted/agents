@@ -56,7 +56,9 @@ When using the default nested root, add `.codex-worktrees/` to
 `.git/info/exclude` before creating worktrees. Keep this local-only; do not edit
 `.gitignore` for agent worktrees.
 
-When available, use the bundled helper to generate the same plan:
+When available, use the bundled helper to generate the same plan. Set `PLUGIN_ROOT`
+to the agent-loop-designer plugin root first; from this reference directory, use
+`PLUGIN_ROOT="$(cd ../../.. && pwd)"`.
 
 ```bash
 python3 "$PLUGIN_ROOT/scripts/wsl_worktree_plan.py" --repo . --candidate c1 --candidate c2

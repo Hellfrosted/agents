@@ -2,6 +2,13 @@
 
 Use the loop spec when consistency matters. It is the structured contract behind the simple user command.
 
+Set `PLUGIN_ROOT` to the agent-loop-designer plugin root before running helper
+scripts. From this reference directory:
+
+```bash
+PLUGIN_ROOT="$(cd ../../.. && pwd)"
+```
+
 Generate a blank spec:
 
 ```bash
@@ -80,14 +87,19 @@ Each Worktree thread must define:
 - `ownership`
 - `write_intent`: `none`, `artifact-only`, or `code-editing`
 - `starting_state`
-- `location_strategy`: `wsl-manual` or `codex-managed`
+- `project_scope`
+- `location_strategy`: `wsl-same-project-manual`, `wsl-external-manual`,
+  `wsl-manual`, or `codex-managed`
+- `worker_cwd`
 - `visibility`: whether the thread is human-readable and can receive user intervention
 - `output_contract`
 - `integration_rule`
+- `coordination_backend`: `manual-worktree` or `grit`
 
 When `grit_coordination` is present, define:
 
 - `backend`: `local` unless the user explicitly requested Azure/S3-compatible team coordination.
+- `remote_backend_authorization`: required only when `backend` is not `local`; record the user's explicit distributed-team request and the approved non-secret parameter source.
 - `init_policy`: how the loop detects missing or stale Grit state and runs `grit init`, `grit config set-local`, and `grit symbols`.
 - `claim_strategy`: explicit symbols, dependency-aware claims, bounded `grit assign`, or queued claims.
 - `done_policy`: when `grit done -a <agent-id>` is allowed, and when the coordinator reports worktrees instead of integrating.
@@ -106,5 +118,5 @@ The validator rejects subagents whose `spawn_policy` does not explicitly encode
 a non-full-history role-specific launch rule for either the current
 `fork_context` surface or a `fork_turns` surface. It also rejects `code-editing`
 subagents with a `read-only` sandbox expectation.
-The validator also rejects specs that omit `failure_learning`, name `tools`, `worktree_threads`, or `subagents`, use docs-sensitive surfaces, or mention Worktree threads/subagents/custom agents in `workers` without `docs_checked`. If `workers` mentions Worktree threads or subagents/custom agents, define the matching structured entries too.
-The validator allows extra structured fields such as `visibility`, `context_budget`, and `grit_coordination`; the loop author is responsible for filling those contracts when they are named in `tools`, `workers`, or `inputs`.
+The validator also rejects specs that omit `failure_learning`, name `tools`, `worktree_threads`, or `subagents`, use docs-sensitive surfaces, or mention Worktree threads/subagents/sub-agents/custom agents in `workers` without `docs_checked`. If `workers` mentions Worktree threads or subagents/sub-agents/custom agents, define the matching structured entries too.
+The validator rejects subagents and Worktree threads that omit their required structured fields, including `context_budget`, `project_scope`, `worker_cwd`, `visibility`, and `coordination_backend`. The loop author is responsible for filling `grit_coordination` when Grit claims, Grit worktrees, or `grit done` are part of the loop.

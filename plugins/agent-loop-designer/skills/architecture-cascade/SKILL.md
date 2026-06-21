@@ -20,10 +20,10 @@ Also use this when `$agent-loop-designer` is asked to run `improve-codebase-arch
 Before spawning workers, read:
 
 - `improve-codebase-architecture` skill instructions.
-- `agent-loop-designer/references/subagents.md`, especially the boundary between private subagents and visible exploration threads.
+- `../agent-loop-designer/references/subagents.md`, especially the boundary between private subagents and visible exploration threads.
 - Codex Worktree/thread docs or local app thread tooling docs.
-- `agent-loop-designer/references/worktree-threads.md`, especially WSL Same-Project Manual Worktree Mode.
-- `agent-loop-designer/references/grit-coordination.md` when candidates can be owned by symbols in a Grit-supported language.
+- `../agent-loop-designer/references/worktree-threads.md`, especially WSL Same-Project Manual Worktree Mode.
+- `../agent-loop-designer/references/grit-coordination.md` when candidates can be owned by symbols in a Grit-supported language.
 - Repo `AGENTS.md`, `CONTEXT.md`, `docs/adr/`, README/docs, and test/build guidance.
 
 ## Loop
@@ -67,7 +67,7 @@ and the current repo is a saved Codex project. This keeps worker threads under
 the same Codex project group without asking the app to create managed Worktrees.
 
 - Do not ask the Codex app to create managed Worktree threads in that case. Managed app worktrees are created under `$CODEX_HOME/worktrees`, which can land on Windows storage and cause slow WSL I/O.
-- Use `scripts/wsl_worktree_plan.py` to plan or create the manual worktrees when available.
+- Use `$PLUGIN_ROOT/scripts/wsl_worktree_plan.py` to plan or create the manual worktrees when available. Resolve `PLUGIN_ROOT` to the plugin root first; from this skill directory, use `PLUGIN_ROOT="$(cd ../.. && pwd)"`.
 - Create manual Git worktrees under the saved project checkout by default:
   `<repo>/.codex-worktrees/architecture-cascade/<run-id>/<candidate-id>`.
 - Before creating nested worktrees, add `.codex-worktrees/` to
@@ -90,14 +90,18 @@ the same Codex project group without asking the app to create managed Worktrees.
 ## Self-Improvement Rule
 
 Architecture cascade is a self-improving skill. When the coordinator failure is
-repeatable and caused by this skill's instructions, update the source plugin and
-active cached plugin before closing the turn.
+repeatable and caused by this skill's instructions, update the source plugin
+before closing the turn only when source edits are in scope. For read-only,
+diagnosis-only, or planning-only runs, report the proposed source fix instead.
+Do not mirror into active plugin caches, installed plugin directories, or
+persistent memory unless the user explicitly asks for that separate
+active-install or memory update.
 
-- Patch the narrowest relevant skill or reference file under the source plugin and mirror the same change into the active cache.
+- Patch the narrowest relevant skill or reference file under the source plugin.
 - Base the update on observed evidence: command output, app error text, rejected API shape, missing durable artifact, or thread setup behavior.
 - Add guardrails, preflights, or output-location rules. Do not add broad apologies, incident logs, generated-by notes, or user-private raw logs.
-- Validate source/cache parity with `diff`, search for stale wording with `rg`, and run the smallest relevant bundled script check.
-- Store a concise privacy-safe memory for durable failures after the patch succeeds.
+- Search for stale wording with `rg` and run the smallest relevant bundled
+  script check.
 - Do not update the plugin for one-off repo failures, user-cancelled work, unavailable external services, or failures that belong in the target repo's own docs.
 
 ## Worktree Starting State Guardrails
