@@ -24,9 +24,11 @@ func Check(ctx context.Context, runner compare.CommandRunner, input Input) (Resu
 		return Result{}, err
 	}
 
-	sources := make([]skillSource, 0, len(doc.SkillNames()))
-	for _, name := range doc.SkillNames() {
-		if !targetSelected(name, input.Targets) {
+	targets := newTargetFilter(input.Targets)
+	names := doc.SkillNames()
+	sources := make([]skillSource, 0, len(names))
+	for _, name := range names {
+		if !targets.selected(name) {
 			continue
 		}
 		source, err := skillSourceFor(input, doc, name)
@@ -221,16 +223,4 @@ func statusFor(name string, source skillSource, hash string, status output.Statu
 		InstalledDir: source.installed,
 		CompareDir:   source.compareDir(),
 	}
-}
-
-func targetSelected(name string, targets []string) bool {
-	if len(targets) == 0 {
-		return true
-	}
-	for _, target := range targets {
-		if target == name {
-			return true
-		}
-	}
-	return false
 }
