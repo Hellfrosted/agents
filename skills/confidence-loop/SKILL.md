@@ -1,6 +1,6 @@
 ---
 name: confidence-loop
-description: Confidence audit for proposed strategies, answers, plans, or Codex loops with bounded subagent review and a 0-100 score. Use when the user invokes $confidence-loop/$confident-loop with normal/hard/extreme/c/b/a/s/sr/ssr, asks for a confidence score or 100% certainty, or asks to red-team/premortem a proposed strategy for loopholes, failure modes, or independent-reviewer objections. Not for ordinary review, implementation, Skill trigger/activation evals, cross-Skill collision evals, or named operational loops unless auditing confidence.
+description: Confidence audit with a 0-100 score. Use when the user invokes $confidence-loop/$confident-loop, asks for a numeric confidence score or 100% certainty, or asks to red-team/premortem a proposed strategy for loopholes and failure modes. Not for ordinary review, implementation, skill-trigger audits, or operational loops unless the user explicitly wants a confidence audit.
 ---
 
 # Confidence Loop
@@ -17,9 +17,6 @@ If the user invokes bare `$confident-loop` or `$confidence-loop`, ask which mode
 
 If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, `$confident-loop c`, `$confident-loop b`, `$confident-loop a`, `$confident-loop s`, `$confident-loop sr`, `$confident-loop ssr`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default`, `c`, and `b` as `normal`; `a` as `hard`; and `s`, `sr`, and `ssr` as `extreme`.
 
-Gacha ranks collapse to the three review-width modes above. Do not invent
-additional modes from higher ranks.
-
 Do not trigger on named operational loops such as feedback loops, automation
 loops, CI loops, or workflow loops unless the user explicitly asks for a
 confidence/loophole audit of that loop. If the user forbids subagents, do not
@@ -31,6 +28,12 @@ spawning subagents and the user has not authorized subagents, delegation, or
 parallel review in the current request, ask before spawning reviewers or perform
 a single-agent confidence audit and label it as such.
 
+When Codex subagents are authorized and needed, follow the delegation,
+approval-gate, evidence, and bounded-loop protocol in
+[`../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol`](../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol)
+and
+[`../shared-agent-protocol/SKILL.md#bounded-loops`](../shared-agent-protocol/SKILL.md#bounded-loops).
+
 Default loop budgets:
 
 - **normal/default/c/b**: one reviewer and one repair pass.
@@ -40,12 +43,19 @@ Default loop budgets:
 
 ## Standard Loop
 
-1. State the strategy and success criteria.
+1. State the strategy and success criteria. Complete when the object under
+   review and the pass/fail criteria are explicit enough for another reviewer
+   to judge.
 2. List material assumptions, dependencies, edge cases, and failure modes.
-3. Mark each risk as disproven, accepted, blocked, or needing a fix.
-4. Revise the strategy to close real loopholes.
+   Complete when each plausible blocker has an evidence target or is marked as
+   accepted uncertainty.
+3. Mark each risk as disproven, accepted, blocked, or needing a fix. Complete
+   when every listed material risk has exactly one status.
+4. Revise the strategy to close real loopholes. Complete when every accepted
+   fix is either applied or left behind an explicit approval gate.
 5. If the task has repeated review, repair, follow-up, monitoring, handoff, or
-   decision work, evaluate the Codex loop shape before finalizing:
+   decision work, evaluate the Codex loop shape before finalizing. Complete
+   when all loop fields below are filled or explicitly unnecessary:
    - Trigger: what starts or wakes the loop.
    - State: where progress, findings, decisions, and queue items live.
    - Next action: what the agent does after each pass.
@@ -53,7 +63,9 @@ Default loop budgets:
    - Human gate: actions that require explicit user approval.
    - Loop budget: max iterations, wakeups, wall time, spend, or scope.
    - Failure learning: what durable skill/plugin/doc update prevents repeats.
-6. Run the smallest relevant verification: source read, command, test, search, or reasoning proof.
+6. Run the smallest relevant verification: source read, command, test, search,
+   or reasoning proof. Complete when the verification result is recorded, or
+   the reason it could not run is explicit.
 7. Repeat within the selected budget until no material unresolved loopholes
    remain, or stop with the remaining uncertainty explicit.
 
@@ -70,22 +82,10 @@ controls only how many reviewers to use:
 - **hard/a**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
 - **extreme/s/sr/ssr**: spawn up to six read-only reviewers unless the user gives a larger budget. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
 
-Give each reviewer a dedicated goal. The main agent must not draft that goal
-itself. First spawn a dedicated goal-writer subagent that uses
-[`$ultragoal`](codex://skills) to
-turn the task, criteria, and assigned angle into a reviewer goal, then returns
-only that goal to the main agent. The goal-writer must not edit files, run
-side-effectful commands, or spawn agents. The main agent then passes the
-returned goal to the reviewer. The goal must preserve the reviewer boundary:
-read-only, no spawned agents, and no final decision.
-
-When spawning reviewers in Codex, use non-full-history forks for role-specific
-review. In the current `spawn_agent` tool, omit `fork_context` or set
-`fork_context: false`; on tool surfaces that use `fork_turns`, set
-`fork_turns: "none"`. Put the reviewer role, angle, constraints, and needed
-context in the `message`. Do not combine a full-history fork with `agent_type`,
-`model`, or `reasoning_effort` overrides; full-history forks inherit those
-fields from the parent and will be rejected if overridden.
+Use the shared delegation protocol for reviewer goal shape, read-only scope,
+forking, evidence, and integration rules. Complete sub-agent review only when
+each reviewer has returned evidence-backed objections or explicitly reports no
+material objections.
 
 Choose reviewer angles that match the problem. Common angles:
 
@@ -105,7 +105,7 @@ Prompt shape:
 
 ```
 TASK: act as a read-only confidence-loop reviewer. Angle: {reviewer angle}.
-GOAL: {dedicated reviewer goal returned by the ultragoal goal-writer subagent}
+GOAL: {reviewer goal from the shared delegation protocol}
 DELIVERABLE: material loopholes with evidence, verification checks, speculative objections labeled as such, and confidence: 0-100.
 SCOPE: no file edits, no spawned agents, no final decision.
 VERIFY: cite the evidence or reasoning used for every material objection.

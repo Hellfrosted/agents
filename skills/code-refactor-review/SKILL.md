@@ -1,11 +1,11 @@
 ---
 name: code-refactor-review
-description: Code refactor review for PRs, diffs, or local changes. Use when asked to review code for reuse, composition, codebase consistency, cleanliness, slop, over-abstraction, helper sprawl, React/Next.js effects, or whether changes fit existing patterns.
+description: Refactor/slop review for code changes. Use when asked whether a diff fits existing patterns, reuses code correctly, avoids over-abstraction/helper sprawl, or handles React/Next.js effects and composition cleanly. Not for ordinary bug or security review unless the user asks for a refactor, cleanup, reuse, consistency, or slop lens.
 ---
 
 # Code Refactor Review
 
-Review code changes for reuse, composition, codebase consistency, and slop. The review is complete only after claims about reuse or inconsistency are grounded in searches or nearby code patterns.
+Review changed code for reuse, composition, codebase consistency, and slop.
 
 ## Review Procedure
 
@@ -15,7 +15,11 @@ Review code changes for reuse, composition, codebase consistency, and slop. The 
    - For a PR URL, inspect the changed files and understand the feature flow before reviewing details.
 2. Build the call stack or data flow when useful. Do not review isolated lines without understanding how the feature is wired.
 3. Search the codebase before judging new helpers, components, hooks, types, route patterns, styling primitives, or error/loading flows. Prefer nearby and sibling patterns over invented abstractions.
-4. Apply every review lens below to the changed code. Before producing the verdict, confirm that every material reuse or consistency claim cites a searched-for existing pattern, a nearby absence of such a pattern, or the changed code itself.
+4. Apply every review lens below to the changed code.
+
+Completion criterion: before producing the verdict, every material reuse or
+consistency claim must cite searched-for existing patterns, a searched nearby
+absence of a pattern, or the changed code itself.
 
 ## Review Lenses
 
@@ -70,7 +74,7 @@ Flag and, when asked, remove:
 - Keep the fix proportional to the problem.
 - Do not add architecture, docs, or comments unless they remove ambiguity for future readers.
 
-## Output Format
+## Output and Hard Gates
 
 Start with a verdict:
 
@@ -87,23 +91,8 @@ Then list findings by priority. For each finding include:
 
 If the user asked for review only, do not edit files. If the user asked to fix it, make the changes directly and summarize what changed.
 
-## Red Flags
+Hard gates:
 
-- "Can we reuse existing code?" was not answered with a search.
-- New top-level helpers with vague names like `utils`, `helpers`, `shared`, or implementation-specific names.
-- A function whose name hides important side effects.
-- A directory containing only `index.ts` without a reason.
-- Re-exporting something that is already exported elsewhere.
-- New custom primitives where the product already has a component or pattern.
-- Large comments explaining why awkward props or flags exist.
-- Multiple new types just to support one local function.
-- New callback/memo/effect code that disappears if state ownership is simplified.
-
-## Rules
-
-- Be direct and concise. Avoid extra explanatory fluff.
-- Do not invent architecture. Ground claims in codebase patterns.
-- Search before claiming something is reusable or inconsistent.
-- If a pattern is not present in the codebase, say so and recommend the smallest clean alternative.
-- Prefer `if` statements over ternaries when suggesting code changes in v0.
-- When in doubt, optimize for code that reads obvious from left to right.
+- Do not invent architecture. If no pattern exists, say so and recommend the smallest clean alternative.
+- Treat vague top-level helpers, hidden side effects, unexplained barrel files, duplicate re-exports, custom primitives, defensive comments, one-off exported types, and avoidable callback/memo/effect code as red flags.
+- Be direct and concise. Optimize for code that reads obvious from left to right.

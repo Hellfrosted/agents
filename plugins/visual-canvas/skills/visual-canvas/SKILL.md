@@ -1,48 +1,49 @@
 ---
 name: visual-canvas
-description: Single public entrypoint for Visual Canvas. Use when the user asks for a polished local HTML report, visual explanation, diagram-rich artifact, persistent visual profile, or reusable user-facing HTML policy.
+description: Visual Canvas for portable local HTML. Use when the user explicitly wants a portable local/offline HTML report, Visual Canvas profile, reusable HTML output policy, or HTML quality check. Route general visual plans and recaps to visual-plan or visual-recap.
 ---
 
 # Visual Canvas
 
-Create compact, project-backed visual HTML artifacts for developers. Visual
-Canvas is a meta-skill: it owns the report pipeline and delegates taste,
-image generation, browser checks, and specialist review to existing skills when
-they are available.
+Create compact, local HTML artifacts and HTML policy outputs for developers.
+Visual Canvas is a meta-skill: it owns routing, artifact structure, profile
+resolution, asset orchestration, validation evidence, and final delivery.
 
-## Agent-Native Delegation
+## Route First
 
-Do not use Visual Canvas for the general Agent-Native plan and recap lanes. If
-the request is primarily an implementation plan, architecture plan, migration
-plan, branch recap, pull request recap, diff recap, or agent-work recap, route
-to the installed `/visual-plan` or `/visual-recap` skill instead.
+First read `../../references/canvas/modes.md` and choose the narrowest mode
+that satisfies the request. If the artifact purpose is genuinely ambiguous,
+ask one clarifying question; otherwise continue.
 
-Keep Visual Canvas for portable local HTML reports, reusable HTML output policy,
-visual profiles, static checks, and report artifacts that should remain outside
-the hosted plan app.
+Do not use Visual Canvas for general Agent-Native plan or recap lanes. Route
+implementation plans, architecture plans, migration plans, branch recaps, pull
+request recaps, diff recaps, and agent-work recaps to the installed
+`/visual-plan` or `/visual-recap` skill unless the user specifically asks for a
+portable local HTML report.
 
-## Route Internally
+The user should only need to invoke `visual-canvas`. Select any mode-specific
+helper behavior yourself.
 
-The user should only need to invoke `visual-canvas`. Do not ask them to invoke
-mode-specific helper skills. Select the mode yourself from
-`../../references/canvas/modes.md`.
+## Progressive References
 
-If the user did not name a mode, pick the narrowest mode that satisfies the
-request and continue. Do not ask unless the artifact purpose is genuinely
-ambiguous.
+After choosing a mode, load only the references needed by that branch:
 
-## Required Shared References
-
-Before producing an artifact, read:
-
-- `../../references/canvas/modes.md`
-- `../../references/canvas/report-pipeline.md`
-- `../../references/canvas/artifact-contract.md`
-- `../../references/canvas/profile-resolution.md`
-- `../../references/canvas/asset-pipeline.md`
-- `../../references/html/output-policy.md`
-- `../../references/html/design-delegation.md`
-- `../../references/html/visual-qa.md`
+- Report or local HTML Review: read
+  `../../references/canvas/report-pipeline.md`,
+  `../../references/canvas/artifact-contract.md`,
+  `../../references/canvas/profile-resolution.md`,
+  `../../references/canvas/asset-pipeline.md`,
+  `../../references/html/output-policy.md`,
+  `../../references/html/design-delegation.md`, and
+  `../../references/html/visual-qa.md`.
+- Local HTML Plan: read the same artifact-producing references as Report, but
+  only after confirming `/visual-plan` is not the right route.
+- Style Profile: read `../../references/canvas/profile-resolution.md`. Read
+  artifact references only if the user also wants a rendered profile report.
+- HTML Output Policy: read `../../references/html/output-policy.md`,
+  `../../references/html/design-delegation.md`, and
+  `../../references/html/visual-qa.md`. Use the checker directly against an
+  existing HTML file when one is provided.
 
 ## Default Artifact Shape
 
@@ -66,3 +67,11 @@ debug/resume detail.
   structure, asset records, and validation summary; the HTML holds the prose.
 - Do not reflexively generate images. If imagegen assets are needed, decide
   early and dispatch them in parallel.
+
+## Completion
+
+Finish with the artifact or policy result, plus validation evidence. For
+artifact-producing modes, include the HTML path, `canvas.json` path when
+created, checker/browser results, and any unavailable-check note. For HTML
+policy or profile-only modes, include the policy/profile result and the checks
+that ran, or state why a check was unavailable.

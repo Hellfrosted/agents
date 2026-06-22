@@ -7,4 +7,4 @@ interface:
   default_prompt: "Use $tuck with subagent reviewers to create focused local commits for my changes."
 
 policy:
-  allow_implicit_invocation: true
+  allow_implicit_invocation: false

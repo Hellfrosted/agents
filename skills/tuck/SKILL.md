@@ -1,6 +1,7 @@
 ---
 name: tuck
-description: Tuck git workflow for reviewed local commits with subagent review. Use only when the user invokes $tuck, says `tuck` as a git commit command, or asks to tuck local changes into reviewed local commits. Not for ordinary commits, push workflows, stash, or non-git phrases like "tuck this away".
+description: Reviewed local git commit workflow with bounded subagent review.
+disable-model-invocation: true
 ---
 
 # Tuck
@@ -17,18 +18,37 @@ If the current tool surface requires explicit user authorization before
 spawning subagents and the user has not authorized subagents or the tuck
 workflow in the current request, ask before spawning reviewers.
 
+When Codex subagents are authorized, follow the delegation, approval-gate,
+evidence, and bounded-loop protocol in
+[`../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol`](../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol)
+and
+[`../shared-agent-protocol/SKILL.md#approval-read-only-and-side-effect-gates`](../shared-agent-protocol/SKILL.md#approval-read-only-and-side-effect-gates).
+
 ## Flow
 
-1. Run `git status --short`.
-2. Inspect intended diffs before staging. Treat unrelated modified/untracked files as user work.
-3. Split commits by reviewer-facing intent; separate formatting, docs, and behavior when practical.
+1. Run `git status --short`. Complete when every modified and untracked path is
+   classified as intended, unrelated user work, or needing user clarification.
+2. Inspect intended diffs before staging. Treat unrelated modified/untracked
+   files as user work. Complete when each intended path has been read enough to
+   explain the commit intent and risk.
+3. Split commits by reviewer-facing intent; separate formatting, docs, and
+   behavior when practical. Complete when each planned commit has a path list,
+   intent, and risk focus.
 4. Main agent only scopes commits with `git diff --stat -- <paths>` and minimal
-   path checks; do not deep-review diffs in main context.
+   path checks; do not deep-review diffs in main context. Complete when the
+   reviewer packet contains the relevant diff scope without loading unrelated
+   history into the main context.
 5. Before staging each commit, spawn batched read-only subagent reviewers.
-6. Fix blocking findings, then stage only intended paths or hunks.
+   Complete when every reviewer returns blocking findings or explicitly reports
+   no blocking findings.
+6. Fix blocking findings, then stage only intended paths or hunks. Complete
+   when all blocking findings are fixed, accepted behind an explicit user gate,
+   or the tuck stops.
 7. Re-check `git diff --cached`, run the smallest relevant check, then commit
-   with a concise imperative message. Report any skipped check.
-8. Stop after the local commit summary and verification result. Do not offer push as part of the default tuck flow.
+   with a concise imperative message. Report any skipped check. Complete when
+   the staged diff matches the planned commit and the command result is known.
+8. Stop after the local commit summary and verification result. Do not offer
+   push as part of the default tuck flow.
 
 ## Subagent Review
 
@@ -36,21 +56,9 @@ Always use at least one reviewer per commit. Prefer one batched reviewer for
 small, familiar, docs-only, formatting-only, or obvious mechanical changes.
 Split reviewers by risk area for larger or mixed commits.
 
-Give each reviewer a dedicated commit-review goal. The main agent must not
-draft that goal itself. First spawn a dedicated goal-writer subagent that uses
-[`$ultragoal`](codex://skills) to turn the commit scope, assigned paths, and risk focus into a
-reviewer goal, then returns only that goal to the main agent. The main agent
-then passes the returned goal to the reviewer. The goal-writer must not edit
-files, run side-effectful commands, or spawn agents. The goal must keep the
-reviewer read-only and commit-scoped.
-
-When spawning Codex reviewers, use non-full-history forks for role-specific
-review. In the current `spawn_agent` tool, omit `fork_context` or set
-`fork_context: false`; on tool surfaces that use `fork_turns`, set
-`fork_turns: "none"`. Paste the commit scope, assigned paths, risk focus, and
-relevant diff context into the `message`. Do not combine a full-history fork
-with `agent_type`, `model`, or `reasoning_effort` overrides; full-history forks
-inherit those fields from the parent and will be rejected if overridden.
+Use the shared delegation protocol for reviewer goal shape, read-only scope,
+forking, evidence, and integration rules. Paste the commit scope, assigned
+paths, risk focus, and relevant diff context into the reviewer message.
 
 Add targeted reviewers for:
 
@@ -67,7 +75,7 @@ Short reviewer prompt:
 
 ```text
 TASK: act as a read-only tuck reviewer.
-GOAL: {dedicated commit-review goal returned by the ultragoal goal-writer subagent}
+GOAL: {commit-review goal from the shared delegation protocol}
 DELIVERABLE: blocking findings only, with file paths and line references; if none, say: no blocking findings.
 SCOPE: review only changed diff plus minimal nearby context; do not edit files or spawn agents.
 VERIFY: every finding must be tied to a concrete changed line or omitted required check.
