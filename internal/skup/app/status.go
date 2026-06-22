@@ -53,8 +53,9 @@ func executeStatus(ctx context.Context, parsed cli.Parsed, resolved config.Resol
 			}
 		}
 	default:
-		for _, status := range result.Statuses {
-			writeText(request.Stdout, fmt.Sprintf("%s %s\n", humanStatusLabel(status.Status, resolved.Color, request.Stdout), status.Name))
+		total := len(result.Statuses)
+		for index, status := range result.Statuses {
+			writeText(request.Stdout, fmt.Sprintf("%d/%d %s %s\n", index+1, total, humanStatusLabel(status.Status, resolved.Color, request.Stdout), status.Name))
 		}
 	}
 	return ExitOK
@@ -87,7 +88,7 @@ func statusColor(status output.Status) (string, bool) {
 	case output.StatusMissing, output.StatusError:
 		return "\x1b[31m", true
 	case output.StatusSkipped:
-		return "\x1b[36m", true
+		return "\x1b[35m", true
 	default:
 		return "", false
 	}

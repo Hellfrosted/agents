@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/Hellfrosted/agents/internal/skup/compare"
+	"github.com/Hellfrosted/agents/internal/skup/output"
 )
 
 func TestExecute_writesStatusJSON_whenGlobalJSONRequested(t *testing.T) {
@@ -70,13 +71,15 @@ func TestExecute_writesStatusLines_whenGlobalHumanRequested(t *testing.T) {
 	root := t.TempDir()
 	agentsHome := filepath.Join(root, "agents")
 	cacheDir := filepath.Join(root, "cache")
-	writeAppFile(t, filepath.Join(agentsHome, ".skill-lock.json"), appLockfile())
+	writeAppFile(t, filepath.Join(agentsHome, ".skill-lock.json"), appLockfileWithSkills("alpha", "beta"))
 	writeAppFile(t, filepath.Join(agentsHome, "skills", "alpha", "SKILL.md"), "old\n")
+	writeAppFile(t, filepath.Join(agentsHome, "skills", "beta", "SKILL.md"), "same\r\n")
 	runner := &appFakeGitRunner{
 		archives: map[string][]byte{
 			"skills/alpha": appTarArchive(t, appTarFile{name: "skills/alpha/SKILL.md", contents: "new\n"}),
+			"skills/beta":  appTarArchive(t, appTarFile{name: "skills/beta/SKILL.md", contents: "same\n"}),
 		},
-		hashes: map[string]string{"skills/alpha": "hash-alpha"},
+		hashes: map[string]string{"skills/alpha": "hash-alpha", "skills/beta": "hash-beta"},
 	}
 
 	// When
@@ -93,8 +96,11 @@ func TestExecute_writesStatusLines_whenGlobalHumanRequested(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("exit code = %d, want 0", code)
 	}
-	if !strings.Contains(stdout.String(), "UPDATE  alpha") {
-		t.Fatalf("stdout missing update line: %q", stdout.String())
+	if !strings.Contains(stdout.String(), "1/2 UPDATE  alpha") {
+		t.Fatalf("stdout missing numbered update line: %q", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "2/2 OK      beta") {
+		t.Fatalf("stdout missing numbered ok line: %q", stdout.String())
 	}
 	if !strings.Contains(stderr.String(), "CLONE   https://github.com/example/skills.git") {
 		t.Fatalf("stderr missing clone progress: %q", stderr.String())
@@ -138,6 +144,26 @@ func TestExecute_colorsUpdateStatus_whenColorAlways(t *testing.T) {
 	}
 }
 
+func TestHumanLabels_useDistinctColors_whenCheckingAndSkipped(t *testing.T) {
+	// Given
+	var writer bytes.Buffer
+
+	// When
+	checkLabel := humanProgressLine(output.Event{Event: output.EventCompare, Name: "alpha"}, "always", &writer)
+	skippedLabel := humanStatusLabel(output.StatusSkipped, "always", &writer)
+
+	// Then
+	if !strings.Contains(checkLabel, "\x1b[36mCHECK") {
+		t.Fatalf("check label = %q, want cyan CHECK", checkLabel)
+	}
+	if strings.Contains(skippedLabel, "\x1b[36mSKIPPED") {
+		t.Fatalf("skipped label reused CHECK cyan: %q", skippedLabel)
+	}
+	if !strings.Contains(skippedLabel, "\x1b[35mSKIPPED") {
+		t.Fatalf("skipped label = %q, want magenta SKIPPED", skippedLabel)
+	}
+}
+
 type appFakeGitRunner struct {
 	mu         sync.Mutex
 	archives   map[string][]byte
@@ -176,6 +202,14 @@ func (r *appFakeGitRunner) lastCommandWithArg(arg string) compare.Command {
 
 func appLockfile() string {
 	return `{"version":1,"skills":{"alpha":{"sourceUrl":"https://github.com/example/skills.git","skillPath":"skills/alpha/SKILL.md"}}}`
+}
+
+func appLockfileWithSkills(names ...string) string {
+	entries := make([]string, 0, len(names))
+	for _, name := range names {
+		entries = append(entries, `"`+name+`":{"sourceUrl":"https://github.com/example/skills.git","skillPath":"skills/`+name+`/SKILL.md"}`)
+	}
+	return `{"version":1,"skills":{` + strings.Join(entries, ",") + `}}`
 }
 
 type appTarFile struct {
