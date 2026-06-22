@@ -1,6 +1,6 @@
 ---
 name: icm
-description: ICM persistent memory for Codex. Use for three branches only: recall long-term memory, store explicit durable non-secret memory, or recall-then-store when the user asks for both. Not for repo files, web sources, Discord archives, current-chat notes, ordinary persistence outside ICM, or read-only/no-memory tasks.
+description: "ICM persistent memory for Codex. Use for three branches only: recall long-term memory, store explicit durable non-secret memory, or recall-then-store when the user asks for both. Not for repo files, web sources, Discord archives, current-chat notes, ordinary persistence outside ICM, or read-only/no-memory tasks."
 ---
 
 # ICM

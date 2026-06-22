@@ -1,5 +1,6 @@
 ---
 name: shared-agent-protocol
+description: "Non-user-invocable shared reference for delegation, reviewer, and loop protocol used by entrypoint skills."
 disable-model-invocation: true
 ---
 
