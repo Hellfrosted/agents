@@ -1,7 +1,0 @@
-interface:
-  display_name: "Improve Skills"
-  short_description: "Evaluate and tune repo-owned Skill behavior"
-  default_prompt: "Use $improve-skills to evaluate repo-owned Skill activation, behavior, and cross-Skill collisions."
-
-policy:
-  allow_implicit_invocation: true

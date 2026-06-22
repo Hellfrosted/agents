@@ -77,7 +77,7 @@ before continuing with the best available fallback or hardstop as needed.
     split the work into independent lanes and launch role-specific workers in
     parallel without full history. Give each Codex worker a dedicated lane goal:
     before launching the lane worker, spawn a dedicated goal-writer subagent
-    that uses [`$goalcraft`](codex://skills) to turn the approved brief and lane scope into the
+    that uses [`$ultragoal`](codex://skills) to turn the approved brief and lane scope into the
     lane goal, then returns only that goal to the main agent. The goal-writer
     must not edit files, run side-effectful commands, or spawn agents. The main
     agent passes the returned goal to the lane worker. In the current `spawn_agent`

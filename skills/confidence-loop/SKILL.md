@@ -72,7 +72,7 @@ controls only how many reviewers to use:
 
 Give each reviewer a dedicated goal. The main agent must not draft that goal
 itself. First spawn a dedicated goal-writer subagent that uses
-[`$goalcraft`](codex://skills) to
+[`$ultragoal`](codex://skills) to
 turn the task, criteria, and assigned angle into a reviewer goal, then returns
 only that goal to the main agent. The goal-writer must not edit files, run
 side-effectful commands, or spawn agents. The main agent then passes the
@@ -105,7 +105,7 @@ Prompt shape:
 
 ```
 TASK: act as a read-only confidence-loop reviewer. Angle: {reviewer angle}.
-GOAL: {dedicated reviewer goal returned by the goalcraft goal-writer subagent}
+GOAL: {dedicated reviewer goal returned by the ultragoal goal-writer subagent}
 DELIVERABLE: material loopholes with evidence, verification checks, speculative objections labeled as such, and confidence: 0-100.
 SCOPE: no file edits, no spawned agents, no final decision.
 VERIFY: cite the evidence or reasoning used for every material objection.

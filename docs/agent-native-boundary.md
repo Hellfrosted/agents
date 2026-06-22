@@ -28,7 +28,7 @@ This repository still owns:
 - `bin/skills-updates.*` and `bin/sk-up.cmd`: broad multi-source skill update,
   diff, skip, install, and uninstall wrappers for the universal `.agents`
   skill catalog.
-- repo-owned local skills under `skills/`, such as ICM, Discrawl, Tuck, Yeet,
+- repo-owned local skills under `skills/`, such as ICM, Discrawl, Tuck,
   Task Brief, Confidence Loop, and Evo End To End.
 - `plugins/visual-canvas`: local and offline HTML report artifacts, reusable
   HTML output policy, visual profiles, static checks, and compact artifact

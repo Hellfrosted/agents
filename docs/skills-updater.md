@@ -189,7 +189,7 @@ The current `mattpocock/skills` package exposes `/ask-matt` as the router for
 choosing a flow. Its active package manifest includes user-invoked skills such
 as `ask-matt`, `grill-with-docs`, `triage`,
 `improve-codebase-architecture`, `setup-matt-pocock-skills`, `to-prd`,
-`to-issues`, `implement`, `prototype`, `grill-me`, `handoff`, `teach`, and
+`to-issues`, `implement`, `grill-me`, `handoff`, `teach`, and
 `writing-great-skills`, plus model-invoked skills such as `diagnosing-bugs`,
 `tdd`, `domain-modeling`, `codebase-design`, and `grilling`.
 

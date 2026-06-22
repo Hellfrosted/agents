@@ -10,7 +10,6 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 | Skills updater | [skills-updater.md](skills-updater.md) | `skills-updates` and `sk-up` behavior, install and uninstall modes, state paths, locking, and Go wrapper checks. |
 | Go sk-up port | [sk-up-go-port.md](sk-up-go-port.md) | Control brief, command contract, output schemas, validation matrix, and progress ledger for the portable Go updater. |
 | Agent-Native boundary | [agent-native-boundary.md](agent-native-boundary.md) | What BuilderIO/Agent-Native skills own now, what this repo still owns, and how Visual Canvas delegates plan/recap work. |
-| Skill feedback loop | [skill-feedback-loop.md](skill-feedback-loop.md) | Repo-local feedback events, weekly review flow, and source-first skill updates. |
 | Maintainer guide | [maintainer-guide.md](maintainer-guide.md) | Source-first workflow, common checks, install freshness checks, and design rationale. |
 
 ## Root Context
@@ -28,7 +27,6 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 | `bin/` | Source for launchers, proxy modules, path translation, skills fallback, and updater wrappers. |
 | `plugins/visual-canvas/` | Source for portable local HTML report artifacts, visual profiles, and HTML output policy checks. Agent-Native owns general visual plan and recap workflows. |
 | `skills/` | Repo-owned Codex skill sources. In this repository, "work on skills" means this directory unless a task says otherwise. |
-| `feedback/skills/` | Captured feedback events and summaries for skill improvement. |
 | `tests/` | Script-level checks that are practical to run from this repository. |
 
 ## Public Boundary

@@ -1,6 +1,6 @@
 ---
 name: tuck
-description: Tuck git workflow for reviewed local commits with subagent review. Use only when the user invokes $tuck, says `tuck` as a git commit command, or asks to tuck local changes into reviewed local commits. Not for ordinary commits, yeet commit-and-push shortcuts, stash, or non-git phrases like "tuck this away".
+description: Tuck git workflow for reviewed local commits with subagent review. Use only when the user invokes $tuck, says `tuck` as a git commit command, or asks to tuck local changes into reviewed local commits. Not for ordinary commits, push workflows, stash, or non-git phrases like "tuck this away".
 ---
 
 # Tuck
@@ -38,7 +38,7 @@ Split reviewers by risk area for larger or mixed commits.
 
 Give each reviewer a dedicated commit-review goal. The main agent must not
 draft that goal itself. First spawn a dedicated goal-writer subagent that uses
-[`$goalcraft`](codex://skills) to turn the commit scope, assigned paths, and risk focus into a
+[`$ultragoal`](codex://skills) to turn the commit scope, assigned paths, and risk focus into a
 reviewer goal, then returns only that goal to the main agent. The main agent
 then passes the returned goal to the reviewer. The goal-writer must not edit
 files, run side-effectful commands, or spawn agents. The goal must keep the
@@ -67,7 +67,7 @@ Short reviewer prompt:
 
 ```text
 TASK: act as a read-only tuck reviewer.
-GOAL: {dedicated commit-review goal returned by the goalcraft goal-writer subagent}
+GOAL: {dedicated commit-review goal returned by the ultragoal goal-writer subagent}
 DELIVERABLE: blocking findings only, with file paths and line references; if none, say: no blocking findings.
 SCOPE: review only changed diff plus minimal nearby context; do not edit files or spawn agents.
 VERIFY: every finding must be tied to a concrete changed line or omitted required check.
@@ -85,6 +85,6 @@ Do not stage untracked files by default. Use `git add <specific paths>` or non-i
 
 If the same request asks to push after tuck, complete the reviewed local commit
 first, then run `git branch --show-current` and `git remote -v` for the explicit
-push gate. Do not invoke Yeet as a second workflow. Recommend the current branch
-when it exists and is not `main`; otherwise recommend a new branch. Never push
-or force-push without explicit confirmation.
+push gate. Recommend the current branch when it exists and is not `main`;
+otherwise recommend a new branch. Never push or force-push without explicit
+confirmation.

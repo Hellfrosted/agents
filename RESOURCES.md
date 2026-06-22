@@ -15,8 +15,6 @@ Use these references when changing this repo or validating its docs.
 - [docs/agent-native-boundary.md](docs/agent-native-boundary.md):
   BuilderIO/Agent-Native ownership boundary for plan/recap skills and
   Visual Canvas.
-- [docs/skill-feedback-loop.md](docs/skill-feedback-loop.md): repo-local skill
-  feedback and improvement workflow.
 
 ## WSL And Windows Interop
 

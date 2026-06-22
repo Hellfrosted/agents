@@ -16,7 +16,6 @@ automation definitions, and restore payloads live in the dotfiles repository.
 - `skills/`: repo-owned Codex skill sources.
 - `docs/`: focused operator documentation for the shim, updater, hooks, and
   repo-owned skill workflows.
-- `feedback/`: repo-local feedback capture for skill improvement work.
 - `tests/`: focused regression checks for workstation scripts.
 
 ## Quick Checks
@@ -45,8 +44,6 @@ Common entry points:
 - [Skills updater](docs/skills-updater.md): global skill update wrappers.
 - [Agent-Native boundary](docs/agent-native-boundary.md): what the installed
   BuilderIO/Agent-Native skills own versus what stays in this repo.
-- [Skill feedback loop](docs/skill-feedback-loop.md): local feedback capture
-  and improvement workflow.
 - [Maintainer guide](docs/maintainer-guide.md): source-first workflow,
   verification, and local repair notes.
 
