@@ -1,5 +1,7 @@
 # Ship sk-up release archives
 
+Status: implemented.
+
 The promoted Go skills updater ships canonical release archives with native
 binaries for Linux, macOS, and Windows across amd64 and arm64. Each archive
 contains the core executable, a `skills-updates` alias or wrapper, README/help

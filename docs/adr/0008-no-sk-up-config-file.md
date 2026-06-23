@@ -1,5 +1,7 @@
 # Do not add a sk-up config file
 
+Status: implemented.
+
 The promoted Go skills updater will not support a config file. Configuration
 comes from explicit CLI flags, environment variables, and platform defaults
 only, which keeps automation behavior visible at the call site and avoids

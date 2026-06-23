@@ -67,11 +67,16 @@ Run the focused source test before publishing changes to the active global hook:
 python3 -m unittest hooks/test_wsl_command_guardrails.py
 ```
 
+The hook contract is documented in [hook-guardrails.md](hook-guardrails.md).
 The active global copy lives under `$CODEX_HOME/hooks/`. When repairing the
 installed guardrail, copy `hooks/wsl_command_guardrails.py` to
 `$CODEX_HOME/hooks/wsl_command_guardrails.py` and keep `$CODEX_HOME/hooks.json`
 matching Codex shell tool names used by the current runtime. The source-side
 reference snippet is `hooks/global-pretooluse-hooks.example.json`.
+
+The repo-local `.codex/hooks.json` is separate. It runs
+`bin/impeccable-hook.mjs` after edit-like tool calls and only delegates when the
+local Impeccable skill source exists.
 
 ### Skills updater
 
@@ -139,6 +144,9 @@ task explicitly asks for install or repair work.
 - LazyCodex is kept as a Codex plugin in WSL. The WSL runner allows LazyCodex
   auto-update by default while disabling telemetry and config-migration startup
   paths for app-server sessions.
+- Hook source lives in the repo because the active workstation copy must be
+  testable and repairable without turning `$CODEX_HOME` into the source of
+  truth.
 
 ## Safety Rules
 

@@ -10,8 +10,11 @@ Use these references when changing this repo or validating its docs.
   common checks, install freshness checks, and design rationale.
 - [docs/wsl-shim.md](docs/wsl-shim.md): Windows-to-WSL Codex shim contract.
 - [docs/skills-updater.md](docs/skills-updater.md): skills updater contract.
-- [docs/sk-up-go-port.md](docs/sk-up-go-port.md): portable Go skills updater
-  implementation brief, CLI protocol, validation matrix, and progress ledger.
+- [docs/sk-up-go-port.md](docs/sk-up-go-port.md): promoted Go skills updater
+  implementation reference, CLI protocol, validation matrix, and completion
+  audit.
+- [docs/hook-guardrails.md](docs/hook-guardrails.md): repo-owned Codex hook
+  sources, install shape, and verification.
 - [docs/agent-native-boundary.md](docs/agent-native-boundary.md):
   BuilderIO/Agent-Native ownership boundary for plan/recap skills and
   Visual Canvas.

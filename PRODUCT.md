@@ -16,7 +16,7 @@ workstation install without relying on remembered local state.
 agents-toolkit keeps repo-owned Codex tooling understandable, repairable, and
 reproducible. It is the source of truth for Windows-to-WSL Codex launch
 behavior, app-server proxy behavior, global skills maintenance wrappers,
-repo-owned local skills, and Codex hook source.
+repo-owned local skills, Codex hook source, and the local Visual Canvas plugin.
 
 Success means a maintainer can quickly identify the file that owns a behavior,
 change it in source first, validate it with the smallest relevant check, and

@@ -26,8 +26,9 @@ without placing a `skills-updates.exe` updater-looking binary on `PATH`.
 
 ## Portable Go Implementation
 
-This page describes the promoted Go implementation. The implementation brief
-and progress ledger remain in [sk-up-go-port.md](sk-up-go-port.md).
+This page describes the promoted Go implementation. The implementation
+reference, validation matrix, and consolidated audit live in
+[sk-up-go-port.md](sk-up-go-port.md).
 
 ## Commands
 
@@ -76,7 +77,7 @@ Aliases:
 - `--global` / `-g`: fetch upstream repositories and print status for every
   global lockfile skill.
 - `--diff` / `-d <skill>`: show a terminal diff for one changed skill.
-- `--zed` / `-z [skill ...]`: open Zed diff views for changed skills.
+- `--zed` / `-z [skill ...]`: open changed skills in the configured diff tool.
 - `--install` / `-i`: install every changed or missing unskipped skill.
 - `--install` / `-i <skill ...>`: install named lockfile skills.
 - `--install-source` / `-I <source ...>`: install source URLs, SSH remotes,
@@ -86,8 +87,8 @@ Aliases:
 - `--skips` / `-S`: list saved skips.
 - `--remove` / `-r <skill ...>`: uninstall named global skills.
 
-`-g` is only for status checks. Do not combine it with install, diff, or Zed
-operations.
+`-g` is only for status checks. Do not combine it with install, terminal diff,
+or configured diff-tool operations.
 
 `--list` and `--global` answer different questions. `--list` reads installed
 skill directories from `%AGENTS_HOME%\skills`; `--global` checks only skills
@@ -96,9 +97,11 @@ it as unmanaged drift until it is either intentionally documented as local-only
 or reinstalled through the managed flow. If a lockfile entry has a `pluginName`,
 that is Skills CLI package metadata, not a Codex plugin installation.
 
-Last observed unmanaged drift on this workstation: `tdd` was installed under
-`%USERPROFILE%\.agents\skills` but absent from `.skill-lock.json` before the
-Matt Pocock package refresh.
+Treat unmanaged drift as an inventory problem, not as proof of updater failure.
+If a skill appears in `--list` but not `--global`, decide whether it is
+intentionally local-only, should be reinstalled through a managed source, or
+should be removed. Record only the current finding for the task at hand; do not
+keep old drift snapshots as standing guidance.
 
 ## State Paths
 

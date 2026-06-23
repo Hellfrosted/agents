@@ -1,5 +1,7 @@
 # Use advisory lock files
 
+Status: implemented.
+
 The portable skills updater uses advisory lock files next to `.skill-lock.json`
 instead of OS-specific named mutexes. Lock files give Linux, macOS, and Windows
 the same coordination model, can include PID, host, and timestamp metadata for

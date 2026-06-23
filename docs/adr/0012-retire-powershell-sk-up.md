@@ -1,11 +1,11 @@
 # Retire the PowerShell skills updater
 
-After the Go skills updater is promoted, the current PowerShell implementation
-is retired from the active path. The Windows wrappers invoke the Go binary, and
-the PowerShell script is not shipped as a supported fallback; keeping one
-supported implementation avoids drift in command behavior, state handling, and
-structured output.
+Status: implemented.
 
-Promotion should delete the retired PowerShell implementation from the active
-repo instead of moving it to an in-tree legacy location. Git history is the
-historical reference.
+The PowerShell implementation is retired from the active path. The Windows
+wrappers invoke the Go binary, and the PowerShell script is not shipped as a
+supported fallback; keeping one supported implementation avoids drift in command
+behavior, state handling, and structured output.
+
+The retired PowerShell implementation is deleted from the active repo instead
+of moved to an in-tree legacy location. Git history is the historical reference.

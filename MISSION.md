@@ -10,8 +10,10 @@ Maintain the local source of truth for:
 - Windows-to-WSL Codex launch behavior;
 - T3code app-server proxy behavior;
 - globally installed Codex skill maintenance wrappers;
+- repo-owned Visual Canvas plugin source;
 - repo-owned local skills;
-- repo-owned Codex hook source and focused verification docs.
+- repo-owned Codex hook source and focused verification docs;
+- promotion and wrapper checks for repo-owned workstation tooling.
 
 The repo should answer what is true now, how to verify it, and where to make the
 next source change. Historical notes belong only where they explain a current

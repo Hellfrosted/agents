@@ -1,5 +1,7 @@
 # Delegate skill installation
 
+Status: implemented.
+
 The Go skills updater delegates add and remove operations to the upstream Skills
 CLI instead of reimplementing package installation. The updater owns discovery,
 comparison, skip handling, dry-run planning, lockfile safety, and output
@@ -15,8 +17,8 @@ the updater should fall back across available runners in this order:
 3. `deno run -A npm:skills@latest`
 4. `npx -y skills@latest`
 
-Runner execution should use tokenized process execution rather than shell
-evaluation by default.
+Runner execution uses tokenized process execution rather than shell evaluation
+by default.
 
 Remove operations keep defensive updater-owned cleanup after a successful
 delegated remove: delete the installed skill directory, clear saved skip state,

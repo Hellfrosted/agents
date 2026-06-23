@@ -25,9 +25,9 @@ This repository still owns:
 
 - `bin/codex-wsl*`: the Windows-to-WSL Codex app-server shim, protocol proxy,
   path translation, and skills fallback.
-- `bin/skills-updates.*` and `bin/sk-up.cmd`: broad multi-source skill update,
-  diff, skip, install, and uninstall wrappers for the universal `.agents`
-  skill catalog.
+- `cmd/sk-up`, `internal/skup/...`, `bin/sk-up.cmd`, and
+  `bin/skills-updates.cmd`: broad multi-source skill update, diff, skip,
+  install, and uninstall behavior for the universal `.agents` skill catalog.
 - repo-owned local skills under `skills/`, such as ICM, Discrawl, Tuck,
   Task Brief, Confidence Loop, and Evo End To End.
 - `plugins/visual-canvas`: local and offline HTML report artifacts, reusable

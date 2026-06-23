@@ -42,6 +42,8 @@ Common entry points:
 
 - [WSL shim](docs/wsl-shim.md): Windows-to-WSL Codex launch and proxy behavior.
 - [Skills updater](docs/skills-updater.md): global skill update wrappers.
+- [Hook guardrails](docs/hook-guardrails.md): repo-owned Codex hook sources and
+  verification.
 - [Agent-Native boundary](docs/agent-native-boundary.md): what the installed
   BuilderIO/Agent-Native skills own versus what stays in this repo.
 - [Maintainer guide](docs/maintainer-guide.md): source-first workflow,
