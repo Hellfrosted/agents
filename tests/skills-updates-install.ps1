@@ -38,6 +38,35 @@ function Invoke-CapturedProcess {
     }
 }
 
+function Quote-CmdArgument {
+    param(
+        [string]$Value
+    )
+
+    if ($Value -notmatch '[\s"]') {
+        return $Value
+    }
+
+    return '"' + ($Value -replace '"', '""') + '"'
+}
+
+function Invoke-CmdScript {
+    param(
+        [string]$ScriptPath,
+        [string[]]$Arguments,
+        [int]$TimeoutMilliseconds = 15000
+    )
+
+    $quoted = @($ScriptPath) + $Arguments |
+        ForEach-Object { Quote-CmdArgument -Value $_ }
+    $command = [string]::Join(" ", $quoted)
+
+    Invoke-CapturedProcess `
+        -FileName "cmd.exe" `
+        -Arguments "/d /s /c ""$command""" `
+        -TimeoutMilliseconds $TimeoutMilliseconds
+}
+
 function Assert-Ok {
     param(
         [object]$Result,
@@ -60,20 +89,30 @@ try {
         throw "Windows install test must not create skills-updates.exe"
     }
 
-    $skUpHelp = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments "/d /c ""$caseBin\sk-up.cmd"" -h"
+    $skUpHelp = Invoke-CmdScript -ScriptPath (Join-Path $caseBin "sk-up.cmd") -Arguments @("-h")
     Assert-Ok -Result $skUpHelp -Label "sk-up help"
     if ($skUpHelp.Stdout -notmatch "sk-up -g") {
         throw "sk-up wrapper help did not expose short aliases. stdout: $($skUpHelp.Stdout)"
     }
 
-    $skillsUpdatesHelp = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments "/d /c ""$caseBin\skills-updates.cmd"" --help"
+    $skillsUpdatesHelp = Invoke-CmdScript -ScriptPath (Join-Path $caseBin "skills-updates.cmd") -Arguments @("--help")
     Assert-Ok -Result $skillsUpdatesHelp -Label "skills-updates help"
     if ($skillsUpdatesHelp.Stdout -notmatch "skills-updates --global") {
         throw "skills-updates wrapper help did not expose long aliases. stdout: $($skillsUpdatesHelp.Stdout)"
     }
 
-    $dryRunArgs = "/d /c ""$caseBin\sk-up.cmd"" -I owner/repo --dry-run --json --agents-home ""$agentsHome"" --cache-dir ""$cacheDir"" --state-dir ""$stateDir"""
-    $dryRun = Invoke-CapturedProcess -FileName "cmd.exe" -Arguments $dryRunArgs
+    $dryRun = Invoke-CmdScript -ScriptPath (Join-Path $caseBin "sk-up.cmd") -Arguments @(
+        "-I",
+        "owner/repo",
+        "--dry-run",
+        "--json",
+        "--agents-home",
+        $agentsHome,
+        "--cache-dir",
+        $cacheDir,
+        "--state-dir",
+        $stateDir
+    )
     Assert-Ok -Result $dryRun -Label "sk-up install-source dry-run"
     $json = $dryRun.Stdout | ConvertFrom-Json
     if (-not $json.ok -or -not $json.dryRun -or $json.actions[0].action -ne "install-source") {
