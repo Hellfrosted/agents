@@ -5,7 +5,7 @@ const { createPathTranslator } = require("./codex-wsl-path-translation");
 const { createSkillsFallback, splitPathListEnv, validateSkillsListResponse } = require("./codex-wsl-skills-fallback");
 const { buildChildEnv, parseNonNegativeInteger, readMessageTurnId } = require("./codex-wsl-proxy-runtime");
 
-test("Given Windows paths When normalizing protocol JSON Then only path fields convert", () => {
+test("Given Windows paths When applying protocol path policy Then scalar fields, arrays, and keyed maps convert", () => {
   const translator = createPathTranslator({ distroName: "Ubuntu" });
 
   const line = translator.normalizeInboundJsonLine(
@@ -18,6 +18,7 @@ test("Given Windows paths When normalizing protocol JSON Then only path fields c
         fileChanges: {
           "E:\\old.txt": { path: "E:\\new.txt" },
         },
+        events: [{ path: "F:\\event.txt", label: "F:\\not\\policy\\field" }],
       },
     })}\n`,
   );
@@ -29,6 +30,7 @@ test("Given Windows paths When normalizing protocol JSON Then only path fields c
     fileChanges: {
       "/mnt/e/old.txt": { path: "/mnt/e/new.txt" },
     },
+    events: [{ path: "/mnt/f/event.txt", label: "F:\\not\\policy\\field" }],
   });
 });
 

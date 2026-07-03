@@ -1,61 +1,73 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const PATH_KEYS = new Set([
-  "cwd",
-  "agent_path",
-  "codexHome",
-  "composerIcon",
-  "destinationPath",
-  "dotCodexFolder",
-  "filePath",
-  "grantRoot",
-  "iconLarge",
-  "iconSmall",
-  "installedRoot",
-  "localPluginPath",
-  "logo",
-  "managedDir",
-  "marketplacePath",
-  "move_path",
-  "newPath",
-  "oldPath",
-  "path",
-  "pluginPath",
-  "projectCwd",
-  "root",
-  "savedPath",
-  "source",
-  "sourcePath",
-  "windowsManagedDir",
-  "workingDirectory",
-  "working_directory",
-  "workspaceRoot",
-]);
+const PROTOCOL_PATH_POLICY = {
+  scalarFields: new Set([
+    "cwd",
+    "agent_path",
+    "codexHome",
+    "composerIcon",
+    "destinationPath",
+    "dotCodexFolder",
+    "filePath",
+    "grantRoot",
+    "iconLarge",
+    "iconSmall",
+    "installedRoot",
+    "localPluginPath",
+    "logo",
+    "managedDir",
+    "marketplacePath",
+    "move_path",
+    "newPath",
+    "oldPath",
+    "path",
+    "pluginPath",
+    "projectCwd",
+    "root",
+    "savedPath",
+    "source",
+    "sourcePath",
+    "windowsManagedDir",
+    "workingDirectory",
+    "working_directory",
+    "workspaceRoot",
+  ]),
+  arrayFields: new Set([
+    "changedPaths",
+    "cwds",
+    "extraLogFiles",
+    "extraUserRoots",
+    "files",
+    "instructionSources",
+    "preexisting_untracked_dirs",
+    "preexisting_untracked_files",
+    "read",
+    "readableRoots",
+    "readable_roots",
+    "roots",
+    "samplePaths",
+    "screenshots",
+    "sparsePaths",
+    "upgradedRoots",
+    "write",
+    "writableRoots",
+    "writable_roots",
+  ]),
+  keyedPathMaps: new Set(["fileChanges"]),
 
-const PATH_ARRAY_KEYS = new Set([
-  "changedPaths",
-  "cwds",
-  "extraLogFiles",
-  "extraUserRoots",
-  "files",
-  "instructionSources",
-  "preexisting_untracked_dirs",
-  "preexisting_untracked_files",
-  "read",
-  "readableRoots",
-  "readable_roots",
-  "roots",
-  "samplePaths",
-  "screenshots",
-  "sparsePaths",
-  "upgradedRoots",
-  "write",
-  "writableRoots",
-  "writable_roots",
-]);
+  shouldTranslateScalarField(key) {
+    return this.scalarFields.has(key);
+  },
 
-const PATH_MAP_KEYS = new Set(["fileChanges"]);
+  shouldTranslateArrayEntry(parentKey, entry) {
+    return this.arrayFields.has(parentKey) && typeof entry === "string";
+  },
+
+  shouldTranslateMapKey(parentKey) {
+    return this.keyedPathMaps.has(parentKey);
+  },
+};
 
 function createPathTranslator({ distroName = "", debugLog = () => {} } = {}) {
   function windowsPathToWsl(value) {
@@ -130,12 +142,12 @@ function createPathTranslator({ distroName = "", debugLog = () => {} } = {}) {
 
 function normalizePathFields(value, key, transformPath) {
   if (typeof value === "string") {
-    return PATH_KEYS.has(key) ? transformPath(value) : value;
+    return PROTOCOL_PATH_POLICY.shouldTranslateScalarField(key) ? transformPath(value) : value;
   }
 
   if (Array.isArray(value)) {
     return value.map((entry) =>
-      PATH_ARRAY_KEYS.has(key) && typeof entry === "string"
+      PROTOCOL_PATH_POLICY.shouldTranslateArrayEntry(key, entry)
         ? transformPath(entry)
         : normalizePathFields(entry, key, transformPath),
     );
@@ -144,7 +156,7 @@ function normalizePathFields(value, key, transformPath) {
   if (value && typeof value === "object") {
     const next = {};
     for (const [entryKey, entryValue] of Object.entries(value)) {
-      const normalizedKey = PATH_MAP_KEYS.has(key) ? transformPath(entryKey) : entryKey;
+      const normalizedKey = PROTOCOL_PATH_POLICY.shouldTranslateMapKey(key) ? transformPath(entryKey) : entryKey;
       next[normalizedKey] = normalizePathFields(entryValue, entryKey, transformPath);
     }
     return next;
