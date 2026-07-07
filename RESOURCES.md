@@ -47,6 +47,3 @@ Use these references when changing this repo or validating its docs.
 - [BuilderIO Agent-Native skills](https://github.com/BuilderIO/skills)
   Use for the installed Agent-Native plan, recap, orchestration, and managed
   instruction-block workflows. Do not duplicate those skills in this repo.
-- [LazyCodex / OMO plugin cache](https://github.com/sisyphuslabs)
-  Use as external context only when the user asks for OMO/plugin work. Do not
-  edit installed plugin/cache copies as part of ordinary agents-toolkit changes.

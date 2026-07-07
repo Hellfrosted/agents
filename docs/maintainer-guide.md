@@ -141,9 +141,6 @@ task explicitly asks for install or repair work.
 - The skills updater is Go-first so the same implementation owns Linux, macOS,
   and Windows behavior. Windows `.cmd` files are launchers only; they preserve
   UTF-8 console setup and invoke the adjacent Go executable.
-- LazyCodex is kept as a Codex plugin in WSL. The WSL runner allows LazyCodex
-  auto-update by default while disabling telemetry and config-migration startup
-  paths for app-server sessions.
 - Hook source lives in the repo because the active workstation copy must be
   testable and repairable without turning `$CODEX_HOME` into the source of
   truth.

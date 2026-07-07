@@ -9,7 +9,7 @@ Codex is launched as an app server.
 | File | Responsibility |
 | --- | --- |
 | `bin/codex-wsl.cmd` | Windows entry point. Finds `wsl.exe`, selects distro/user, preserves Windows cwd, passes selected environment names through WSL, and launches the WSL runner. |
-| `bin/codex-wsl-proxy-runner.sh` | WSL startup wrapper. Normalizes `HOME`, `USER`, `CODEX_HOME`, and `PATH`; disables LazyCodex startup mutation paths; finds Node; launches the proxy. |
+| `bin/codex-wsl-proxy-runner.sh` | WSL startup wrapper. Normalizes `HOME`, `USER`, `CODEX_HOME`, and `PATH`; finds Node; launches the proxy. |
 | `bin/codex-wsl-proxy.js` | Polyglot Bash/Node entry point that loads the runtime. |
 | `bin/codex-wsl-proxy-runtime.js` | Child-process lifecycle, app-server idle reaping, active-turn tracking, stream forwarding, and `skills/list` fallback timing. |
 | `bin/codex-wsl-path-translation.js` | Windows-to-WSL and WSL-to-Windows path conversion for known protocol path fields. |
@@ -57,14 +57,6 @@ The WSL runner defaults to:
 
 - `CODEX_HOME=$HOME/.codex`
 - `PATH` prefixed with pnpm, Bun, user-local, and user bin directories
-- LazyCodex auto-update allowed by default, with telemetry and config migration
-  disabled for app-server sessions:
-  - `OMO_CODEX_DISABLE_POSTHOG=1`
-  - `OMO_CODEX_SEND_ANONYMOUS_TELEMETRY=0`
-  - `OMO_DISABLE_POSTHOG=1`
-  - `OMO_SEND_ANONYMOUS_TELEMETRY=0`
-  - `LAZYCODEX_CONFIG_MIGRATION_DISABLED=1`
-  - `OMO_CODEX_CONFIG_MIGRATION_DISABLED=1`
 
 ## Environment Overrides
 
