@@ -1,5 +1,5 @@
 {
-  "matcher": "Bash|exec_command|functions\\.exec_command|shell_command|functions\\.shell_command|multi_tool_use\\.parallel",
+  "matcher": "^Bash$",
   "hooks": [
     {
       "type": "command",
