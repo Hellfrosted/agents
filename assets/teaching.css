@@ -1,0 +1,390 @@
+:root {
+  --bg: oklch(1 0 0);
+  --ink: oklch(0.22 0.02 252);
+  --muted: oklch(0.43 0.018 252);
+  --line: oklch(0.84 0.008 252);
+  --surface: oklch(0.965 0.008 252);
+  --surface-strong: oklch(0.925 0.014 252);
+  --primary: oklch(0.478 0.136 251.8);
+  --primary-hover: oklch(0.385 0.12 251.8);
+  --primary-focus: oklch(0.89 0.045 251.8);
+  --good: oklch(0.42 0.095 157);
+  --bad: oklch(0.46 0.16 30);
+  --code: oklch(0.2 0.02 252);
+  color: var(--ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 18px;
+  line-height: 1.58;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--surface);
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+}
+
+a {
+  color: var(--primary);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+
+a:hover {
+  color: var(--primary-hover);
+}
+
+code,
+pre,
+.mono {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+code {
+  font-size: 0.86em;
+  background: var(--surface);
+  padding: 0.08em 0.28em;
+  border-radius: 3px;
+}
+
+.lesson-shell {
+  width: min(100% - 2.5rem, 58rem);
+  margin: 0 auto;
+  padding: 4.5rem 0 5.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 1.2rem;
+  color: var(--primary);
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3 {
+  color: var(--ink);
+  font-family: inherit;
+  line-height: 1.12;
+  text-wrap: balance;
+}
+
+h1 {
+  max-width: 14ch;
+  margin: 0;
+  font-size: 3.4rem;
+  font-weight: 740;
+  letter-spacing: -0.035em;
+}
+
+h2 {
+  margin: 3.5rem 0 1rem;
+  font-size: 1.8rem;
+  letter-spacing: -0.025em;
+}
+
+h3 {
+  margin: 1.8rem 0 0.5rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.015em;
+}
+
+p,
+li {
+  max-width: 72ch;
+  text-wrap: pretty;
+}
+
+.lede {
+  max-width: 50ch;
+  margin: 1.35rem 0 0;
+  color: var(--ink);
+  font-size: 1.24rem;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-top: 1.75rem;
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.85rem;
+}
+
+.rule {
+  height: 1px;
+  margin: 3rem 0;
+  border: 0;
+  background: var(--line);
+}
+
+.callout,
+.checklist,
+.practice,
+.source-note {
+  margin: 1.7rem 0;
+  padding: 1.2rem 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+}
+
+.callout {
+  border-top: 3px solid var(--primary);
+  background: var(--surface);
+}
+
+.callout h2,
+.callout h3,
+.checklist h2,
+.checklist h3,
+.practice h2,
+.practice h3,
+.source-note h2,
+.source-note h3 {
+  margin-top: 0;
+}
+
+.callout p:last-child,
+.checklist p:last-child,
+.practice p:last-child,
+.source-note p:last-child {
+  margin-bottom: 0;
+}
+
+.checklist {
+  background: var(--surface);
+}
+
+.checklist ol,
+.checklist ul {
+  margin-bottom: 0;
+}
+
+.contract {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.35rem;
+  overflow-x: auto;
+  color: oklch(0.98 0 0);
+  background: var(--code);
+  border-radius: 0.4rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+table {
+  width: 100%;
+  margin: 1.5rem 0;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  padding: 0.8rem 0.7rem;
+  vertical-align: top;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  color: var(--muted);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tag {
+  display: inline-block;
+  padding: 0.12rem 0.42rem;
+  border: 1px solid currentColor;
+  border-radius: 99px;
+  color: var(--primary);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tag.high {
+  color: var(--bad);
+}
+
+.tag.medium {
+  color: var(--primary);
+}
+
+.quiz {
+  margin: 1.5rem 0;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--bg);
+}
+
+.quiz fieldset {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.quiz legend {
+  max-width: 60ch;
+  margin-bottom: 0.85rem;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.answer-list {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.answer-list button {
+  width: 100%;
+  padding: 0.72rem 0.85rem;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 0.28rem;
+  background: var(--bg);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.answer-list button:hover,
+.answer-list button:focus-visible {
+  outline: 3px solid var(--primary-focus);
+  outline-offset: 1px;
+  border-color: var(--primary);
+}
+
+.answer-list button.is-correct {
+  border-color: var(--good);
+  background: oklch(0.95 0.025 157);
+}
+
+.answer-list button.is-incorrect {
+  border-color: var(--bad);
+  background: oklch(0.95 0.025 30);
+}
+
+.feedback {
+  min-height: 1.5em;
+  margin: 0.9rem 0 0;
+  font-family: inherit;
+  font-size: 0.91rem;
+}
+
+.feedback.good {
+  color: var(--good);
+}
+
+.feedback.bad {
+  color: var(--bad);
+}
+
+.footer-note {
+  margin-top: 4rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+@media (max-width: 42rem) {
+  :root {
+    font-size: 16px;
+  }
+
+  .lesson-shell {
+    width: min(100% - 1.5rem, 58rem);
+    padding-top: 2.5rem;
+  }
+
+  h1 {
+    font-size: 2.35rem;
+  }
+
+  table {
+    display: block;
+    overflow: visible;
+  }
+
+  table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  table tbody {
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  table tr {
+    display: block;
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  table td {
+    display: grid;
+    grid-template-columns: minmax(6.2rem, 34%) minmax(0, 1fr);
+    gap: 0.7rem;
+    padding: 0.32rem 0;
+    border: 0;
+  }
+
+  table td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    line-height: 1.35;
+    text-transform: uppercase;
+  }
+}
+
+@media print {
+  :root {
+    font-size: 11pt;
+  }
+
+  html,
+  body {
+    background: oklch(1 0 0);
+  }
+
+  .lesson-shell {
+    width: 100%;
+    padding: 0;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .quiz {
+    break-inside: avoid;
+  }
+}

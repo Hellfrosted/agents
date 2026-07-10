@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Skill Prompting Checklist</title>
+    <link rel="stylesheet" href="../assets/teaching.css">
+  </head>
+  <body>
+    <main class="lesson-shell">
+      <p class="eyebrow">Agents Toolkit · Reference</p>
+      <h1>Skill Prompting Checklist</h1>
+      <p class="lede">A compact test for whether a durable Codex skill gives an agent enough direction without prescribing needless steps.</p>
+
+      <section id="contract">
+        <h2>The minimum useful contract</h2>
+        <p><a href="https://learn.chatgpt.com/docs/prompting#prompting-overview">OpenAI’s Prompting guide</a> names goal, context, output, and boundaries. <strong>Repository adaptation:</strong> for agent skills, add the smallest verification that proves completion.</p>
+        <pre class="contract">Outcome: What useful result should exist when the skill finishes?
+Context: What paths, sources, state, or terminology can change that result?
+Output: What form, audience, or evidence makes it ready to use?
+Boundary: What must stay unchanged, never happen, or require approval?
+Proof: What smallest check confirms the outcome?</pre>
+      </section>
+
+      <section id="triage">
+        <h2>Repository placement convention</h2>
+        <p>This placement is a local design convention, not an official skill-file format. Use it only when it keeps a repeatable workflow clearer.</p>
+        <table>
+          <thead>
+            <tr><th>Material</th><th>Home</th><th>Reason</th></tr>
+          </thead>
+          <tbody>
+            <tr><td data-label="Material">Trigger and exclusions</td><td data-label="Home"><code>SKILL.md</code> frontmatter</td><td data-label="Reason">Correct routing prevents accidental invocation.</td></tr>
+            <tr><td data-label="Material">Desired end state and one or two critical guardrails</td><td data-label="Home">Opening of <code>SKILL.md</code></td><td data-label="Reason">The agent sees the purpose before procedure.</td></tr>
+            <tr><td data-label="Material">Variable commands, version tables, or repair detail</td><td data-label="Home"><code>REFERENCE.md</code></td><td data-label="Reason">Keeps the operational contract compact when the sequence is not itself safety-critical.</td></tr>
+            <tr><td data-label="Material">Personal defaults across repositories</td><td data-label="Home">Global guidance/config</td><td data-label="Reason">Avoids duplicating workstation preferences in every skill.</td></tr>
+            <tr><td data-label="Material">One-off constraints or current files</td><td data-label="Home">The task prompt</td><td data-label="Reason">They should not become permanent workflow policy.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="loops">
+        <h2>Repository convention: bound repeated work</h2>
+        <p>For a genuinely repeated or persistent workflow, this repository uses a goal, an attempt budget, evidence per attempt, a stop condition, and a report of what was learned. Reuse the repository’s <a href="../skills/shared-agent-protocol/SKILL.md#bounded-loops">bounded-loop protocol</a> instead of repeating it in every one-shot skill.</p>
+        <div class="callout">
+          <h3>Repository default: avoid hard-coding model names</h3>
+          <p>The <a href="https://developers.openai.com/api/docs/guides/latest-model">current model guide</a> recommends choosing a model and reasoning effort for the workload, then comparing representative tasks. Keep durable skills model-agnostic unless compatibility, evaluation, deployment, or a concrete workload constraint requires a pin.</p>
+        </div>
+      </section>
+
+      <section id="audit">
+        <h2>Five-minute audit</h2>
+        <ol>
+          <li>Can a reader say when this skill applies—and when it does not?</li>
+          <li>Does the opening say what success looks like before it lists mechanics?</li>
+          <li>Is every context item needed to change the result or protect a real boundary?</li>
+          <li>Are detailed commands in a reference unless their exact sequence is safety-critical?</li>
+          <li>Can the agent name the output and smallest proof before it starts?</li>
+        </ol>
+      </section>
+
+      <section class="source-note" id="source">
+        <h2>Source</h2>
+        <p>Official sources: <a href="https://learn.chatgpt.com/docs/prompting">Prompting</a>, <a href="https://developers.openai.com/api/docs/guides/latest-model">GPT-5.6 model guide</a>, <a href="https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6">GPT-5.6 prompt guidance</a>, and <a href="https://learn.chatgpt.com/docs/build-skills">Build skills</a>. This checklist is a repository design aid, not an official skill-file format or a requirement to force every field into every skill.</p>
+      </section>
+
+      <p class="footer-note">Use this alongside the first lesson: <a href="../lessons/0001-prompting-for-codex-skills.html">Prompting for Codex skills</a>.</p>
+    </main>
+  </body>
+</html>

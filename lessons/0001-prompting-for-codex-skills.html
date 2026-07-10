@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Prompting for Codex Skills</title>
+    <link rel="stylesheet" href="../assets/teaching.css">
+    <script src="../assets/skill-lesson.js" defer></script>
+  </head>
+  <body>
+    <main class="lesson-shell">
+      <p class="eyebrow">Agents Toolkit · Lesson 0001</p>
+      <h1>Prompting for Codex skills</h1>
+      <p class="lede">Improve the skills in this repository by making their contracts easier to route, execute, and verify—without stripping out safety-critical procedure.</p>
+      <div class="meta">
+        <span>About 8 minutes</span>
+        <span>Grounded in <a href="../MISSION.md">this repository’s mission</a></span>
+        <span>Sources: <a href="https://learn.chatgpt.com/docs/prompting">Prompting</a>, <a href="https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6">GPT-5.6 guidance</a>, <a href="https://learn.chatgpt.com/docs/build-skills">Build skills</a></span>
+      </div>
+
+      <hr class="rule">
+
+      <section id="outcome">
+        <h2>The idea in one sentence</h2>
+        <p>Write a skill like a compact contract: name the desired result first, supply only decision-changing context, protect the few boundaries that matter, and say what proves it is done.</p>
+        <div class="callout">
+          <h3>What the official guide says</h3>
+          <p><a href="https://learn.chatgpt.com/docs/prompting#prompting-overview">OpenAI’s Prompting guide</a> says that, for larger or more important tasks, use the parts that matter—<strong>goal, context, output, and boundaries</strong>—and only the parts that help. Its <a href="https://learn.chatgpt.com/docs/prompting#put-the-pieces-together">worked example</a> includes a final check without spelling out every step.</p>
+        </div>
+      </section>
+
+      <section id="translation">
+        <h2>Translate that into a <code>SKILL.md</code></h2>
+        <p><strong>Repository translation:</strong> the official prompt components do not prescribe a skill-file format. This repository uses them as a compact design aid; <a href="https://learn.chatgpt.com/docs/build-skills">Build skills</a> supports reusable instructions plus optional references and assets.</p>
+        <table>
+          <thead>
+            <tr><th>Prompting principle</th><th>Skill implementation</th><th>Keep it compact by…</th></tr>
+          </thead>
+          <tbody>
+            <tr><td data-label="Prompting principle">Goal</td><td data-label="Skill implementation">Open with the successful end state.</td><td data-label="Keep it compact by">Using one clear sentence before the workflow.</td></tr>
+            <tr><td data-label="Prompting principle">Context</td><td data-label="Skill implementation">Name only required files, sources, state, or terms.</td><td data-label="Keep it compact by">Moving command matrices and version detail to <code>REFERENCE.md</code>.</td></tr>
+            <tr><td data-label="Prompting principle">Output</td><td data-label="Skill implementation">Specify the artifact, verdict, or report shape.</td><td data-label="Keep it compact by">Using a short canonical template when the output repeats.</td></tr>
+            <tr><td data-label="Prompting principle">Boundaries</td><td data-label="Skill implementation">State the irreversible, privacy, authorization, or scope limits.</td><td data-label="Keep it compact by">Keeping one or two critical rules close to the action they protect.</td></tr>
+            <tr><td data-label="Prompting principle">Final check</td><td data-label="Skill implementation">Name the smallest relevant proof.</td><td data-label="Keep it compact by">Making the completion condition observable.</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Repository adaptation:</strong> lead with the result and keep safety-critical sequencing close to the action it protects. Do <em>not</em> force every skill into a five-field form. Current <a href="https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6">GPT-5.6 prompt guidance</a> recommends keeping outcome, success, safety, permission, stopping, and validation rules while trimming repeated or irrelevant instruction.</p>
+        <p>Keep the <a href="../reference/skill-prompting-checklist.html">Skill Prompting Checklist</a> nearby when editing.</p>
+      </section>
+
+      <section id="repo-changes">
+        <h2>Evidence-based decisions for this repository</h2>
+        <p>These are repository judgments based on the current skills, not OpenAI requirements. The current guidance says to change a working prompt only after representative evaluation, so most rows are deliberate no-change decisions.</p>
+        <table>
+          <thead>
+            <tr><th>Priority</th><th>File</th><th>Change</th><th>Why</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td data-label="Priority"><span class="tag high">Test first</span></td>
+              <td data-label="File"><a href="../skills/task-brief/SKILL.md"><code>task-brief</code></a></td>
+              <td data-label="Change">Keep its existing branch chooser and canonical contract. Test one review and one operate request; add one example only if a real gap appears.</td>
+              <td data-label="Why">It already names the branches and their required evidence. A prompt change should follow a demonstrated gap, not duplicate existing routing.</td>
+            </tr>
+            <tr>
+              <td data-label="Priority"><span class="tag high">Keep</span></td>
+              <td data-label="File"><a href="../skills/shared-agent-protocol/SKILL.md"><code>shared-agent-protocol</code></a></td>
+              <td data-label="Change">Keep it reference-only; do not add per-section mini-workflows.</td>
+              <td data-label="Why">Entrypoint skills link to its shared sections. Its own scope forbids turning it into a general handbook.</td>
+            </tr>
+            <tr>
+              <td data-label="Priority"><span class="tag medium">Keep</span></td>
+              <td data-label="File"><a href="../skills/code-refactor-review/SKILL.md"><code>code-refactor-review</code></a></td>
+              <td data-label="Change">Keep its repository-search, evidence, and verdict contract. Add detail only after a real review misses a measurable check.</td>
+              <td data-label="Why">The existing completion criterion already requires each finding to cite changed code plus a searched pattern or no-pattern result.</td>
+            </tr>
+            <tr>
+              <td data-label="Priority"><span class="tag medium">Keep</span></td>
+              <td data-label="File"><a href="../skills/confidence-loop/SKILL.md"><code>confidence-loop</code></a></td>
+              <td data-label="Change">Keep the mode and alias table with its reviewer budget. Trim only measured duplicate prose.</td>
+              <td data-label="Why">The invocation contract chooses audit coverage before the workflow starts.</td>
+            </tr>
+            <tr>
+              <td data-label="Priority"><span class="tag medium">Keep</span></td>
+              <td data-label="File"><a href="../skills/tuck/SKILL.md"><code>tuck</code></a></td>
+              <td data-label="Change">Keep the candidate-integrity checkpoints and the separate push authorization gate.</td>
+              <td data-label="Why">Capture, review invalidation, and final pre-commit matching protect different failure points.</td>
+            </tr>
+            <tr>
+              <td data-label="Priority"><span class="tag medium">Keep</span></td>
+              <td data-label="File"><a href="../skills/discrawl/SKILL.md"><code>discrawl</code></a></td>
+              <td data-label="Change">Keep its Search, Channel Context, and Status branches; change them only after an observed routing failure.</td>
+              <td data-label="Why">Each branch already names when to use it, its bounded query shape, and its completion evidence.</td>
+            </tr>
+            <tr>
+              <td data-label="Priority"><span class="tag medium">Keep</span></td>
+              <td data-label="File"><a href="../skills/evo-end-to-end/SKILL.md"><code>evo-end-to-end</code></a></td>
+              <td data-label="Change">Keep the ordered flow and interleaved approval gates. Any summary must preserve the exact operational order.</td>
+              <td data-label="Why">Discovery, check runs, autonomy, sizing, optimization, and shipping each have distinct safety semantics.</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="callout">
+          <h3>Leave these alone for now</h3>
+          <p><a href="../skills/icm/SKILL.md"><code>icm</code></a> already has an unusually crisp scope split (recall, store, recall-then-store) and explicit safety gates. Do not add generic template language just for consistency. Also keep exact commands in the main skill when their order is itself a safety control.</p>
+        </div>
+      </section>
+
+      <section id="bounded-goals">
+        <h2>Repository convention: bound repeated work</h2>
+        <p>For a genuinely repeated or persistent workflow, use the repository’s <a href="../skills/shared-agent-protocol/SKILL.md#bounded-loops">shared bounded-loop protocol</a>: define state, next action, stop condition, human gate, budget, and any applicable failure learning.</p>
+        <p>Do not add this machinery to a one-shot review skill merely because it sounds rigorous.</p>
+      </section>
+
+      <section id="practice" class="practice">
+        <h2>Try it: two decisions</h2>
+        <p>Choose an answer. You’ll get immediate feedback.</p>
+
+        <section class="quiz" data-quiz>
+          <fieldset>
+            <legend>A new long-running optimization skill says: “Try up to six hypotheses, test after each attempt, then stop and report the strongest result.” Where should that policy live?</legend>
+            <div class="answer-list">
+              <button type="button" data-answer data-correct="false" data-feedback="Not quite. A repeated-work contract would add irrelevant machinery to one-shot skills.">Place it in every skill, including each routine review task.</button>
+              <button type="button" data-answer data-correct="true" data-feedback="Correct. Put the loop-specific policy in its owning workflow and link to shared protocol terms.">Place it in that workflow, linked directly to shared protocol.</button>
+              <button type="button" data-answer data-correct="false" data-feedback="Not quite. Frontmatter routes a skill; it is not the place for an attempt budget.">Put it only in frontmatter, before every skill workflow starts.</button>
+            </div>
+            <p class="feedback" data-feedback aria-live="polite"></p>
+          </fieldset>
+        </section>
+
+        <section class="quiz" data-quiz>
+          <fieldset>
+            <legend>A skill repeats a large, version-sensitive command matrix before the agent can see its intended outcome. What is the best first refactor?</legend>
+            <div class="answer-list">
+              <button type="button" data-answer data-correct="true" data-feedback="Correct. Keep the contract and safety-critical sequence visible; move only noncritical variable detail.">Lead with the contract; move noncritical detail to a reference.</button>
+              <button type="button" data-answer data-correct="false" data-feedback="Not quite. Deleting a real safety control makes the skill shorter but less reliable.">Delete every command, then leave only the compact contract visible.</button>
+              <button type="button" data-answer data-correct="false" data-feedback="Not quite. This makes the skill harder to route and hides its purpose behind mechanics.">Keep commands first, then explain the contract afterward in detail.</button>
+            </div>
+            <p class="feedback" data-feedback aria-live="polite"></p>
+          </fieldset>
+        </section>
+      </section>
+
+      <section id="next">
+        <h2>Your first safe edit</h2>
+        <p>Start with <a href="../skills/task-brief/SKILL.md"><code>task-brief</code></a>: test its current brief against one review request and one operate request. Add one minimal example only if a result exposes a real branch-specific gap.</p>
+        <p>Ask me a follow-up question whenever you want to workshop a specific edit, compare two versions, or turn the P1 recommendations into a patch.</p>
+      </section>
+
+      <p class="footer-note">Sources: <a href="https://learn.chatgpt.com/docs/prompting">Prompting</a>, <a href="https://developers.openai.com/api/docs/guides/latest-model">GPT-5.6 model guide</a>, <a href="https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6">GPT-5.6 prompt guidance</a>, and <a href="https://learn.chatgpt.com/docs/build-skills">Build skills</a>. See also the <a href="../reference/skill-prompting-checklist.html">printable checklist</a>.</p>
+    </main>
+  </body>
+</html>

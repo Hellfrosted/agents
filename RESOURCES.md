@@ -40,6 +40,20 @@ Use these references when changing this repo or validating its docs.
 
 ## Skills And Local Agent Workflows
 
+- [OpenAI Prompting guide](https://learn.chatgpt.com/docs/prompting)
+  Use for: outcome-first task and skill contracts; deciding which context,
+  output constraints, boundaries, and final checks belong in an agent request.
+- [GPT-5.6 model guide](https://developers.openai.com/api/docs/guides/latest-model)
+  Use for: current model and reasoning-effort selection, including comparison
+  on representative tasks. Repository policy: do not hard-code a model name
+  in durable workflow text without a concrete compatibility, evaluation,
+  deployment, or workload reason.
+- [GPT-5.6 prompt guidance](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6)
+  Use for: lean, outcome-first instructions; approval and stop boundaries;
+  explicit validation; and surgical, evaluation-backed prompt changes.
+- [Build skills](https://learn.chatgpt.com/docs/build-skills)
+  Use for: concise skill descriptions, progressive disclosure, skill-folder
+  structure, and choosing instructions versus references or scripts.
 - [Model Context Protocol](https://modelcontextprotocol.io/)
   Use for MCP lifecycle and tool server behavior.
 - [Skills package source conventions](https://github.com/mattpocock/skills)
