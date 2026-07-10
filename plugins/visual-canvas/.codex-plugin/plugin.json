@@ -1,6 +1,6 @@
 {
   "name": "visual-canvas",
-  "version": "0.1.0+codex.20260619082635",
+  "version": "0.1.0+codex.20260710093347",
   "description": "Single-entry Codex-native local HTML report and artifact workflow.",
   "author": {
     "name": "agents-toolkit"

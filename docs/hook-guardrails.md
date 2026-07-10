@@ -83,7 +83,8 @@ has meaningful visual surface area.
 Run the hook regression from the repo root:
 
 ```bash
-python3 -m unittest hooks/test_wsl_command_guardrails.py hooks/test_icm_pre_json.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
+  hooks/test_wsl_command_guardrails.py hooks/test_icm_pre_json.py
 ```
 
 For hook config or adapter edits, also run:

@@ -61,10 +61,11 @@ handling, turn-id parsing, and timeout parsing.
 
 ### Workstation hooks
 
-Run the focused source test before publishing changes to the active global hook:
+Run the focused source tests before publishing changes to the active global hook:
 
 ```bash
-python3 -m unittest hooks/test_wsl_command_guardrails.py
+PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
+  hooks/test_wsl_command_guardrails.py hooks/test_icm_pre_json.py
 ```
 
 The hook contract is documented in [hook-guardrails.md](hook-guardrails.md).
