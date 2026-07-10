@@ -1,0 +1,7 @@
+interface:
+  display_name: "Shared Agent Protocol"
+  short_description: "Shared delegation and review reference"
+  default_prompt: "Use $shared-agent-protocol only as the shared reference for an entrypoint skill's delegated workflow."
+
+policy:
+  allow_implicit_invocation: false

@@ -21,6 +21,11 @@ request recaps, diff recaps, and agent-work recaps to the installed
 `/visual-plan` or `/visual-recap` skill unless the user specifically asks for a
 portable local HTML report.
 
+Check the visible skill catalog before routing. If the matching Agent-Native
+skill is unavailable, report that dependency and its upstream source instead of
+silently absorbing the general workflow. Continue in Visual Canvas only when
+the user still wants a portable local HTML artifact.
+
 The user should only need to invoke `visual-canvas`. Select any mode-specific
 helper behavior yourself.
 

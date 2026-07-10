@@ -19,7 +19,10 @@ hardware, destructive actions, or ownership.
    states safety limits or non-goals.
 4. Set proof and mode. Complete when `Evidence` says what verifies done and
    `Mode` is light or heavy with the trigger named.
-5. Emit the canonical shape only; add branch-specific detail inside its fields.
+5. Pin the deliverable. Complete when `Output` names its format and destination
+   or audience.
+6. Emit the canonical shape only; add branch-specific detail inside its fields.
+   Complete when every canonical field has a concrete value or `none`.
 
 ## Canonical Shape
 
@@ -37,20 +40,22 @@ Mode: <light or heavy, with trigger if heavy>
 ## Branch Notes
 
 - Build/fix: include the observable failure or workflow, smallest acceptable
-  change, focused validation, and real-surface QA when user-facing. Evidence
-  should name RED proof when behavior changes, GREEN commands, and any UI/API
-  proof.
+  change, focused validation, and real-surface QA when user-facing. For a
+  behavior fix, `Evidence` names the pre-fix RED reproduction or failing test
+  when feasible, the post-fix GREEN command, and any UI/API proof.
 - Research: require primary sources for unstable or high-stakes facts, separate
   fact from inference, and cite files/URLs with dates when relevant. Evidence is
   source-backed findings; no mutation unless explicitly requested.
-- Review: ask for findings first, tied to source lines, plus verification gaps.
-  Do not include rewrite work unless the user asks for it.
+- Review: make the requested output findings-first, with each material finding
+  tied to source lines or equivalent evidence and with verification gaps stated.
+  Include edits only when the user requests review-and-fix.
 - Operate: require current-state inspection, dry-run/read-only checks when
   available, before/after evidence, and explicit approval for destructive,
   credential, exposure, machine-wide, or production-risk actions.
 - Future-work handoff: include current state, exact next action, known blockers,
-  allowed write set, and resume evidence. Use the conversation handoff skill for
-  compaction handoffs instead.
+  allowed write set, and resume evidence. Conversation-compaction handoffs
+  depend on the external `$handoff` skill. If it is unavailable, say so and use
+  this canonical shape as a compact fallback.
 
 ## Mode
 
@@ -58,6 +63,16 @@ Default to light for ordinary prompt shaping and implementation briefs. Use
 heavy only when the brief drives security, money, deployment, legal/medical
 risk, production operations, credentials, irreversible data, concurrency,
 external APIs, cross-module contracts, or architecture decisions.
+
+Heavy mode keeps the canonical shape but adds a concrete delta:
+
+- `Do` names sequencing, owners, and rollback or recovery actions.
+- `Do not` names approval gates and the exact boundary each gate protects.
+- `Evidence` covers boundary checks, failure-path proof, and rollback proof.
+- `Output` includes an audit trail and unresolved risks or decisions.
+
+Heavy mode is complete only when each applicable delta is present or explicitly
+marked unnecessary.
 
 ## Example
 

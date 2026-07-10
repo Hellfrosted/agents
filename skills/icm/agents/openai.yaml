@@ -4,7 +4,7 @@ interface:
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
   brand_color: "#4338CA"
-  default_prompt: "Use $icm to recall relevant ICM memory and store only explicit safe durable facts when appropriate."
+  default_prompt: "Use $icm to recall relevant memory read-only; store a safe durable fact only when I explicitly request storage."
 
 policy:
   allow_implicit_invocation: true

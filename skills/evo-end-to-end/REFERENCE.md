@@ -1,139 +1,121 @@
 # Evo End To End Reference
 
+## Authoritative Sources
+
+For release-specific behavior, prefer the installed plugin bundle whose
+`evo_version` matches `evo --version`, then the matching upstream tag:
+
+- CLI: `plugins/evo/src/evo/cli.py`
+- Host installers: `plugins/evo/src/evo/host_install/`
+- Driving skills: `plugins/evo/skills/{discover,optimize,report,ship}/`
+- Round sizing:
+  `plugins/evo/skills/discover/references/sizing-the-round.md`
+- CLI quick reference: `plugins/evo/skills/references/cli-quick-reference.md`
+
+The npm mirror lives under `plugins/evo/npm/skills/`; do not use historical
+`skills/` or `npm/skills/` repository-root paths for v0.7.
+
 ## Companion Skill Sources
 
 | Skill | Use in this workflow | GitHub source if missing |
 | --- | --- | --- |
-| `$ask-matt` | Choose the Matt Pocock flow when a request is not yet clearly planning, triage, implementation, or codebase health work. | `https://github.com/mattpocock/skills.git` at `skills/engineering/ask-matt/SKILL.md` |
-| `$grilling` | Clarify ambiguous goals, constraints, non-goals, success metrics, ownership, or forbidden changes. This is the internal interview skill used by the old grill wrappers. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grilling/SKILL.md` |
-| `$codebase-design` | Use Matt's deep-module vocabulary when evaluating module interfaces, seams, leverage, locality, and testability. | `https://github.com/mattpocock/skills.git` at `skills/engineering/codebase-design/SKILL.md` |
-| `$domain-modeling` | Pair with `$grilling` for codebase planning when the workflow needs to add or change `CONTEXT.md`, ADRs, or domain terms. | `https://github.com/mattpocock/skills.git` at `skills/engineering/domain-modeling/SKILL.md` |
+| `$ask-matt` | Route an unclear engineering workflow. | `https://github.com/mattpocock/skills.git` at `skills/engineering/ask-matt/SKILL.md` |
+| `$grilling` | Clarify ambiguous goals, constraints, success metrics, ownership, and forbidden changes. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grilling/SKILL.md` |
+| `$codebase-design` | Evaluate module interfaces, seams, leverage, locality, and testability. | `https://github.com/mattpocock/skills.git` at `skills/engineering/codebase-design/SKILL.md` |
+| `$domain-modeling` | Pair domain vocabulary, `CONTEXT.md`, and ADR work with planning. | `https://github.com/mattpocock/skills.git` at `skills/engineering/domain-modeling/SKILL.md` |
 | `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
-| `$implement` | Execute a single PRD or issue after the plan has been split and the implementation scope is fresh. | `https://github.com/mattpocock/skills.git` at `skills/engineering/implement/SKILL.md` |
-| `$tdd` | Drive implementation test-first when an Evo setup task needs behavior locked by public-interface tests. | `https://github.com/mattpocock/skills.git` at `skills/engineering/tdd/SKILL.md` |
-| `evo:discover`, `evo:optimize`, `evo:finetuning`, `evo:infra-setup` | Evo plugin skills installed by `evo install <host>`. Use the bundle whose `evo_version` matches `evo --version`. | `https://github.com/evo-hq/evo.git` under `skills/`; npm mirrors may expose the same files under `npm/skills/`. |
+| Evo discover, optimize, report, ship, finetuning, infra-setup | Use the Evo bundle whose `evo_version` matches the CLI. | `https://github.com/evo-hq/evo.git` under `plugins/evo/skills/` |
 
-The current `mattpocock/skills` package is installed through the Skills CLI and
-may record `pluginName: "mattpocock-skills"` in the universal skill lockfile.
-That metadata does not make it a Codex plugin; resolve missing Matt skills from
-`https://github.com/mattpocock/skills.git`, not from the Codex plugin cache.
+The Matt Pocock package may record `pluginName: "mattpocock-skills"` in a
+universal skill lockfile. Resolve missing skills from its source repository,
+not from the Codex plugin cache. Do not invent or retain a companion skill name
+that the current source tree no longer contains.
 
-## Optimize Presets
+## Evo v0.7 Workflow Notes
 
-Use presets only as fallbacks when the benchmark resource profile is unknown and
-the user gave no exact values:
+- Keep the CLI and host plugin bundle in lockstep. Report
+  `evo update <host> --version 0.7.0` when repair is needed; run it only after
+  explicit user approval. Verify with `evo doctor <host>`.
+- Host invocation differs. Claude Code uses `/evo:discover`,
+  `/evo:optimize`, `/evo:report`, and `/evo:ship`. Codex advertises the plugin
+  through `$evo`; select the corresponding driving skill rather than copying
+  Claude slash-command syntax. Other hosts use their menu or natural language.
+- `evo init` requires `--host` and a positive `--per-exp-timeout`. The timeout
+  becomes the workspace default; override one call with `evo run <exp_id>
+  --timeout N`, or change the workspace with `evo config set per-exp-timeout
+  N`.
+- `evo run <exp_id> --check` runs the configured benchmark and gates and writes
+  artifacts to a fresh check-attempt directory. It does not commit, evaluate,
+  or consume retry budget. Treat it as workspace-writing and potentially
+  compute-expensive.
+- `evo run <exp_id>` is terminal on success: it evaluates and commits the
+  experiment. Do not follow it with `evo done`; that command is for manually
+  recorded scores outside `evo run`.
+- After optimization, use the report skill to summarize recorded state without
+  spending compute. Use ship only after winner selection and approval; it
+  distills the best valid experiment rather than landing the raw worktree diff.
 
-- **tiny**: `subagents=3 budget=5 stall=2`
-- **small**: `subagents=3 budget=8 stall=3`
-- **medium**: `subagents=4 budget=10 stall=4`
-- **big**: `subagents=5 budget=14 stall=5`
-- **huge**: `subagents=8 budget=20 stall=6`
+## Sizing
 
-Default to **medium** only when the benchmark is light, isolated, and no better
-sizing signal is available. Reduce `subagents` to 1 for exclusive resources such
-as a GPU, fixed port, shared database, or serialized fixture. Cap pool runs at
-the pool slot count. Use **tiny** or **small** when the editable scope is narrow
-or risky. Use **big** or **huge** only when the metric is stable, the baseline is
-repeatable, and the approved scope can absorb broader exploration.
+Do not maintain independent tiny/small/medium/big preset tables here. Read the
+matching plugin's `skills/discover/references/sizing-the-round.md` immediately
+before choosing `subagents` and `budget`.
+
+Its governing constraint is resource width:
+
+- worktree and gitdir runs share local resources;
+- pool width cannot exceed its slot count;
+- remote width is bounded by provider quota, concurrency, and approved cost;
+- serialize an exclusive GPU, fixed port, shared database/fixture, or unstable
+  timing harness unless the benchmark isolates it;
+- size budget from per-run cost and noise, then state the chosen width/budget
+  and reason.
+
+This is Evo worker sizing, not Codex subagent delegation.
 
 ## Workspace And Backend Notes
 
-- If using an existing Evo workspace from before v0.4.0, migrate host metadata
-  with `evo host show`; if it prints `<not set>`, run `evo host set codex`.
-- Local default backend: worktree.
-- Faster local reuse: pool backend with a fixed workspace list.
-- Remote backend: configure the provider first using Evo's `infra-setup`
-  guidance for Modal, E2B, Daytona, AWS, Azure, SSH, manual, or custom
-  providers.
-- Runtime commands/env belong in `evo config runtime ...` and `evo env ...`, not
-  hard-coded into benchmark scripts.
-- Override individual calls with `evo run <exp_id> --timeout <seconds>` only
-  when the configured per-experiment timeout is not appropriate.
+- Default local backend: `worktree`.
+- `gitdir` relocates Git metadata away from `.git`. Use it where `.git` paths
+  are forbidden, especially Claude Science.
+- Claude Science defaults new workspaces to `gitdir` after `evo install
+  claude-science`. The CLI cannot publish skills into Claude Science's catalog;
+  the in-session `evo-autoresearch-claude-science-setup` skill from
+  `evo-hq/evo-claude-science` does that through `host.skills`.
+- Pool reuses fixed local workspaces. Respect the configured slot count and
+  keep warm workspace state out of commits.
+- Remote experiments can use Modal, E2B, Daytona, AWS, Azure, or SSH. Provider
+  packages, credentials, and allocations require explicit approval.
+- Runtime commands and benchmark variables belong in `evo config runtime ...`
+  and `evo env ...`; do not copy secrets into worktrees, scripts, or docs.
+- Inspect with `evo config show`, `evo config backend show`, `evo config runtime
+  show`, and `evo env show` before changing configuration.
+- `evo direct "<text>" --wait` delivers a directive; an agent receiving an
+  `[EVO DIRECTIVE id=...]` banner must acknowledge it with `evo ack <event_id>`.
+- `evo gc` mutates workspace state by cleaning worktrees, pool slots, and remote
+  sandboxes; keep it behind explicit approval.
 
-## Evo v0.6.2 Notes
+## Hook Repair
 
-- Keep the Codex CLI and plugin bundle in lockstep. Report the update command
-  first; run `evo update codex --version 0.6.2` only after explicit user
-  approval. Add `--trust-hooks` only when the user explicitly approves trusting
-  hooks without interactive review, then verify with `evo doctor codex`.
-- The installed Evo plugin skills advertise `evo_version: 0.6.2`; stop and fix
-  CLI/plugin drift before using `evo:discover`, `evo:optimize`,
-  `evo:finetuning`, or `evo:infra-setup`.
-- If `evo doctor codex` reports Codex hooks still referencing
-  `CLAUDE_PLUGIN_ROOT`, do not launch Evo workflows. Report the required repair
-  command, `evo install codex --force`, for explicit user approval because it
-  mutates the active Codex plugin/cache install.
-- `evo:optimize` remains the canonical post-discover loop even when resource
-  constraints force `subagents=1`. Load `$evo discover`'s sizing reference
-  (`skills/discover/references/sizing-the-round.md` in the installed Evo plugin
-  bundle) before choosing width, and use `evo wait` or bounded liveness checks
-  instead of unbounded polling for long-running subagents, training, or
-  evaluations.
-- `autonomous` and `subagents-only` default to on in the installed
-  `evo:optimize` skill unless the current user instruction or stored Evo
-  defaults resolve them differently. Resolve and arm both modes before starting
-  an optimize loop.
+Keep one current recovery path instead of release-by-release hook archaeology:
 
-## Evo v0.5.2 Compatibility
+1. Inspect with `evo doctor <host>`.
+2. If the CLI and plugin are mismatched or the durable hook binary is missing,
+   report `uv tool install --force evo-hq-cli && evo install <host> --force`
+   for explicit approval.
+3. For Codex, upstream `evo install codex` trusts Evo hooks by default. This
+   repository's approval boundary is stricter: do not trust hooks implicitly.
+   Use `--no-trust-hooks`, let the user review them through `/hooks`, and only
+   accept automatic trust when the user explicitly authorizes it.
+4. Re-run `evo doctor <host>` and record the result.
 
-- On the v0.5.2 line, keep the Codex CLI and plugin bundle in lockstep. Report
-  the update command first; run `evo update codex --version 0.5.2` only after
-  explicit user approval. Add `--trust-hooks` only when the user explicitly
-  approves trusting hooks without interactive review, then verify with
-  `evo doctor codex`.
-- If Codex is pinned to a stale local marketplace such as
-  `evo-hq-0.5.0-hookdrain`, remove that marketplace and add
-  `evo-hq/evo --ref v0.5.2` before reinstalling.
-- SDK packages such as `evo-hq-agent`, `@evo-hq/evo-agent`, and `@evo-hq/pi-evo`
-  should match the 0.5.2 line when SDK instrumentation is used.
+Do not preserve obsolete marketplace-removal recipes, `CLAUDE_PLUGIN_ROOT`
+diagnostics, or pre-0.5 hook cache layouts in the active workflow. Consult the
+matching historical tag only when repairing a deliberately pinned old install.
 
-## Legacy Hook Recovery
+## Repository-Stricter Landing Override
 
-- v0.5.1 moves the durable hook binary to `~/.evo/bin` and leaves a host-plugin
-  fallback at the hook path, so host plugin cache rebuilds no longer delete the
-  real binary and trigger `SessionStart hook (failed): exit 127`.
-- `evo install codex` can trust Evo hooks during install; use
-  `--no-trust-hooks` only when the user wants to review them manually through
-  `/hooks`.
-- `evo doctor codex` verifies hook trust and catches plugin updates that changed
-  `hooks.json` enough to invalidate trust.
-
-- v0.4.5 fixes Codex hook installation for Codex 0.130+ by registering and
-  staging the plugin under the owner-name path Codex resolves (`evo@evo-hq`) and
-  validating `evo-hook-drain` in `evo doctor codex`.
-- Existing Codex installs with exit-127 hook failures do not self-heal with
-  `evo update`. Recover with
-  `uv tool install --force evo-hq-cli && evo install codex --force`.
-- `evo install codex --force` stages `evo-hook-drain` into the Codex plugin
-  cache and removes stale legacy registrations. It may leave hooks untrusted;
-  trust them through `/hooks` or run `evo install codex --trust-hooks` only when
-  the user explicitly approves skipping hook review.
-
-## Backend Notes
-
-- `evo init --host <claude-code|codex|cursor|opencode|openclaw|hermes|pi|generic>`
-  is required for new workspaces. For this skill on Codex, use `codex`.
-- New workspaces default to the `pareto_per_task` frontier strategy. Existing
-  workspaces keep their configured strategy.
-- Local execution has `worktree` and `pool` backends. Pool mode is useful when
-  setup is expensive, but warm workspace state should stay out of commits.
-- Pool mode defaults to `commit_strategy=tracked-only`; subagents must `git add`
-  new source files and pass `--i-staged-new-files yes` to `evo run`.
-- Remote experiments can run through Modal, E2B, Daytona, AWS, Azure, SSH,
-  manual, or custom providers. Treat provider SDK installation, credentials, and
-  cloud allocation as explicit user-approved setup.
-- In remote mode, subagent briefs must state the experiment id and require
-  `--exp-id <id>` on every `evo bash/read/write/edit/glob/grep` command.
-- Backend provider credentials and benchmark runtime environment are separate.
-  Configure benchmark variables with `evo env`, and do not copy secrets into
-  worktrees or docs.
-- `evo run <exp_id> --check` validates benchmark/gate wiring without committing,
-  evaluating, or consuming retry budget.
-- `evo:optimize` defaults to autonomous, subagents-only operation. The user can
-  override either explicitly or via Evo defaults/config.
-- `evo direct "<text>" --wait` expects an agent to acknowledge delivered
-  directives with `evo ack <event_id>`.
-- Use `evo gc` to clean worktrees, pool slots, and remote sandboxes.
-- Use `evo config show`, `evo config backend show`,
-  `evo config runtime show`, and `evo env show` to inspect setup before changing
-  it.
+Upstream Evo ship may propose creating a fresh branch, pushing, opening a pull
+request, or merging. In this repository those actions remain report-only until
+the user explicitly authorizes each one. Work on the current branch by default;
+never create or switch branches merely because the upstream ship skill says to.

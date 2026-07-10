@@ -9,37 +9,33 @@ Adversarially verify a strategy, plan, implementation, or answer. Treat "100% co
 
 ## Invocation
 
-If the user invokes bare `$confident-loop` or `$confidence-loop`, ask which mode to use before running:
+`$confident-loop` is an invocation alias for `$confidence-loop`. A bare
+invocation runs in normal mode. Accept these modes and aliases:
 
-- **normal**, **c**, or **b**: default mode; use one sub-agent reviewer.
-- **hard** or **a**: use two to four sub-agent reviewers.
-- **extreme**, **s**, **sr**, or **ssr**: use up to six sub-agent reviewers unless the user gives a larger budget.
+| Mode | Aliases | Reviewer budget | Repair budget |
+| --- | --- | --- | --- |
+| single | solo | none | one pass |
+| normal | default, c, b | one reviewer | one pass |
+| hard | a | two to four reviewers | two passes |
+| extreme | s, sr, ssr | up to six reviewers | three passes |
 
-If the user invokes `$confident-loop normal`, `$confident-loop hard`, `$confident-loop extreme`, `$confident-loop c`, `$confident-loop b`, `$confident-loop a`, `$confident-loop s`, `$confident-loop sr`, `$confident-loop ssr`, or the same forms with `$confidence-loop`, run immediately in that mode. Treat `default`, `c`, and `b` as `normal`; `a` as `hard`; and `s`, `sr`, and `ssr` as `extreme`.
+An explicit user budget may raise a mode's limits.
 
 Do not trigger on named operational loops such as feedback loops, automation
 loops, CI loops, or workflow loops unless the user explicitly asks for a
-confidence/loophole audit of that loop. If the user forbids subagents, do not
-run this Skill; perform an ordinary non-skill review if possible or report the
-conflict.
+confidence/loophole audit of that loop. If the user forbids subagents, use
+single mode.
 
-If the current tool surface requires explicit user authorization before
-spawning subagents and the user has not authorized subagents, delegation, or
-parallel review in the current request, ask before spawning reviewers or perform
-a single-agent confidence audit and label it as such.
+When reviewers are unavailable, forbidden, or not authorized, run single mode
+and label the reduced reviewer coverage. Do not imply that it was a
+multi-reviewer audit.
 
-When Codex subagents are authorized and needed, follow the delegation,
-approval-gate, evidence, and bounded-loop protocol in
+Follow the shared protocol for
 [`../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol`](../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol)
-and
+and the dedicated
+[`approval and side-effect gates`](../shared-agent-protocol/SKILL.md#approval-read-only-and-side-effect-gates).
+For repeated passes, also apply
 [`../shared-agent-protocol/SKILL.md#bounded-loops`](../shared-agent-protocol/SKILL.md#bounded-loops).
-
-Default loop budgets:
-
-- **normal/default/c/b**: one reviewer and one repair pass.
-- **hard/a**: two to four reviewers and at most two repair passes.
-- **extreme/s/sr/ssr**: at most six reviewers and three repair passes unless
-  the user gives an explicit larger budget.
 
 ## Standard Loop
 
@@ -53,34 +49,23 @@ Default loop budgets:
    when every listed material risk has exactly one status.
 4. Revise the strategy to close real loopholes. Complete when every accepted
    fix is either applied or left behind an explicit approval gate.
-5. If the task has repeated review, repair, follow-up, monitoring, handoff, or
-   decision work, evaluate the Codex loop shape before finalizing. Complete
-   when all loop fields below are filled or explicitly unnecessary:
-   - Trigger: what starts or wakes the loop.
-   - State: where progress, findings, decisions, and queue items live.
-   - Next action: what the agent does after each pass.
-   - Stop condition: what concrete state ends the loop.
-   - Human gate: actions that require explicit user approval.
-   - Loop budget: max iterations, wakeups, wall time, spend, or scope.
-   - Failure learning: what durable skill/plugin/doc update prevents repeats.
-6. Run the smallest relevant verification: source read, command, test, search,
-   or reasoning proof. Complete when the verification result is recorded, or
-   the reason it could not run is explicit.
+5. If the task repeats review, repair, monitoring, handoff, or decision work,
+   define it with the shared bounded-loop fields. Complete when every shared
+   field is filled or explicitly unnecessary.
+6. Gather ordinary read-only evidence and run the smallest relevant
+   verification: source read, documentation research, command, test, search, or
+   reasoning proof. Complete when the evidence and result are recorded, or the
+   reason verification could not run is explicit.
 7. Repeat within the selected budget until no material unresolved loopholes
    remain, or stop with the remaining uncertainty explicit.
 
-Only make file edits, network calls, installs, credential access, destructive
-commands, automations, commits, or pushes when the active user request already
-authorizes that action. Otherwise report the needed fix or approval gate.
+Apply the shared approval gates to side effects. Ordinary read-only inspection
+and research may proceed within the active request.
 
 ## Sub-Agent Review
 
-When subagents are authorized and in scope, use sub-agent reviewers. The mode
-controls only how many reviewers to use:
-
-- **normal/default/c/b**: spawn one read-only reviewer.
-- **hard/a**: spawn two to four read-only reviewers. Use only as many as the uncertainty justifies.
-- **extreme/s/sr/ssr**: spawn up to six read-only reviewers unless the user gives a larger budget. Use focused batches with distinct angles until the remaining uncertainty is explicit and evidence-backed.
+When reviewers are authorized and in scope, use the selected mode's reviewer
+budget. Use only as many as the uncertainty justifies, with distinct angles.
 
 Use the shared delegation protocol for reviewer goal shape, read-only scope,
 forking, evidence, and integration rules. Complete sub-agent review only when
@@ -120,12 +105,10 @@ ones, fix valid gaps only when edits are in scope, then verify.
 
 ## Codex Loop Audit
 
-When a reviewed strategy can become a repeatable Codex loop, prefer loopifying it
-instead of leaving the user with a one-off prompt. Keep the loop bounded and
-human-gated. Do not use Codex Goal Control or `/goal` mechanics as the loop
-primitive; define the loop in ordinary Codex surfaces such as a skill,
-automation prompt, visible thread workflow, worktree-thread workflow, plugin
-workflow, or compact reusable command.
+When a reviewed strategy should become repeatable, choose the durable Codex
+surface that fits the host and request: a goal, skill, automation, visible task
+workflow, plugin workflow, or compact reusable command. Apply the shared
+bounded-loop and approval gates regardless of surface.
 
 Treat PR-comment loops as one example only, not a default recommendation.
 Choose the loop from the user's setup and evidence.

@@ -4,7 +4,7 @@ interface:
   icon_small: "./assets/icon.svg"
   icon_large: "./assets/icon.svg"
   brand_color: "#1D4ED8"
-  default_prompt: "Use $confidence-loop c with subagent reviewers to produce a confidence score and find material loopholes in this proposed strategy. Use `a` for hard mode or `s` for extreme mode."
+  default_prompt: "Use $confidence-loop normal to find material loopholes and produce an evidence-backed confidence score. Use `single` without reviewers, `hard` for broader review, or `extreme` for the largest reviewer budget."
 
 policy:
   allow_implicit_invocation: true

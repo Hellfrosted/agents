@@ -28,6 +28,7 @@ REQUIRED_FILES = (
     "references/html/visual-qa.md",
     "scripts/check_html_policy.py",
     "scripts/scaffold_canvas.py",
+    "scripts/test_visual_canvas.py",
     "assets/templates/starter-report.html",
 )
 

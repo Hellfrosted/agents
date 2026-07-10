@@ -9,17 +9,20 @@ Review changed code for reuse, composition, codebase consistency, and slop.
 
 ## Review Procedure
 
-1. Select and inspect the full diff:
-   - Use `git diff` for unstaged changes.
-   - Use `git diff HEAD` when staged changes may be part of the review.
-   - For a PR URL, inspect the changed files and understand the feature flow before reviewing details.
+1. Select and inspect the full change set:
+   - Start with `git status --short` so staged, unstaged, and untracked paths
+     are all accounted for.
+   - Inspect both `git diff` and `git diff --cached`; read the complete contents
+     of relevant untracked files because Git diffs omit them by default.
+   - For a PR URL, inspect every changed path and understand the feature flow
+     before reviewing details.
 2. Build the call stack or data flow when useful. Do not review isolated lines without understanding how the feature is wired.
 3. Search the codebase before judging new helpers, components, hooks, types, route patterns, styling primitives, or error/loading flows. Prefer nearby and sibling patterns over invented abstractions.
 4. Apply every review lens below to the changed code.
 
-Completion criterion: before producing the verdict, every material reuse or
-consistency claim must cite searched-for existing patterns, a searched nearby
-absence of a pattern, or the changed code itself.
+Completion criterion: before producing the verdict, every changed path is
+accounted for and every material finding cites the changed code plus the
+searched existing pattern, or records that the relevant search found none.
 
 ## Review Lenses
 
@@ -44,7 +47,10 @@ absence of a pattern, or the changed code itself.
 - Avoid grab-bag modules that mix unrelated concerns like flags, API calls, transformation, UI state, logging, and scheduling.
 - Avoid parameter sprawl. If a function needs many knobs, check whether the boundary is wrong.
 - Prefer simple composition over chains of callbacks, wrappers, memoized helpers, and prop plumbing.
-- When two backing entities are presented as one product concept, package them into one transport/view model across intermediate components. Black-box components should receive one unified prop/callback and should not care about distinctions like remote vs prebuilt; split back into core entities only at roots/adapters where persistence or payload formats require it.
+- Keep storage, transport, provider, or implementation distinctions at the
+  adapters that require them. When several backing entities form one product
+  concept, intermediate components should receive that concept instead of
+  leaking backend-specific props and callbacks through the tree.
 - Keep domain-specific logic close to its domain unless there is proven cross-domain reuse.
 
 ### Slop Detection
@@ -86,8 +92,10 @@ Then list findings by priority. For each finding include:
 
 1. File path and relevant symbol/area.
 2. What reads as slop or inconsistency.
-3. The existing pattern or code that should be reused, if found.
-4. The minimal recommended fix.
+3. Evidence from the changed code and the repository search; say when no
+   existing pattern was found.
+4. The existing pattern or code that should be reused, if found.
+5. The minimal recommended fix.
 
 If the user asked for review only, do not edit files. If the user asked to fix it, make the changes directly and summarize what changed.
 

@@ -8,9 +8,9 @@ description: "Evo campaign planner for evo-hq/evo. Use when the user explicitly 
 Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only
 after approval.
 
-Target Evo release line: `evo-hq/evo` v0.5.2 or newer.
+Target Evo release line: `evo-hq/evo` v0.7.x.
 
-For companion skill sources, optimize presets, and release-specific notes, see
+For companion skill sources, round-sizing guidance, and release-specific notes, see
 [REFERENCE.md](REFERENCE.md).
 
 Approval boundary: commands in this Skill or `REFERENCE.md` that update,
@@ -40,7 +40,8 @@ applies.
   decomposed before choosing an Evo metric.
 - Use [`evo:finetuning`](codex://skills) before writing or changing training code, reward design,
   model-weight update recipes, or post-training workflows.
-- Use installed Evo plugin skills whose `evo_version` matches `evo --version`.
+- Use installed Evo plugin skills whose `evo_version` matches `evo --version`,
+  including discover, optimize, report, and ship.
 
 If a referenced [`$xxx`](codex://skills) skill is not installed, check the host's skill list and
 then the user's skill lockfile for `sourceUrl` and `skillPath`. Cite the source
@@ -69,37 +70,52 @@ before continuing with the best available fallback or hardstop as needed.
    behavior, dependency manifests, or remote/cloud infrastructure. Complete
    only after the user approves the affected scope, or stop with a report-only
    brief.
-5. Run [`evo:discover`](codex://skills) with the approved brief. Optimize only after discovery
+5. Invoke Evo's discover skill with the approved brief. Host syntax differs:
+   Claude Code uses `/evo:discover`; Codex exposes Evo through `$evo`; other
+   hosts use their skill menu or natural-language invocation. Optimize only after discovery
    records a baseline and the benchmark reviewer gate has passed. Complete
    when the discovery experiment id, baseline proof, and reviewer gate result
    are recorded.
 6. Configure backend/runtime explicitly for pool, remote, or non-default
    runtimes. Keep benchmark variables in `evo env`, not in committed scripts or
    docs. Complete when backend, runtime, and env placement are recorded.
-7. Set or confirm `--per-exp-timeout` / `evo config set per-exp-timeout
-   <seconds>` for long benchmarks or training runs. Complete when the timeout
-   value is recorded or the run is confirmed short enough not to need one.
-8. Run `evo run <exp_id> --check` when wiring risk is material and non-mutating
-   validation is available. Complete when the check result is recorded, or the
+7. Set and record a positive per-experiment timeout. Evo 0.7 requires
+   `--per-exp-timeout <seconds>` at `evo init`; existing workspaces use `evo
+   config set per-exp-timeout <seconds>`. Time one complete benchmark locally
+   when practical and use about twice that duration. Never omit this because a
+   run seems short.
+8. Run `evo run <exp_id> --check` when wiring risk is material. This executes
+   the benchmark and gates and writes a fresh check-attempt artifact directory,
+   but does not commit, evaluate, or consume retry budget. It is therefore a
+   workspace-writing validation, not a read-only or non-mutating command.
+   Complete when the check result and artifact location are recorded, or the
    unavailable check is named.
 9. Resolve `autonomous` and `subagents-only` the same way [`evo:optimize`](codex://skills) does,
    then arm that state with `evo autonomous on|off` and `evo subagents-only
    on|off` only after the user has approved the values. Complete when both
    values and their approval state are recorded.
-10. Size `subagents=<n>` from benchmark/backend resources first. Use width 1
-    for exclusive GPUs, fixed ports, shared databases, singleton services, or
+10. Before choosing `subagents` or `budget`, read the matching installed Evo
+    plugin's `skills/discover/references/sizing-the-round.md`; it is the source
+    of truth. Size from benchmark/backend resources first. Use width 1 for
+    exclusive GPUs, fixed ports, shared databases, singleton services, or
     timing-sensitive harnesses unless the harness isolates them.
     This is Evo CLI worker sizing, not Codex subagent fork behavior. Complete
     when `subagents=<n>` is justified by resource isolation and benchmark risk.
-11. Run [`evo:optimize`](codex://skills) with `subagents=<n> budget=<n> stall=<n>` within the approved
+11. Invoke Evo's optimize skill with `subagents=<n> budget=<n> stall=<n>` within the approved
     scope. Complete when the optimize experiment id and approved limits are
     recorded.
 12. Use `evo direct "<text>"` only to steer an already-running Evo session. If
     an agent receives an `[EVO DIRECTIVE id=...]` banner, it must run
     `evo ack <event_id>` before proceeding. Complete when each directive is
     acknowledged before action.
-13. Manually review Evo output before merging behavior, API, persistence,
-    security, packaging, deployment, or user-visible changes. Complete when
+13. When the loop stops, invoke Evo's report skill for a read-only summary from
+    recorded state. Do not rerun benchmarks merely to report results.
+14. Invoke Evo's ship skill only after the user chooses a valid winner and
+    approves landing it. Manually review the distilled output before merging
+    behavior, API, persistence, security, packaging, deployment, or
+    user-visible changes. This repository's working agreement is stricter than
+    upstream Evo: do not create or switch branches, push, open a PR, or merge
+    unless the user explicitly authorizes that exact action. Complete when
     material output is accepted, rejected, or left behind an explicit approval
     gate.
 
@@ -112,7 +128,7 @@ Report the approved brief plus the evidence that exists so far:
 - Baseline command/data and pass gate proof.
 - Backend, runtime/env, budget, stall rule, autonomous value, and
   subagents-only value.
-- `--check`, discover, optimize, and manual-review results.
+- `--check`, discover, optimize, report, ship, and manual-review results.
 - Remaining approvals before merge, install, cleanup, push, or deploy.
 
 ## Brief Template
@@ -126,7 +142,7 @@ Editable scope:
 Read-only context:
 Forbidden changes:
 Host: codex
-Backend: worktree | pool | remote:<provider>
+Backend: worktree | gitdir | pool | remote:<provider>
 Runtime/env:
 Per-exp timeout:
 Budget:

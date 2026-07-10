@@ -1,7 +1,6 @@
 ---
 name: shared-agent-protocol
-description: "Non-user-invocable shared reference for delegation, reviewer, and loop protocol used by entrypoint skills."
-disable-model-invocation: true
+description: "Internal shared reference for delegation, reviewer, approval, and bounded-loop protocol used by entrypoint skills."
 ---
 
 # Shared Agent Protocol
@@ -15,10 +14,11 @@ concepts only; it must not grow into a general Codex handbook.
 
 ## Codex Delegation and Reviewer Protocol
 
-Use delegation only when the active request or host surface authorizes it. If
-the user forbids subagents, or the host requires authorization that has not
-been granted, ask before spawning agents or use a non-delegated fallback when
-the entrypoint skill allows it.
+Use delegation only when the active request, invoked entrypoint, or host surface
+authorizes it. Invoking an entrypoint whose documented workflow requires
+reviewers authorizes those reviewers unless the user forbids subagents or the
+host requires a separate confirmation. When authorization is absent, ask before
+spawning agents or use a non-delegated fallback when the entrypoint allows it.
 
 Keep the main agent responsible for scope, synthesis, fixes, and the final
 decision. Give reviewers narrow lanes: read-only, no spawned agents, no file
@@ -29,11 +29,6 @@ For Codex reviewer forks, prefer role-specific non-full-history forks. Provide
 only the task, goal, scope, evidence, open questions, and relevant snippets. Do
 not combine a full-history fork with role/model/reasoning overrides on tool
 surfaces that reject that combination.
-
-When a workflow requires a dedicated reviewer or lane goal, use a goal-writer
-subagent first. The goal-writer is read-only, may not spawn agents, and returns
-only the goal. The main agent then passes that goal to the reviewer or lane
-worker.
 
 Reviewer deliverables should be actionable and evidence-backed: blocking
 findings, loopholes, verification gaps, or confidence notes tied to source
@@ -47,11 +42,18 @@ hard gates. Read-only permits inspection and reasoning only; it excludes writes,
 sync/refresh commands that mutate local state, memory storage, staging,
 commits, pushes, installs, updates, publishing, and remote/cloud configuration.
 
-Stop for explicit approval before destructive actions, credential access,
-secret handling, dependency changes, machine-wide configuration, network
-exposure, production or deployment changes, autonomous execution, automations,
-commits, pushes, force operations, or tool-specific publishing/remote-sync
-features.
+An explicit request for an action, or invocation of an entrypoint whose stated
+primary result necessarily includes that action, satisfies this protocol's
+approval gate for ordinary in-scope execution. Do not ask for the same approval
+again unless the host/tool requires it, the target is ambiguous, or the action
+expands beyond the request.
+
+Require specific authorization for destructive actions, credential or secret
+access, dependency changes, machine-wide configuration, network exposure,
+production or deployment changes, autonomous execution, automations, commits,
+pushes, force operations, and tool-specific publishing or remote sync. An
+entrypoint authorizes only the side effects its contract names; for example, a
+local-commit workflow does not imply push authorization.
 
 When approval is missing, keep the action report-only: state the exact command,
 target, risk, and expected postcondition instead of running it. If instructions
@@ -92,15 +94,11 @@ checks run, remaining uncertainty, and the next gated action.
 
 Use exact section links from entrypoint skills instead of copying these rules:
 
-- `confidence-loop`: reviewer lanes, evidence-backed loopholes, bounded loop
-  shape, and explicit confidence uncertainty.
-- `evo-end-to-end`: approval gates, Codex-vs-tool worker boundaries, bounded
-  experiment loops, and report-only unsafe actions.
-- `tuck`: commit-scoped read-only reviewers, no staging before review, and git
-  side-effect gates.
-- `task-brief`: compact gates, evidence criteria, and semantic boundaries for
-  delegated work.
-- `discrawl`: read-only/no-refresh gates, local archive evidence, and private
-  conversation minimization.
-- `icm`: recall-vs-store gates, no-memory/no-store constraints, and safe
-  durable summaries.
+- [`confidence-loop`](../confidence-loop/SKILL.md): reviewer lanes,
+  evidence-backed loopholes, and bounded loops.
+- [`evo-end-to-end`](../evo-end-to-end/SKILL.md): approval gates,
+  Codex-versus-tool worker boundaries, and bounded experiment loops.
+- [`discrawl`](../discrawl/SKILL.md): bounded private-archive discovery,
+  evidence, and delegated search lanes.
+- [`tuck`](../tuck/SKILL.md): commit-scoped reviewers and git side-effect
+  gates.

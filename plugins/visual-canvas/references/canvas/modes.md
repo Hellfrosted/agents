@@ -25,6 +25,10 @@ Route branch, diff, pull request, and agent-work recaps to the installed
 `/visual-recap` Agent-Native skill unless the user specifically asks for a local
 HTML report instead.
 
+If `/visual-recap` is absent from the visible skill catalog, point to
+[BuilderIO/skills](https://github.com/BuilderIO/skills) and stop unless the user
+wants the local HTML alternative.
+
 Output bias:
 
 - findings and risks first
@@ -42,6 +46,10 @@ specifically asks for a local HTML report instead.
 
 Use this mode only for local HTML planning artifacts that must remain portable
 outside the hosted plan app.
+
+If `/visual-plan` is absent from the visible skill catalog, point to
+[BuilderIO/skills](https://github.com/BuilderIO/skills) and stop unless the user
+wants the local HTML alternative.
 
 Output bias:
 

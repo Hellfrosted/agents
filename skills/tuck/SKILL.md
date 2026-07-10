@@ -1,7 +1,6 @@
 ---
 name: tuck
 description: Reviewed local git commit workflow with bounded subagent review.
-disable-model-invocation: true
 ---
 
 # Tuck
@@ -14,9 +13,8 @@ not a push.
 If the user forbids subagents, do not run this Skill; ask whether they want an
 ordinary commit workflow instead.
 
-If the current tool surface requires explicit user authorization before
-spawning subagents and the user has not authorized subagents or the tuck
-workflow in the current request, ask before spawning reviewers.
+A `$tuck` or plain `tuck` request authorizes the required reviewers and local
+commit. If the host requires a separate tool confirmation, obey that gate.
 
 When Codex subagents are authorized, follow the delegation, approval-gate,
 evidence, and bounded-loop protocol in
@@ -26,28 +24,39 @@ and
 
 ## Flow
 
-1. Run `git status --short`. Complete when every modified and untracked path is
-   classified as intended, unrelated user work, or needing user clarification.
-2. Inspect intended diffs before staging. Treat unrelated modified/untracked
-   files as user work. Complete when each intended path has been read enough to
-   explain the commit intent and risk.
-3. Split commits by reviewer-facing intent; separate formatting, docs, and
-   behavior when practical. Complete when each planned commit has a path list,
-   intent, and risk focus.
-4. Main agent only scopes commits with `git diff --stat -- <paths>` and minimal
-   path checks; do not deep-review diffs in main context. Complete when the
-   reviewer packet contains the relevant diff scope without loading unrelated
-   history into the main context.
-5. Before staging each commit, spawn batched read-only subagent reviewers.
-   Complete when every reviewer returns blocking findings or explicitly reports
-   no blocking findings.
-6. Fix blocking findings, then stage only intended paths or hunks. Complete
-   when all blocking findings are fixed, accepted behind an explicit user gate,
-   or the tuck stops.
-7. Re-check `git diff --cached`, run the smallest relevant check, then commit
-   with a concise imperative message. Report any skipped check. Complete when
-   the staged diff matches the planned commit and the command result is known.
-8. Stop after the local commit summary and verification result. Do not offer
+1. Run `git status --short`, `git diff --cached`, and `git diff`; inspect
+   untracked files that may be in scope. Classify every changed hunk as intended
+   for a named commit, unrelated user work, or needing clarification. Existing
+   staged hunks are part of the candidate commit unless the user explicitly
+   chooses another disposition. Complete when every hunk is classified without
+   altering unrelated user work.
+2. Split intended hunks by reviewer-facing intent; separate formatting, docs,
+   and behavior when practical. Complete when each planned commit has an exact
+   hunk set, intent, and risk focus.
+3. Stage only the intended hunks for one planned commit. Never use broad adds.
+   Then capture the exact candidate patch with `git diff --cached --binary` and
+   its stat. The candidate is the complete `HEAD`-to-index patch, including any
+   hunks that were already staged before tuck began. If the index contains a
+   hunk outside the planned commit, stop for user direction rather than
+   unstaging it. Complete when the candidate patch contains every and only
+   planned hunk.
+4. Spawn batched read-only subagent reviewers with that exact candidate patch
+   plus minimal nearby context. Complete when every reviewer reports blocking
+   findings or explicitly reports no blocking findings for the whole candidate.
+5. Fix blocking findings and restage only affected intended hunks. Any material
+   candidate change invalidates the prior review: recapture the complete cached
+   patch and rerun the relevant reviewer lanes. Complete when all blocking
+   findings are fixed, explicitly accepted by the user, or tuck stops, and the
+   final cached patch is fully reviewed.
+6. Run the smallest relevant check and report any skipped check. Immediately
+   before commit, confirm `git diff --cached --binary` still matches the final
+   reviewed candidate exactly, and record `git rev-parse HEAD`. Complete when
+   the candidate is unchanged and verification is known.
+7. Commit with a concise imperative message. Completion requires a successful
+   commit exit, a changed `HEAD`, and readback of the created commit with
+   `git show --stat --oneline --decorate HEAD`. A failed command or unchanged
+   `HEAD` is not completion.
+8. Stop after the local commit summary and verification result. Do not offer a
    push as part of the default tuck flow.
 
 ## Subagent Review
@@ -56,9 +65,9 @@ Always use at least one reviewer per commit. Prefer one batched reviewer for
 small, familiar, docs-only, formatting-only, or obvious mechanical changes.
 Split reviewers by risk area for larger or mixed commits.
 
-Use the shared delegation protocol for reviewer goal shape, read-only scope,
-forking, evidence, and integration rules. Paste the commit scope, assigned
-paths, risk focus, and relevant diff context into the reviewer message.
+Use the shared delegation protocol for reviewer scope, forking, evidence, and
+integration rules. Paste the complete candidate patch, commit intent, risk
+focus, and any minimal nearby context into the reviewer message.
 
 Add targeted reviewers for:
 
@@ -75,24 +84,27 @@ Short reviewer prompt:
 
 ```text
 TASK: act as a read-only tuck reviewer.
-GOAL: {commit-review goal from the shared delegation protocol}
+GOAL: determine whether the exact candidate patch is safe and complete for its stated intent.
 DELIVERABLE: blocking findings only, with file paths and line references; if none, say: no blocking findings.
 SCOPE: review only changed diff plus minimal nearby context; do not edit files or spawn agents.
 VERIFY: every finding must be tied to a concrete changed line or omitted required check.
-Commit scope: {COMMIT_SCOPE}
-Assigned paths: {PATHS}
+Commit intent: {COMMIT_INTENT}
+Candidate patch: {COMPLETE_HEAD_TO_INDEX_PATCH}
 Focus: {RISK_OR_QUESTION}
 ```
 
-Do not stage until reviewers return. Re-run review only when a material fix
-changes reviewed risk. If subagents are unavailable, stop and ask the user.
+Do not commit until reviewers return. Re-run the affected reviewer lanes after
+any material candidate change. If subagents are unavailable, stop and ask the
+user.
 
 ## Git Safety
 
-Do not stage untracked files by default. Use `git add <specific paths>` or non-interactive patch staging. No destructive commands.
+Do not stage untracked files by default. Use `git add <specific paths>` or
+non-interactive patch staging. No destructive commands.
 
-If the same request asks to push after tuck, complete the reviewed local commit
-first, then run `git branch --show-current` and `git remote -v` for the explicit
-push gate. Recommend the current branch when it exists and is not `main`;
-otherwise recommend a new branch. Never push or force-push without explicit
-confirmation.
+If the same request explicitly asks to push after tuck, that request is the push
+authorization: do not ask for duplicate confirmation. Complete the reviewed
+local commit first, then run `git branch --show-current` and `git remote -v`.
+Ask only when the destination is ambiguous or the requested push would expand
+scope. A normal push never authorizes force-push; force-push requires a separate
+explicit request.
