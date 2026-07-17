@@ -75,7 +75,7 @@ not present, so the repo config is safe on machines that do not have that local
 skill source.
 
 This hook is source hygiene for UI changes in this repo; it is not a replacement
-for Visual Canvas policy checks or browser/visual QA when a generated artifact
+for built-in Codex visualization or browser/visual QA when a generated artifact
 has meaningful visual surface area.
 
 ## Verification

@@ -16,8 +16,8 @@ Use these references when changing this repo or validating its docs.
 - [docs/hook-guardrails.md](docs/hook-guardrails.md): repo-owned Codex hook
   sources, install shape, and verification.
 - [docs/agent-native-boundary.md](docs/agent-native-boundary.md):
-  BuilderIO/Agent-Native ownership boundary for plan/recap skills and
-  Visual Canvas.
+  ownership boundary between built-in Codex visualization, BuilderIO's
+  Agent-Native skills, and this repository.
 
 ## WSL And Windows Interop
 

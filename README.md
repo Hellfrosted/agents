@@ -12,7 +12,6 @@ automation definitions, and restore payloads live in the dotfiles repository.
   skills updater wrappers.
 - `hooks/`: source copies of local Codex workstation hooks and focused
   regression tests.
-- `plugins/`: repo-owned Codex plugin sources.
 - `skills/`: repo-owned Codex skill sources.
 - `docs/`: focused operator documentation for the shim, updater, hooks, and
   repo-owned skill workflows.

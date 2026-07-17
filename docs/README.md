@@ -10,7 +10,7 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 | Skills updater | [skills-updater.md](skills-updater.md) | `skills-updates` and `sk-up` behavior, install and uninstall modes, state paths, locking, and Go wrapper checks. |
 | sk-up implementation | [sk-up-go-port.md](sk-up-go-port.md) | Current Go updater implementation reference, command contract, validation matrix, and consolidated completion audit. |
 | Hook guardrails | [hook-guardrails.md](hook-guardrails.md) | WSL shell footgun guardrails, repo-local Impeccable hook adapter, install shape, and focused verification. |
-| Agent-Native boundary | [agent-native-boundary.md](agent-native-boundary.md) | What BuilderIO/Agent-Native skills own now, what this repo still owns, and how Visual Canvas delegates plan/recap work. |
+| Visualization and Agent-Native boundary | [agent-native-boundary.md](agent-native-boundary.md) | What built-in Codex visualization and BuilderIO/Agent-Native skills own, and what remains in this repo. |
 | Maintainer guide | [maintainer-guide.md](maintainer-guide.md) | Source-first workflow, common checks, install freshness checks, and design rationale. |
 
 ## Root Context
@@ -27,7 +27,6 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 | --- | --- |
 | `bin/` | Source for launchers, proxy modules, path translation, skills fallback, and updater wrappers. |
 | `hooks/` | Source and tests for repo-owned Codex workstation hook guardrails. Active global hook installs are repaired only on request. |
-| `plugins/visual-canvas/` | Source for portable local HTML report artifacts, visual profiles, and HTML output policy checks. Agent-Native owns general visual plan and recap workflows. |
 | `skills/` | Repo-owned Codex skill sources. In this repository, "work on skills" means this directory unless a task says otherwise. |
 | `tests/` | Script-level checks for updater promotion shape and Windows wrapper behavior. |
 

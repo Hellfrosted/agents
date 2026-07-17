@@ -79,16 +79,6 @@ The repo-local `.codex/hooks.json` is separate. It runs
 `bin/impeccable-hook.mjs` after edit-like tool calls and only delegates when the
 local Impeccable skill source exists.
 
-### Visual Canvas plugin
-
-Run the structural validator and behavioral tests without writing Python cache
-files into the plugin source:
-
-```bash
-python3 plugins/visual-canvas/scripts/validate_visual_canvas.py
-PYTHONDONTWRITEBYTECODE=1 python3 -m unittest plugins/visual-canvas/scripts/test_visual_canvas.py
-```
-
 ### Skills updater
 
 The promoted updater implementation is Go. Source wrappers under `bin/` expect

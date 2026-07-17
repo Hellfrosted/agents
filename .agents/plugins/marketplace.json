@@ -3,18 +3,5 @@
   "interface": {
     "displayName": "Agents Toolkit"
   },
-  "plugins": [
-    {
-      "name": "visual-canvas",
-      "source": {
-        "source": "local",
-        "path": "./plugins/visual-canvas"
-      },
-      "policy": {
-        "installation": "AVAILABLE",
-        "authentication": "ON_INSTALL"
-      },
-      "category": "Productivity"
-    }
-  ]
+  "plugins": []
 }

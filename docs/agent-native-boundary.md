@@ -1,8 +1,15 @@
-# Agent-Native Boundary
+# Visualization and Agent-Native Boundary
 
-BuilderIO's Agent-Native skills now own the general plan and recap workflows on
-this workstation. Keep this repository focused on source that still has local
+Codex's built-in visualization capability owns conversational visualizations,
+interactive tools, charts, diagrams, maps, plots, and similar visual output.
+BuilderIO's Agent-Native skills own the general plan and recap workflows on this
+workstation. Keep this repository focused on source that still has local
 workstation value.
+
+## Built In To Codex
+
+Use Codex's built-in visualization capability instead of maintaining or
+publishing a local visualization plugin from this repository.
 
 ## Delegated To Agent-Native
 
@@ -30,26 +37,8 @@ This repository still owns:
   install, and uninstall behavior for the universal `.agents` skill catalog.
 - repo-owned local skills under `skills/`, such as ICM, Discrawl, Tuck,
   Task Brief, Confidence Loop, and Evo End To End.
-- `plugins/visual-canvas`: local and offline HTML report artifacts, reusable
-  HTML output policy, visual profiles, static checks, and compact artifact
-  structure.
-
-## Visual Canvas Boundary
-
-Visual Canvas should not duplicate Agent-Native plan or recap artifacts. When a
-request is primarily a visual implementation plan, architecture plan, migration
-plan, branch recap, diff recap, pull request recap, or agent-work recap, route
-to the installed Agent-Native skill instead.
-
-Keep Visual Canvas for requests that need a portable HTML artifact, a local
-report outside the hosted plan app, profile guidance, policy checks against an
-existing HTML file, or generated report assets whose structure should remain
-repo-owned.
 
 ## Change Rule
 
-When reducing overlap, prefer a source doc or routing change before deleting
-code. Remove code only after current repo evidence shows it is unused or fully
-delegated, and keep active global installs, plugin caches, lockfiles, and
-machine configuration untouched unless the user explicitly asks for repair or
-install work.
+Keep active global installs, plugin caches, lockfiles, and machine configuration
+untouched unless the user explicitly asks for repair or install work.
