@@ -58,7 +58,19 @@ func executeStatus(ctx context.Context, parsed cli.Parsed, resolved config.Resol
 			writeText(request.Stdout, fmt.Sprintf("%d/%d %s %s\n", index+1, total, humanStatusLabel(status.Status, resolved.Color, request.Stdout), status.Name))
 		}
 	}
+	if hasStatusError(result.Statuses) {
+		return ExitFailure
+	}
 	return ExitOK
+}
+
+func hasStatusError(statuses []output.SkillStatus) bool {
+	for _, status := range statuses {
+		if status.Status == output.StatusError {
+			return true
+		}
+	}
+	return false
 }
 
 func gitRunner(request Request) compare.CommandRunner {

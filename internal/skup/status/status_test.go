@@ -100,6 +100,46 @@ func TestCheck_returnsStatusesFromLockfileBackedComparison(t *testing.T) {
 	}
 }
 
+func TestCheck_marksOneSkillError_andContinuesCheckingOthers(t *testing.T) {
+	// Given
+	root := t.TempDir()
+	agentsHome := filepath.Join(root, "agents")
+	cacheDir := filepath.Join(root, "cache")
+	writeStatusFile(t, filepath.Join(agentsHome, ".skill-lock.json"), lockfileFixtureWithSkills("alpha", "batch-grill-me"))
+	writeStatusFile(t, filepath.Join(agentsHome, "skills", "alpha", "SKILL.md"), "same\n")
+	writeStatusFile(t, filepath.Join(agentsHome, "skills", "batch-grill-me", "SKILL.md"), "stale\n")
+	runner := &fakeGitRunner{
+		archives: map[string][]byte{
+			"skills/alpha":          tarArchive(t, statusTarFile{name: "skills/alpha/SKILL.md", contents: "same\n"}),
+			"skills/batch-grill-me": tarArchive(t, statusTarFile{name: "skills/batch-grill-me/SKILL.md", contents: "new\n"}),
+		},
+		hashes:     map[string]string{"skills/alpha": "hash-alpha"},
+		hashErrors: map[string]error{"skills/batch-grill-me": fmt.Errorf("path no longer exists")},
+	}
+
+	// When
+	got, err := Check(context.Background(), runner, Input{
+		GitPath:    "git",
+		AgentsHome: agentsHome,
+		CacheDir:   cacheDir,
+		StateDir:   filepath.Join(root, "state"),
+	})
+
+	// Then
+	if err != nil {
+		t.Fatalf("Check returned error: %v", err)
+	}
+	if len(got.Statuses) != 2 {
+		t.Fatalf("Statuses = %#v, want two statuses", got.Statuses)
+	}
+	if got.Statuses[0].Name != "alpha" || got.Statuses[0].Status != output.StatusOK {
+		t.Fatalf("first status = %#v, want alpha/ok", got.Statuses[0])
+	}
+	if got.Statuses[1].Name != "batch-grill-me" || got.Statuses[1].Status != output.StatusError {
+		t.Fatalf("second status = %#v, want batch-grill-me/error", got.Statuses[1])
+	}
+}
+
 func TestCheck_filtersTargets_whenTargetsProvided(t *testing.T) {
 	// Given
 	root := t.TempDir()
@@ -133,10 +173,11 @@ func TestCheck_filtersTargets_whenTargetsProvided(t *testing.T) {
 }
 
 type fakeGitRunner struct {
-	mu       sync.Mutex
-	commands []compare.Command
-	archives map[string][]byte
-	hashes   map[string]string
+	mu         sync.Mutex
+	commands   []compare.Command
+	archives   map[string][]byte
+	hashes     map[string]string
+	hashErrors map[string]error
 }
 
 func (r *fakeGitRunner) Run(_ context.Context, command compare.Command) (compare.CommandResult, error) {
@@ -156,6 +197,9 @@ func (r *fakeGitRunner) Run(_ context.Context, command compare.Command) (compare
 		if arg != "HEAD^{tree}" {
 			remoteDir = strings.TrimPrefix(arg, "HEAD:")
 		}
+		if err := r.hashErrors[remoteDir]; err != nil {
+			return compare.CommandResult{}, err
+		}
 		return compare.CommandResult{Stdout: []byte(r.hashes[remoteDir] + "\n")}, nil
 	}
 	return compare.CommandResult{}, nil
@@ -170,6 +214,14 @@ func lockfileFixture() string {
     "skipped": {"sourceUrl": "https://github.com/example/skills.git", "skillPath": "skills/skipped/SKILL.md"}
   }
 }`
+}
+
+func lockfileFixtureWithSkills(names ...string) string {
+	entries := make([]string, 0, len(names))
+	for _, name := range names {
+		entries = append(entries, `"`+name+`":{"sourceUrl":"https://github.com/example/skills.git","skillPath":"skills/`+name+`/SKILL.md"}`)
+	}
+	return `{"version":1,"skills":{` + strings.Join(entries, ",") + `}}`
 }
 
 func skipsFixture() string {

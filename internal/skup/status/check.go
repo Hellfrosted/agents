@@ -111,7 +111,6 @@ func uniqueRepoSources(sources []skillSource) []skillSource {
 func checkSources(ctx context.Context, runner compare.CommandRunner, input Input, skips state.Skips, sources []skillSource) ([]output.SkillStatus, error) {
 	statuses := make([]output.SkillStatus, len(sources))
 	jobs := make(chan int)
-	errs := make(chan error, 1)
 	var wg sync.WaitGroup
 
 	for range statusWorkers(len(sources)) {
@@ -121,9 +120,14 @@ func checkSources(ctx context.Context, runner compare.CommandRunner, input Input
 			for index := range jobs {
 				status, err := checkSource(ctx, runner, input, skips, sources[index])
 				if err != nil {
-					select {
-					case errs <- err:
-					default:
+					// A repository can be healthy while one lockfile path is
+					// stale or otherwise invalid. Keep the global check useful
+					// for the remaining skills and expose the failure as a
+					// per-skill status.
+					statuses[index] = output.SkillStatus{
+						Name:      sources[index].name,
+						Status:    output.StatusError,
+						SourceURL: sources[index].sourceURL,
 					}
 					continue
 				}
@@ -132,22 +136,11 @@ func checkSources(ctx context.Context, runner compare.CommandRunner, input Input
 		}()
 	}
 	for index := range sources {
-		select {
-		case jobs <- index:
-		case err := <-errs:
-			close(jobs)
-			wg.Wait()
-			return nil, err
-		}
+		jobs <- index
 	}
 	close(jobs)
 	wg.Wait()
-	select {
-	case err := <-errs:
-		return nil, err
-	default:
-		return statuses, nil
-	}
+	return statuses, nil
 }
 
 func checkSource(ctx context.Context, runner compare.CommandRunner, input Input, skips state.Skips, source skillSource) (output.SkillStatus, error) {
