@@ -8,29 +8,19 @@ automation definitions, and restore payloads live in the dotfiles repository.
 
 ## What Is Here
 
-- `bin/`: Windows-to-WSL Codex launch scripts, protocol proxy modules, and
-  skills updater wrappers.
+- `bin/`: Windows-to-WSL Codex launch scripts and protocol proxy modules.
 - `hooks/`: source copies of local Codex workstation hooks and focused
   regression tests.
 - `skills/`: repo-owned Codex skill sources.
-- `docs/`: focused operator documentation for the shim, updater, hooks, and
+- `docs/`: focused operator documentation for the shim, hooks, and
   repo-owned skill workflows.
-- `tests/`: focused regression checks for workstation scripts.
 
 ## Quick Checks
 
-Run the Go updater and Node proxy regression tests from the repo root:
+Run the Node proxy regression tests from the repo root:
 
 ```bash
-go test ./...
 node --test bin/codex-wsl-proxy-runtime.test.js
-```
-
-Probe the Windows skills updater wrappers from Windows PowerShell. The test
-builds temporary Go executables and does not mutate the active install:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
 ```
 
 ## Documentation
@@ -40,7 +30,6 @@ Start with [docs/README.md](docs/README.md) for the maintained docs index.
 Common entry points:
 
 - [WSL shim](docs/wsl-shim.md): Windows-to-WSL Codex launch and proxy behavior.
-- [Skills updater](docs/skills-updater.md): global skill update wrappers.
 - [Hook guardrails](docs/hook-guardrails.md): repo-owned Codex hook sources and
   verification.
 - [Agent-Native boundary](docs/agent-native-boundary.md): what the installed

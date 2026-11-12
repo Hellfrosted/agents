@@ -79,41 +79,6 @@ The repo-local `.codex/hooks.json` is separate. It runs
 `bin/impeccable-hook.mjs` after edit-like tool calls and only delegates when the
 local Impeccable skill source exists.
 
-### Skills updater
-
-The promoted updater implementation is Go. Source wrappers under `bin/` expect
-an adjacent `sk-up.exe`; `skills-updates.cmd` is a compatibility alias that
-sets `SK_UP_ENTRYPOINT=skills-updates` before invoking that binary. Do not ship
-`skills-updates.exe` on Windows, and do not use PowerShell as an updater
-fallback.
-
-From WSL, run the Go package checks:
-
-```bash
-go test ./...
-go test -race -shuffle=on -count=1 ./cmd/sk-up ./internal/skup/...
-```
-
-Build release archives without installing them:
-
-```bash
-SK_UP_VERSION=dev bin/build-sk-up-release.sh
-```
-
-From Windows PowerShell, run the wrapper/source-install regression. It builds
-temporary Go executables next to copied wrappers and does not mutate the active
-workstation install:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests\skills-updates-install.ps1
-```
-
-Windows PowerShell can still target slash paths when needed:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File tests/skills-updates-install.ps1
-```
-
 ## Installed Shim Freshness
 
 The intended Windows entry point is a native Windows symlink to
@@ -139,9 +104,6 @@ task explicitly asks for install or repair work.
 - The Node proxy is split into runtime, path translation, and skills fallback
   modules so path-policy changes and app-server lifecycle changes are testable
   without exercising the Windows batch file.
-- The skills updater is Go-first so the same implementation owns Linux, macOS,
-  and Windows behavior. Windows `.cmd` files are launchers only; they preserve
-  UTF-8 console setup and invoke the adjacent Go executable.
 - Hook source lives in the repo because the active workstation copy must be
   testable and repairable without turning `$CODEX_HOME` into the source of
   truth.

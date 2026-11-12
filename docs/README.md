@@ -7,8 +7,6 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 | Topic | Doc | Use it for |
 | --- | --- | --- |
 | WSL shim | [wsl-shim.md](wsl-shim.md) | Windows-to-WSL Codex launch behavior, proxy runtime, path translation, fallback skills listing, and focused verification. |
-| Skills updater | [skills-updater.md](skills-updater.md) | `skills-updates` and `sk-up` behavior, install and uninstall modes, state paths, locking, and Go wrapper checks. |
-| sk-up implementation | [sk-up-go-port.md](sk-up-go-port.md) | Current Go updater implementation reference, command contract, validation matrix, and consolidated completion audit. |
 | Hook guardrails | [hook-guardrails.md](hook-guardrails.md) | WSL shell footgun guardrails, repo-local Impeccable hook adapter, install shape, and focused verification. |
 | Visualization and Agent-Native boundary | [agent-native-boundary.md](agent-native-boundary.md) | What built-in Codex visualization and BuilderIO/Agent-Native skills own, and what remains in this repo. |
 | Maintainer guide | [maintainer-guide.md](maintainer-guide.md) | Source-first workflow, common checks, install freshness checks, and design rationale. |
@@ -25,10 +23,9 @@ Focused docs for the scripts, skills, and operator workflows in this repository.
 
 | Path | Purpose |
 | --- | --- |
-| `bin/` | Source for launchers, proxy modules, path translation, skills fallback, and updater wrappers. |
+| `bin/` | Source for launchers, proxy modules, path translation, and skills fallback. |
 | `hooks/` | Source and tests for repo-owned Codex workstation hook guardrails. Active global hook installs are repaired only on request. |
 | `skills/` | Repo-owned Codex skill sources. In this repository, "work on skills" means this directory unless a task says otherwise. |
-| `tests/` | Script-level checks for updater promotion shape and Windows wrapper behavior. |
 
 ## Public Boundary
 

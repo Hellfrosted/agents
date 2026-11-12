@@ -9,10 +9,6 @@ Use these references when changing this repo or validating its docs.
 - [docs/maintainer-guide.md](docs/maintainer-guide.md): source-first workflow,
   common checks, install freshness checks, and design rationale.
 - [docs/wsl-shim.md](docs/wsl-shim.md): Windows-to-WSL Codex shim contract.
-- [docs/skills-updater.md](docs/skills-updater.md): skills updater contract.
-- [docs/sk-up-go-port.md](docs/sk-up-go-port.md): promoted Go skills updater
-  implementation reference, CLI protocol, validation matrix, and completion
-  audit.
 - [docs/hook-guardrails.md](docs/hook-guardrails.md): repo-owned Codex hook
   sources, install shape, and verification.
 - [docs/agent-native-boundary.md](docs/agent-native-boundary.md):
@@ -29,7 +25,7 @@ Use these references when changing this repo or validating its docs.
   enough.
 - [PowerShell documentation](https://learn.microsoft.com/powershell/)
   Use for: Windows wrapper regression harnesses and native process invocation
-  from PowerShell. The skills updater implementation itself is Go.
+  from PowerShell.
 
 ## Codex
 
