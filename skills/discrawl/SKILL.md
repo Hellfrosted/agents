@@ -1,6 +1,6 @@
 ---
 name: discrawl
-description: Discrawl local Discord archive search. Use for local Discord history questions, server/channel/DM cache lookup, Vesktop cache refresh/status, or bare "use discrawl" status. Not for official Discord/API docs, web/Slack search, pasted chat, live Discord actions, or ICM memory.
+description: Discrawl local Discord archive search. Use for local Discord history questions, server/channel/DM cache lookup, Vesktop cache refresh/status, or bare "use discrawl" status. Not for official Discord/API docs, web/Slack search, pasted chat, live Discord actions.
 ---
 
 # Discrawl

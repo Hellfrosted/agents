@@ -65,7 +65,7 @@ Run the focused source tests before publishing changes to the active global hook
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  hooks/test_wsl_command_guardrails.py hooks/test_icm_pre_json.py
+  hooks/test_wsl_command_guardrails.py
 ```
 
 The hook contract is documented in [hook-guardrails.md](hook-guardrails.md).

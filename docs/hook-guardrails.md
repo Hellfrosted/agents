@@ -11,8 +11,6 @@ for install or repair.
 | --- | --- |
 | `hooks/wsl_command_guardrails.py` | Pre-tool-use shell guardrail for WSL Codex threads. It blocks command shapes that commonly mis-handle Windows shells, Windows paths, WSL mount temp dirs, and heredoc/script execution. |
 | `hooks/test_wsl_command_guardrails.py` | Focused unittest coverage for the guardrail parser and blocking decisions. |
-| `hooks/icm_pre_json.py` | Adapter that preserves ICM's own CLI-command detection while adding the unchanged `updatedInput` required by current Codex `PreToolUse` allow responses. |
-| `hooks/test_icm_pre_json.py` | Integration coverage for ICM allow responses, unrelated commands, and malformed input. |
 | `hooks/global-pretooluse-hooks.example.json` | Source-side example for wiring the guardrail into a global Codex hook matcher. |
 | `.codex/hooks.json` | Repo-local hook config. It runs the Impeccable post-edit adapter for `Edit`, `Write`, and `apply_patch` tool events. |
 | `bin/impeccable-hook.mjs` | Adapter that delegates to a local Impeccable skill hook only when that skill source exists in `.agents/skills/impeccable`. |
@@ -54,15 +52,6 @@ The source-side hook snippet is:
 hooks/global-pretooluse-hooks.example.json
 ```
 
-ICM's active pre-tool adapter is installed separately at:
-
-```text
-$CODEX_HOME/hooks/icm_pre_json.py
-```
-
-Keep that active copy synchronized with `hooks/icm_pre_json.py` until ICM emits
-the required `updatedInput` field itself.
-
 Keep the active global hook matcher aligned with the shell tool names used by
 the current Codex runtime. Do not edit `$CODEX_HOME/hooks/` as part of ordinary
 source changes unless the task is explicitly an install or repair.
@@ -84,7 +73,7 @@ Run the hook regression from the repo root:
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
-  hooks/test_wsl_command_guardrails.py hooks/test_icm_pre_json.py
+  hooks/test_wsl_command_guardrails.py
 ```
 
 For hook config or adapter edits, also run:
