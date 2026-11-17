@@ -130,16 +130,17 @@ path-array fields are also converted.
 When the app server does not answer `skills/list` quickly enough, the proxy
 builds a fallback response by scanning:
 
-- `$HOME/.codex/skills`
-- `$HOME/.codex/skills/.system`
+- `$CODEX_HOME/skills`
+- `$CODEX_HOME/skills/.system`
 - `$HOME/.agents/skills`
 - repo-local `.codex/skills`
 - repo-local `.agents/skills`
 - per-cwd extra roots from the request
 - roots from `CODEX_SKILLS_DIRS` and `CODEX_SKILL_ROOTS`
-- nested `skills/` directories under `$HOME/.codex/plugins/cache`
+- nested `skills/` directories under `$CODEX_HOME/plugins/cache`
 
-The fallback reads `SKILL.md` frontmatter, infers a skill scope, validates the
+Fallback discovery uses the same normalized `CODEX_HOME` as the child process,
+with `$HOME/.codex` as the default. The fallback reads `SKILL.md` frontmatter, infers a skill scope, validates the
 response schema, sorts skills by name, and suppresses a later upstream response
 for the same request id if the fallback already answered.
 

@@ -100,5 +100,3 @@ Use exact section links from entrypoint skills instead of copying these rules:
   Codex-versus-tool worker boundaries, and bounded experiment loops.
 - [`discrawl`](../discrawl/SKILL.md): bounded private-archive discovery,
   evidence, and delegated search lanes.
-- [`tuck`](../tuck/SKILL.md): commit-scoped reviewers and git side-effect
-  gates.

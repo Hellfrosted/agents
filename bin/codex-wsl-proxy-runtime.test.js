@@ -1,4 +1,7 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 const test = require("node:test");
 
 const { createPathTranslator } = require("./codex-wsl-path-translation");
@@ -98,6 +101,32 @@ test("Given skills list request When fallback builds response Then schema matche
       errors: [],
       skills: [],
     },
+  ]);
+});
+
+test("Skills fallback discovers skills from the configured Codex home", (t) => {
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), "codex-skills-"));
+  t.after(() => fs.rmSync(homeDir, { recursive: true, force: true }));
+  const codexHome = path.join(homeDir, "custom");
+  const skillFolders = [
+    [path.join(codexHome, "skills", "custom-skill"), "custom-skill"],
+    [path.join(codexHome, "skills", ".system", "system-skill"), "system-skill"],
+    [path.join(codexHome, "plugins", "cache", "plugin", "skills", "plugin-skill"), "plugin-skill"],
+    [path.join(homeDir, ".codex", "skills", "default-skill"), "default-skill"],
+  ];
+
+  for (const [folder, name] of skillFolders) {
+    fs.mkdirSync(folder, { recursive: true });
+    fs.writeFileSync(path.join(folder, "SKILL.md"), `---\nname: ${name}\n---\n`);
+  }
+
+  const fallback = createSkillsFallback({ homeDir, codexHome, windowsPathToWsl: (value) => value });
+  const response = fallback.makeResponse({ id: 1, params: { cwds: [path.join(homeDir, "project")] } });
+
+  assert.deepEqual(response.result.data[0].skills.map(({ name, scope }) => [name, scope]), [
+    ["custom-skill", "user"],
+    ["plugin-skill", "user"],
+    ["system-skill", "system"],
   ]);
 });
 

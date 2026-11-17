@@ -9,7 +9,6 @@ Maintain the local source of truth for:
 
 - Windows-to-WSL Codex launch behavior;
 - T3code app-server proxy behavior;
-- globally installed Codex skill maintenance wrappers;
 - repo-owned local skills;
 - repo-owned Codex hook source and focused verification docs;
 - promotion and wrapper checks for repo-owned workstation tooling.

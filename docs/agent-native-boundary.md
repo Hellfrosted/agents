@@ -32,7 +32,7 @@ This repository still owns:
 
 - `bin/codex-wsl*`: the Windows-to-WSL Codex app-server shim, protocol proxy,
   path translation, and skills fallback.
-- repo-owned local skills under `skills/`, such as Discrawl, Tuck,
+- repo-owned local skills under `skills/`, such as Discrawl,
   Task Brief, Confidence Loop, and Evo End To End.
 
 ## Change Rule

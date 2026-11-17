@@ -184,5 +184,4 @@ function recoverExistingT3codeTempPath(value) {
 
 module.exports = {
   createPathTranslator,
-  normalizePathFields,
 };

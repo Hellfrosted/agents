@@ -12,14 +12,15 @@ function startProxy() {
     distroName: process.env.CODEX_WSL_PROXY_DISTRO || process.env.WSL_DISTRO_NAME || "",
     debugLog,
   });
-  const skillsFallback = createSkillsFallback({
-    windowsPathToWsl: translator.windowsPathToWsl,
-  });
   const rawArgv = process.argv.slice(2);
   const normalizedArgv = rawArgv.map((arg) => translator.windowsPathToWsl(arg));
   const needsAppServer = normalizedArgv.length === 0 && !process.stdin.isTTY;
   const childArgv = needsAppServer ? ["app-server"] : normalizedArgv;
   const childEnv = buildChildEnv(translator.windowsPathToWsl);
+  const skillsFallback = createSkillsFallback({
+    codexHome: childEnv.CODEX_HOME,
+    windowsPathToWsl: translator.windowsPathToWsl,
+  });
   const child = spawn(resolveCodexTarget(), childArgv, {
     cwd: translator.windowsPathToWsl(process.env.T3CODE_WINDOWS_CWD) || os.homedir() || process.env.HOME || "/",
     env: childEnv,
@@ -43,25 +44,21 @@ function startProxy() {
 class ProxyRuntime {
   constructor(options) {
     Object.assign(this, options);
-    this.appServerSession =
-      this.appServerSession ||
-      new AppServerSession({
-        debugLog: this.debugLog,
-        enabled: this.childArgv[0] === "app-server",
-        hasChildExited: () => this.childExited,
-        idleTimeoutMs: this.idleTimeoutMs,
-        isShuttingDown: () => this.shuttingDown,
-        requestShutdown: (signal) => this.shutdown(signal),
-      });
-    this.skillsListFallbacks =
-      this.skillsListFallbacks ||
-      new SkillsListFallbacks({
-        debugLog: this.debugLog,
-        normalizeOutboundJsonLine: this.normalizeOutboundJsonLine,
-        skillsFallback: this.skillsFallback,
-        timeoutMs: this.skillsFallbackTimeoutMs,
-        writeOutput: (line) => process.stdout.write(line),
-      });
+    this.appServerSession = new AppServerSession({
+      debugLog: this.debugLog,
+      enabled: this.childArgv[0] === "app-server",
+      hasChildExited: () => this.childExited,
+      idleTimeoutMs: this.idleTimeoutMs,
+      isShuttingDown: () => this.shuttingDown,
+      requestShutdown: (signal) => this.shutdown(signal),
+    });
+    this.skillsListFallbacks = new SkillsListFallbacks({
+      debugLog: this.debugLog,
+      normalizeOutboundJsonLine: this.normalizeOutboundJsonLine,
+      skillsFallback: this.skillsFallback,
+      timeoutMs: this.skillsFallbackTimeoutMs,
+      writeOutput: (line) => process.stdout.write(line),
+    });
     this.stdinBuffer = "";
     this.stdoutBuffer = "";
     this.shuttingDown = false;
@@ -69,7 +66,9 @@ class ProxyRuntime {
   }
 
   attach() {
-    this.attachLifecycle(); this.attachInput(); this.attachOutput();
+    this.attachLifecycle();
+    this.attachInput();
+    this.attachOutput();
     this.child.stderr.pipe(process.stderr);
   }
 
@@ -87,7 +86,7 @@ class ProxyRuntime {
   attachInput() {
     process.stdin.setEncoding("utf8");
     process.stdin.on("data", (chunk) => {
-      this.recordActivity();
+      this.appServerSession.recordActivity();
       this.stdinBuffer += chunk;
       this.flushInputLines();
     });
@@ -103,7 +102,7 @@ class ProxyRuntime {
   attachOutput() {
     this.child.stdout.setEncoding("utf8");
     this.child.stdout.on("data", (chunk) => {
-      this.recordActivity();
+      this.appServerSession.recordActivity();
       this.stdoutBuffer += chunk;
       this.flushOutputLines();
     });
@@ -136,16 +135,12 @@ class ProxyRuntime {
     const normalizedLine = this.normalizeInboundJsonLine(line);
     try {
       const parsed = JSON.parse(normalizedLine);
-      this.observeProtocolMessage(parsed);
+      this.appServerSession.observeProtocolMessage(parsed);
       this.skillsListFallbacks.observeInboundMessage(parsed);
     } catch {
       // Non-JSON input still belongs to child stdin.
     }
     this.child.stdin.write(normalizedLine);
-  }
-
-  observeProtocolMessage(message) {
-    this.appServerSession.observeProtocolMessage(message);
   }
 
   handleChildJsonLine(line) {
@@ -156,14 +151,14 @@ class ProxyRuntime {
       return false;
     }
 
-    this.observeProtocolMessage(message);
+    this.appServerSession.observeProtocolMessage(message);
     return this.skillsListFallbacks.handleUpstreamMessage(message, line);
   }
 
   shutdown(signal = "SIGTERM") {
     if (this.shuttingDown) return;
     this.shuttingDown = true;
-    this.clearPendingSkillsListFallbacks();
+    this.skillsListFallbacks.clear();
     if (!this.child.killed) tryKill(this.child, signal);
     setTimeout(() => {
       if (!this.childExited) tryKill(this.child, "SIGKILL");
@@ -172,21 +167,13 @@ class ProxyRuntime {
 
   exitFromChild(code, signal) {
     this.childExited = true;
-    this.clearPendingSkillsListFallbacks();
+    this.skillsListFallbacks.clear();
     if (signal) {
       if (this.shuttingDown) process.exit(0);
       process.kill(process.pid, signal);
       return;
     }
     process.exit(code ?? 0);
-  }
-
-  recordActivity() {
-    this.appServerSession.recordActivity();
-  }
-
-  clearPendingSkillsListFallbacks() {
-    this.skillsListFallbacks.clear();
   }
 }
 
@@ -341,7 +328,6 @@ function tryKill(child, signal) {
 
 module.exports = {
   AppServerSession,
-  ProxyRuntime,
   SkillsListFallbacks,
   buildChildEnv,
   parseNonNegativeInteger,

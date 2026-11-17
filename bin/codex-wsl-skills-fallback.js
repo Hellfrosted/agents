@@ -4,14 +4,14 @@ const path = require("node:path");
 
 const ALLOWED_SKILL_SCOPES = new Set(["user", "repo", "system", "admin"]);
 
-function createSkillsFallback({ homeDir = os.homedir(), windowsPathToWsl }) {
+function createSkillsFallback({ homeDir = os.homedir(), codexHome = path.join(homeDir, ".codex"), windowsPathToWsl }) {
   return {
     makeResponse(message) {
       const cwds = Array.isArray(message?.params?.cwds) ? message.params.cwds : [];
       const response = {
         id: message.id,
         result: {
-          data: cwds.map((cwd) => buildSkillsListEntry(message?.params, cwd, homeDir, windowsPathToWsl)),
+          data: cwds.map((cwd) => buildSkillsListEntry(message?.params, cwd, homeDir, codexHome, windowsPathToWsl)),
         },
       };
       validateSkillsListResponse(response);
@@ -20,13 +20,13 @@ function createSkillsFallback({ homeDir = os.homedir(), windowsPathToWsl }) {
   };
 }
 
-function buildSkillsListEntry(params, cwd, homeDir, windowsPathToWsl) {
+function buildSkillsListEntry(params, cwd, homeDir, codexHome, windowsPathToWsl) {
   const skillsByName = new Map();
   const errors = [];
 
-  for (const root of collectSkillRoots(params, cwd, homeDir, windowsPathToWsl)) {
+  for (const root of collectSkillRoots(params, cwd, homeDir, codexHome, windowsPathToWsl)) {
     try {
-      for (const skill of readSkillsFromRoot(root)) {
+      for (const skill of readSkillsFromRoot(root, codexHome)) {
         const existing = skillsByName.get(skill.name);
         if (!existing || shouldPreferSkill(skill, existing)) {
           skillsByName.set(skill.name, skill);
@@ -45,11 +45,11 @@ function buildSkillsListEntry(params, cwd, homeDir, windowsPathToWsl) {
   return { cwd, errors, skills };
 }
 
-function collectSkillRoots(params, cwd, home, windowsPathToWsl) {
+function collectSkillRoots(params, cwd, home, codexHome, windowsPathToWsl) {
   const roots = new Set();
   const rootCandidates = [
-    path.join(home, ".codex", "skills"),
-    path.join(home, ".codex", "skills", ".system"),
+    path.join(codexHome, "skills"),
+    path.join(codexHome, "skills", ".system"),
     path.join(home, ".agents", "skills"),
     path.join(cwd, ".codex", "skills"),
     path.join(cwd, ".agents", "skills"),
@@ -67,7 +67,7 @@ function collectSkillRoots(params, cwd, home, windowsPathToWsl) {
     if (fs.existsSync(extraRoot)) roots.add(extraRoot);
   }
 
-  const pluginCacheRoot = path.join(home, ".codex", "plugins", "cache");
+  const pluginCacheRoot = path.join(codexHome, "plugins", "cache");
   if (fs.existsSync(pluginCacheRoot)) {
     for (const skillsDir of findNestedSkillsDirs(pluginCacheRoot, 4)) {
       roots.add(skillsDir);
@@ -125,25 +125,25 @@ function walkDirs(dir, depth, visit) {
   }
 }
 
-function readSkillsFromRoot(root) {
+function readSkillsFromRoot(root, codexHome) {
   const entries = fs.readdirSync(root, { withFileTypes: true });
   const skills = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory() || entry.name.includes(".backup-")) continue;
     const skillPath = path.join(root, entry.name, "SKILL.md");
-    if (fs.existsSync(skillPath)) skills.push(readSkillMetadata(skillPath, root));
+    if (fs.existsSync(skillPath)) skills.push(readSkillMetadata(skillPath, root, codexHome));
   }
 
   return skills;
 }
 
-function readSkillMetadata(skillPath, root) {
+function readSkillMetadata(skillPath, root, codexHome) {
   const raw = fs.readFileSync(skillPath, "utf8");
   const frontmatter = parseFrontmatter(raw);
   const name = frontmatter.name || path.basename(path.dirname(skillPath));
   const description = frontmatter.description || "";
-  const scope = inferSkillScope(root);
+  const scope = inferSkillScope(root, codexHome);
 
   const skill = {
     name,
@@ -172,7 +172,10 @@ function parseFrontmatter(raw) {
   return result;
 }
 
-function inferSkillScope(root) {
+function inferSkillScope(root, codexHome) {
+  if (root === path.join(codexHome, "skills", ".system")) return "system";
+  if (root === path.join(codexHome, "skills")) return "user";
+  if (root.startsWith(path.join(codexHome, "plugins", "cache") + path.sep)) return "user";
   if (root.includes(`${path.sep}.codex${path.sep}skills${path.sep}.system`)) return "system";
   if (root.includes(`${path.sep}.agents${path.sep}`)) return "user";
   if (root.includes(`${path.sep}.codex${path.sep}plugins${path.sep}cache${path.sep}`)) return "user";
@@ -222,7 +225,6 @@ function validateSkillsListResponse(response) {
 
 module.exports = {
   createSkillsFallback,
-  parseFrontmatter,
   splitPathListEnv,
   validateSkillsListResponse,
 };

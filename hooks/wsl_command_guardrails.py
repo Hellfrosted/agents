@@ -197,10 +197,6 @@ def scan_heredoc_specs(line: str, index: int = 0) -> tuple[list[HeredocSpec], He
     return specs, None
 
 
-def heredoc_delimiters(line: str) -> list[str]:
-    return [spec.delimiter for spec in heredoc_specs(line)]
-
-
 def heredoc_fd_prefix(line: str, operator_index: int) -> str | None:
     end = operator_index
     start = end
@@ -344,11 +340,6 @@ def read_ansi_c_escape(line: str, index: int) -> tuple[str, int]:
         if digits:
             return chr(int(digits.group(0), 8)), index + 1 + len(digits.group(0))
     return char, index + 2
-
-
-def is_heredoc_terminator(content: str, spec: HeredocSpec) -> bool:
-    candidate = content.lstrip("\t") if spec.strip_tabs else content
-    return candidate == spec.delimiter
 
 
 def heredoc_content_fragment(content: str, spec: HeredocSpec, continuation: str) -> tuple[str, str | None]:
@@ -522,10 +513,6 @@ def shell_line_continues(content: str) -> bool:
 
     trailing_backslashes = len(content) - len(content.rstrip("\\"))
     return trailing_backslashes % 2 == 1
-
-
-def line_has_shell_heredoc_input(line: str) -> bool:
-    return any(heredoc_shell_flags(line))
 
 
 def heredoc_shell_flags(line: str) -> list[bool]:
