@@ -5,153 +5,69 @@ description: "Evo campaign planner for evo-hq/evo. Use when the user explicitly 
 
 # Evo End To End
 
-Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only
-after approval.
+Turn an optimization request into a bounded Evo campaign. For a brief-only
+request, stop after drafting the brief.
 
-For companion skills, round sizing, and CLI and hook diagnostics, see
-[REFERENCE.md](REFERENCE.md).
+## Inspect and brief
 
-Approval boundary: commands in this Skill or `REFERENCE.md` that update,
-install, force reinstall, trust hooks, change remote providers, change
-credentials, garbage-collect workspaces, or arm autonomous execution are
-report-only until the user explicitly approves that action and target.
+Inspect the repo, existing benchmarks, and validation entry points. Use
+`$grilling` when a consequential scope or metric decision remains unclear.
+Use the installed Evo skills for discovery, optimization, reporting, and shipping.
+Check that `evo --version` reports `evo-hq-cli` and matches their `evo_version`.
+For drift or missing hooks, see [installation diagnostics](REFERENCE.md#installation-diagnostics).
+On Codex, follow the [shared agent protocol](../shared-agent-protocol/SKILL.md)
+when delegating, reviewing evidence, or running bounded loops.
 
-When this workflow uses Codex subagents for planning, review, or triage, follow
-the delegation, approval-gate, evidence, and bounded-loop protocol in
-[`../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol`](../shared-agent-protocol/SKILL.md#codex-delegation-and-reviewer-protocol),
-[`../shared-agent-protocol/SKILL.md#approval-read-only-and-side-effect-gates`](../shared-agent-protocol/SKILL.md#approval-read-only-and-side-effect-gates),
-and
-[`../shared-agent-protocol/SKILL.md#bounded-loops`](../shared-agent-protocol/SKILL.md#bounded-loops).
+Record the brief before allocating experiments:
 
-## Companion Skills
+- Goal, metric and direction, baseline command, and pass/fail gate.
+- Editable scope, protected behavior, and changes outside scope.
+- Host, backend, runtime, benchmark environment, and positive per-experiment
+  timeout. Identify hosted services and expected cost where applicable.
+- Round width, per-worker budget, stall rounds, and any campaign-wide cap.
+  Size width and depth using the matching Evo plugin's round-sizing reference.
+- Autonomous and subagents-only settings, task skills, and winner criteria.
+  For noisy scores, define matched conditions, repeat count, summary statistic,
+  and minimum worthwhile improvement before promoting a winner.
 
-Names written as [`$skill-name`](codex://skills) or plugin IDs such as
-`evo:discover` are agent skills. Load and follow a named skill when its trigger
-applies.
+Use the user's existing authorization within scope. Obtain approval for any
+additional installation, hook trust, infrastructure or credential change,
+workspace garbage collection, or autonomous execution. Confirm changes to
+protected production behavior, APIs, data, auth, tests, dependencies,
+packaging, deployment, or user-visible behavior before widening scope.
 
-- Use [`$grilling`](codex://skills) when the goal, constraints, non-goals, success metric,
-  ownership, or forbidden changes are unclear after repo inspection.
-- Add [`$domain-modeling`](codex://skills) alongside [`$grilling`](codex://skills) when unclear terminology,
-  `CONTEXT.md`, ADR decisions, or domain vocabulary need to be sharpened or
-  updated while planning.
-- Use [`$improve-codebase-architecture`](codex://skills) when architecture or testability must be
-  decomposed before choosing an Evo metric.
-- Use [`evo:finetuning`](codex://skills) before writing or changing training code, reward design,
-  model-weight update recipes, or post-training workflows.
-- Use installed Evo plugin skills whose `evo_version` matches `evo --version`,
-  including discover, optimize, report, and ship.
+## Discover and validate
 
-If a referenced [`$xxx`](codex://skills) skill is not installed, check the host's skill list and
-then the user's skill lockfile for `sourceUrl` and `skillPath`. Cite the source
-before continuing with the best available fallback or hardstop as needed.
+Invoke the installed discover skill with the brief. Set the timeout at
+initialization and configure the intended backend, runtime, and `evo env`
+before allocating or scoring the baseline. Require a passing benchmark review
+before scoring. When wiring risk is material, run the discovery skill's
+`--check` before the scored baseline and retain its artifact path. Record the
+baseline experiment ID, score, and parity gate result.
 
-## Flow
+When Evo starts its dashboard on a tailnet host, automatically publish it
+through [Tailscale Serve](REFERENCE.md#dashboard-access) and share the verified
+HTTPS URL. Record its cleanup details in campaign state.
 
-1. Inspect the repo for manifests, tests, docs, benchmarks, and likely editable
-   scope before asking clarifying questions. Complete when the likely baseline,
-   validation commands, and forbidden areas are known or listed as unknowns.
-2. Verify Evo before running plugin skills:
-   - `evo --version` must report `evo-hq-cli`, not the unrelated SLAM package.
-   - The CLI version must match the loaded Evo plugin skill version.
-   - If CLI and plugin drift, tell the user the lockstep updater command
-     (see the installed CLI's `evo update --help`). Do not install or upgrade unless
-     the user asks.
-   Complete when the CLI identity/version and plugin skill version are recorded,
-   or the missing check is a blocker.
-3. Draft an Evo brief with: goal, metric, baseline command/data, pass gate,
-   editable scope, read-only context, forbidden changes, host, backend,
-   runtime/env needs, per-experiment timeout, budget, stall rule, task skills,
-   and merge rule. Complete when every brief field is filled or explicitly
-   marked unknown.
-4. Stop for approval before Evo edits production behavior, APIs, persistence,
-   auth/security, tests, packaging, dependencies, deployment, user-visible
-   behavior, dependency manifests, or remote/cloud infrastructure. Complete
-   only after the user approves the affected scope, or stop with a report-only
-   brief.
-5. Invoke Evo's discover skill with the approved brief. Host syntax differs:
-   Claude Code uses `/evo:discover`; Codex exposes Evo through `$evo`; other
-   hosts use their skill menu or natural-language invocation. Optimize only after discovery
-   records a baseline and the benchmark reviewer gate has passed. Complete
-   when the discovery experiment id, baseline proof, and reviewer gate result
-   are recorded.
-   As soon as Evo starts its dashboard, publish it automatically with
-   [Tailscale Serve](REFERENCE.md#dashboard-access) when the host is on a
-   tailnet. Share the verified HTTPS URL. Remove the campaign's Serve route
-   when monitoring ends, including after cancellation or terminal failure.
-6. Configure backend/runtime explicitly for pool, remote, or non-default
-   runtimes. Keep benchmark variables in `evo env`, not in committed scripts or
-   docs. Complete when backend, runtime, and env placement are recorded.
-7. Set and record a positive per-experiment timeout. Confirm the flags with
-   `evo init --help` before initializing. Existing workspaces use `evo
-   config set per-exp-timeout <seconds>`. Time one complete benchmark locally
-   when practical and use about twice that duration. Never omit this because a
-   run seems short.
-8. Run `evo run <exp_id> --check` when wiring risk is material. This executes
-   the benchmark and gates and writes a fresh check-attempt artifact directory,
-   but does not commit, evaluate, or consume retry budget. It is therefore a
-   workspace-writing validation, not a read-only or non-mutating command.
-   Complete when the check result and artifact location are recorded, or the
-   unavailable check is named.
-9. Resolve `autonomous` and `subagents-only` the same way [`evo:optimize`](codex://skills) does,
-   then arm that state with `evo autonomous on|off` and `evo subagents-only
-   on|off` only after the user has approved the values. Complete when both
-   values and their approval state are recorded.
-10. Before choosing `subagents` or `budget`, read the matching installed Evo
-    plugin's `skills/discover/references/sizing-the-round.md`; it is the source
-    of truth. Size from benchmark/backend resources first. Use width 1 for
-    exclusive GPUs, fixed ports, shared databases, singleton services, or
-    timing-sensitive harnesses unless the harness isolates them.
-    This is Evo CLI worker sizing, not Codex subagent fork behavior. Complete
-    when `subagents=<n>` is justified by resource isolation and benchmark risk.
-11. Invoke Evo's optimize skill with `subagents=<n> budget=<n> stall=<n>` within the approved
-    scope. Complete when the optimize experiment id and approved limits are
-    recorded.
-12. Use `evo direct "<text>"` only to steer an already-running Evo session. If
-    an agent receives an `[EVO DIRECTIVE id=...]` banner, it must run
-    `evo ack <event_id>` before proceeding. Complete when each directive is
-    acknowledged before action.
-13. When the loop stops, invoke Evo's report skill for a read-only summary from
-    recorded state. Do not rerun benchmarks merely to report results.
-14. Invoke Evo's ship skill only after the user chooses a valid winner and
-    approves landing it. Manually review the distilled output before merging
-    behavior, API, persistence, security, packaging, deployment, or
-    user-visible changes. This repository's working agreement is stricter than
-    upstream Evo: do not create or switch branches, push, open a PR, or merge
-    unless the user explicitly authorizes that exact action. Complete when
-    material output is accepted, rejected, or left behind an explicit approval
-    gate.
+## Optimize
 
-## Output
+Use the installed optimize skill within the approved scope and limits.
+Resolve and record autonomous and subagents-only settings before starting.
+Apply the approved settings and keep unattended execution within the agreed
+limits. Reconfirm a finalist against the brief's promotion criteria. For a
+hosted CI campaign, see [measurement and parity](REFERENCE.md#hosted-ci).
 
-Report the approved brief plus the evidence that exists so far:
+## Report and clean up
 
-- Evo CLI and plugin versions checked.
-- Discovery or optimize experiment id, when created.
-- Baseline command/data and pass gate proof.
-- Backend, runtime/env, budget, stall rule, autonomous value, and
-  subagents-only value.
-- `--check`, discover, optimize, report, ship, and manual-review results.
-- Remaining approvals before merge, install, cleanup, push, or deploy.
+Use the installed report skill to summarize recorded evidence. Include the
+baseline and finalist experiment IDs and scores, gate results, and remaining
+decisions. Keep the dashboard route across waits while monitoring continues.
+When monitoring ends, including after cancellation or terminal failure,
+[verify and remove the campaign's route](REFERENCE.md#dashboard-access).
 
-## Brief Template
+## Ship if approved
 
-```text
-Goal:
-Metric:
-Baseline:
-Gate:
-Editable scope:
-Read-only context:
-Forbidden changes:
-Host: codex
-Backend: worktree | gitdir | pool | remote:<provider>
-Runtime/env:
-Per-exp timeout:
-Budget:
-Stall rule:
-Autonomous: on | off
-Subagents-only: on | off
-Task skills:
-Optimize preset:
-Merge rule:
-```
+Use the installed ship skill after the user selects a qualifying winner and
+approves landing it. Review the distilled diff against the brief and parity
+evidence. Follow the target repository's rules for branches, pushes, pull
+requests, and merge authorization.

@@ -1,129 +1,40 @@
 # Evo End To End Reference
 
-## Authoritative Sources
+## Installation Diagnostics
 
-For release-specific behavior, prefer the installed plugin bundle whose
-`evo_version` matches `evo --version`, then the matching upstream tag:
+Use the installed Evo plugin skills and the matching
+[upstream release](https://github.com/evo-hq/evo/releases) for workflow and command
+details. Check the host with `evo doctor <host>` and confirm repair flags with
+`evo install --help` or `evo update --help`.
 
-- CLI: `plugins/evo/src/evo/cli.py`
-- Host installers: `plugins/evo/src/evo/host_install/`
-- Driving skills: `plugins/evo/skills/{discover,optimize,report,ship}/`
-- Round sizing:
-  `plugins/evo/skills/discover/references/sizing-the-round.md`
-- CLI quick reference: `plugins/evo/skills/references/cli-quick-reference.md`
+For an approved Codex plugin repair, use
+`evo install codex --force --no-trust-hooks`. If the CLI and plugin versions
+differ, align them to the chosen release as part of the approved repair. Run
+`evo doctor codex` again. Have the user review hooks through `/hooks` before
+enabling trust. Without trusted hooks, mid-run directives are unavailable.
 
-## Companion Skill Sources
+## Hosted CI
 
-| Skill | Use in this workflow | GitHub source if missing |
-| --- | --- | --- |
-| `$ask-matt` | Route an unclear engineering workflow. | `https://github.com/mattpocock/skills.git` at `skills/engineering/ask-matt/SKILL.md` |
-| `$grilling` | Clarify ambiguous goals, constraints, success metrics, ownership, and forbidden changes. | `https://github.com/mattpocock/skills.git` at `skills/productivity/grilling/SKILL.md` |
-| `$codebase-design` | Evaluate module interfaces, seams, leverage, locality, and testability. | `https://github.com/mattpocock/skills.git` at `skills/engineering/codebase-design/SKILL.md` |
-| `$domain-modeling` | Pair domain vocabulary, `CONTEXT.md`, and ADR work with planning. | `https://github.com/mattpocock/skills.git` at `skills/engineering/domain-modeling/SKILL.md` |
-| `$improve-codebase-architecture` | Decompose architecture or testability work before choosing an Evo metric. | `https://github.com/mattpocock/skills.git` at `skills/engineering/improve-codebase-architecture/SKILL.md` |
-| Evo discover, optimize, report, ship, finetuning, infra-setup | Use the Evo bundle whose `evo_version` matches the CLI. | `https://github.com/evo-hq/evo.git` under `plugins/evo/skills/` |
-
-The Matt Pocock package may record `pluginName: "mattpocock-skills"` in a
-universal skill lockfile. Resolve missing skills from its source repository,
-not from the Codex plugin cache. Do not invent or retain a companion skill name
-that the current source tree no longer contains.
-
-## Workflow Notes
-
-- Keep the CLI and host plugin bundle in sync. Check `evo update --help`
-  for the supported update syntax and verify the installation with
-  `evo doctor <host>`.
-- Host invocation differs. Claude Code uses `/evo:discover`,
-  `/evo:optimize`, `/evo:report`, and `/evo:ship`. Codex advertises the plugin
-  through `$evo`; select the corresponding driving skill rather than copying
-  Claude slash-command syntax. Other hosts use their menu or natural language.
-- `evo init` requires `--host` and a positive `--per-exp-timeout`. The timeout
-  becomes the workspace default; override one call with `evo run <exp_id>
-  --timeout N`, or change the workspace with `evo config set per-exp-timeout
-  N`.
-- `evo run <exp_id> --check` runs the configured benchmark and gates and writes
-  artifacts to a fresh check-attempt directory. It does not commit, evaluate,
-  or consume retry budget. Treat it as workspace-writing and potentially
-  compute-expensive.
-- `evo run <exp_id>` is terminal on success: it evaluates and commits the
-  experiment. Do not follow it with `evo done`; that command is for manually
-  recorded scores outside `evo run`.
-- After optimization, use the report skill to summarize recorded state without
-  spending compute. Use ship only after winner selection and approval; it
-  distills the best valid experiment rather than landing the raw worktree diff.
-
-## Sizing
-
-Do not maintain independent tiny/small/medium/big preset tables here. Read the
-matching plugin's `skills/discover/references/sizing-the-round.md` immediately
-before choosing `subagents` and `budget`.
-
-Its governing constraint is resource width:
-
-- worktree and gitdir runs share local resources;
-- pool width cannot exceed its slot count;
-- remote width is bounded by provider quota, concurrency, and approved cost;
-- serialize an exclusive GPU, fixed port, shared database/fixture, or unstable
-  timing harness unless the benchmark isolates it;
-- size budget from per-run cost and noise, then state the chosen width/budget
-  and reason.
-
-This is Evo worker sizing, not Codex subagent delegation.
-
-## Workspace And Backend Notes
-
-- Default local backend: `worktree`.
-- `gitdir` relocates Git metadata away from `.git`. Use it where `.git` paths
-  are forbidden, especially Claude Science.
-- Claude Science defaults new workspaces to `gitdir` after `evo install
-  claude-science`. The CLI cannot publish skills into Claude Science's catalog;
-  the in-session `evo-autoresearch-claude-science-setup` skill from
-  `evo-hq/evo-claude-science` does that through `host.skills`.
-- Pool reuses fixed local workspaces. Respect the configured slot count and
-  keep warm workspace state out of commits.
-- Remote experiments can use Modal, E2B, Daytona, AWS, Azure, or SSH. Provider
-  packages, credentials, and allocations require explicit approval.
-- Runtime commands and benchmark variables belong in `evo config runtime ...`
-  and `evo env ...`; do not copy secrets into worktrees, scripts, or docs.
-- Inspect with `evo config show`, `evo config backend show`, `evo config runtime
-  show`, and `evo env show` before changing configuration.
-- `evo direct "<text>" --wait` delivers a directive; an agent receiving an
-  `[EVO DIRECTIVE id=...]` banner must acknowledge it with `evo ack <event_id>`.
-- `evo gc` mutates workspace state by cleaning worktrees, pool slots, and remote
-  sandboxes; keep it behind explicit approval.
+- Score the required validation path from its first job start to its final job
+  finish. Record queue time separately. Verify the actual checked-out commit
+  or tree, including for pull request merge checkouts.
+- Pair control and candidate runs by runner image and cache condition. Keep
+  warm and cold results separate. Compare repeated measurements against the
+  promotion threshold even if Evo already committed a favorable attempt.
+- Gate on the exact test IDs, required checks, relevant execution settings,
+  outputs, and failure propagation. Use exit status to signal gate failures.
 
 ## Dashboard Access
 
-1. On the dashboard host, confirm Evo responds on its reported loopback port.
-   Check `tailscale serve status` and choose an unused HTTPS port so the
-   dashboard has a dedicated listener.
-2. Run `tailscale serve --bg --https=<serve-port> http://127.0.0.1:<dashboard-port>`
-   with the host's authorized operator privileges. Use Tailscale Serve for
-   tailnet-only access. Verify the returned HTTPS URL and share it with the user.
-3. Record the host and Serve port for cleanup. Keep the route while the campaign
-   is still being monitored, including across waits for hosted CI. When monitoring
-   ends, run `tailscale serve --https=<serve-port> off` on that host and verify
-   the dashboard route is gone with `tailscale serve status`. Background Serve
-   routes persist when Evo exits. Other Serve listeners may serve unrelated
-   applications, so remove only the listener created for this campaign.
-
-## Hook Repair
-
-Keep one current recovery path instead of release-by-release hook archaeology:
-
-1. Inspect with `evo doctor <host>`.
-2. If the CLI and plugin are mismatched or the durable hook binary is missing,
-   report `uv tool install --force evo-hq-cli && evo install <host> --force`
-   for explicit approval.
-3. For Codex, upstream `evo install codex` trusts Evo hooks by default. This
-   repository's approval boundary is stricter: do not trust hooks implicitly.
-   Use `--no-trust-hooks`, let the user review them through `/hooks`, and only
-   accept automatic trust when the user explicitly authorizes it.
-4. Re-run `evo doctor <host>` and record the result.
-
-## Repository-Stricter Landing Override
-
-Upstream Evo ship may propose creating a fresh branch, pushing, opening a pull
-request, or merging. In this repository those actions remain report-only until
-the user explicitly authorizes each one. Work on the current branch by default;
-never create or switch branches merely because the upstream ship skill says to.
+1. On the dashboard host, verify Evo responds on its reported loopback port.
+   Check `tailscale serve status` and choose an unused HTTPS port.
+2. With the host's authorized operator privileges, run
+   `tailscale serve --bg --https=<serve-port> http://127.0.0.1:<dashboard-port>`.
+   Verify HTTPS access through the tailnet and share the returned URL.
+3. Record the host, HTTPS port, and backend URL in durable campaign state, such
+   as an Evo workspace note. Keep the route during hosted CI waits.
+4. On terminal handback or resume after an interruption, check the recorded
+   route against `tailscale serve status`. If monitoring has ended and the
+   listener still points to the recorded backend, run
+   `tailscale serve --https=<serve-port> off` and verify its removal. Preserve
+   other listeners. Report cleanup failures so a later agent can retry them.
