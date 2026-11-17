@@ -8,19 +8,17 @@ automation definitions, and restore payloads live in the dotfiles repository.
 
 ## What Is Here
 
-- `bin/`: Windows-to-WSL Codex launch scripts and protocol proxy modules.
 - `hooks/`: source copies of local Codex workstation hooks and focused
   regression tests.
 - `skills/`: repo-owned Codex skill sources.
-- `docs/`: focused operator documentation for the shim, hooks, and
-  repo-owned skill workflows.
+- `docs/`: focused operator documentation for hooks and repo-owned skill workflows.
 
 ## Quick Checks
 
-Run the Node proxy regression tests from the repo root:
+Run the workstation hook tests from the repo root in WSL.
 
 ```bash
-node --test bin/codex-wsl-proxy-runtime.test.js
+python3 -B -m unittest hooks/test_wsl_command_guardrails.py
 ```
 
 ## Documentation
@@ -29,7 +27,6 @@ Start with [docs/README.md](docs/README.md) for the maintained docs index.
 
 Common entry points:
 
-- [WSL shim](docs/wsl-shim.md): Windows-to-WSL Codex launch and proxy behavior.
 - [Hook guardrails](docs/hook-guardrails.md): repo-owned Codex hook sources and
   verification.
 - [Agent-Native boundary](docs/agent-native-boundary.md): what the installed

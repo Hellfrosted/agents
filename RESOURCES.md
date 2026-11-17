@@ -8,24 +8,11 @@ Use these references when changing this repo or validating its docs.
 - [docs/README.md](docs/README.md): maintained documentation index.
 - [docs/maintainer-guide.md](docs/maintainer-guide.md): source-first workflow,
   common checks, install freshness checks, and design rationale.
-- [docs/wsl-shim.md](docs/wsl-shim.md): Windows-to-WSL Codex shim contract.
 - [docs/hook-guardrails.md](docs/hook-guardrails.md): repo-owned Codex hook
   sources, install shape, and verification.
 - [docs/agent-native-boundary.md](docs/agent-native-boundary.md):
   ownership boundary between built-in Codex visualization, BuilderIO's
   Agent-Native skills, and this repository.
-
-## WSL And Windows Interop
-
-- [Microsoft WSL documentation](https://learn.microsoft.com/windows/wsl/)
-  Use for: `wsl.exe`, distro selection, `WSLENV`, Windows/WSL path boundaries,
-  and WSL management from Windows.
-- [`wslpath` manual behavior](https://manpages.ubuntu.com/manpages/noble/man1/wslpath.1.html)
-  Use for: path conversion expectations when local direct conversion is not
-  enough.
-- [PowerShell documentation](https://learn.microsoft.com/powershell/)
-  Use for: Windows wrapper regression harnesses and native process invocation
-  from PowerShell.
 
 ## Codex
 

@@ -14,9 +14,7 @@ workstation install without relying on remembered local state.
 ## Product Purpose
 
 agents-toolkit keeps repo-owned Codex tooling understandable, repairable, and
-reproducible. It is the source of truth for Windows-to-WSL Codex launch
-behavior, app-server proxy behavior, repo-owned local skills, and Codex hook
-source.
+reproducible. It is the source of truth for repo-owned local skills and Codex hook source.
 
 Success means a maintainer can quickly identify the file that owns a behavior,
 change it in source first, validate it with the smallest relevant check, and

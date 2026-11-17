@@ -49,16 +49,6 @@ NODE
 git diff --check
 ```
 
-### WSL proxy modules
-
-```bash
-node --test bin/codex-wsl-proxy-runtime.test.js
-```
-
-This covers protocol path translation, outbound Linux path conversion,
-proxy-only environment cleanup, `skills/list` fallback schema, Windows path-list
-handling, turn-id parsing, and timeout parsing.
-
 ### Workstation hooks
 
 Run the focused source tests before publishing changes to the active global hook:
@@ -74,39 +64,6 @@ installed guardrail, copy `hooks/wsl_command_guardrails.py` to
 `$CODEX_HOME/hooks/wsl_command_guardrails.py` and keep `$CODEX_HOME/hooks.json`
 matching Codex shell tool names used by the current runtime. The source-side
 reference snippet is `hooks/global-pretooluse-hooks.example.json`.
-
-The repo-local `.codex/hooks.json` is separate. It runs
-`bin/impeccable-hook.mjs` after edit-like tool calls and only delegates when the
-local Impeccable skill source exists.
-
-## Installed Shim Freshness
-
-The intended Windows entry point is a native Windows symlink to
-`bin/codex-wsl.cmd`. Repair that symlink with Windows-native tooling.
-
-The WSL-side runtime files live under `~/.local/bin` when installed:
-
-```bash
-ls -l ~/.local/bin/codex-wsl-proxy*.js ~/.local/bin/codex-wsl-path-translation.js ~/.local/bin/codex-wsl-skills-fallback.js
-```
-
-If those installed files differ from `bin/`, repair by copying from this repo.
-Do not mutate installed runtime files during ordinary source edits unless the
-task explicitly asks for install or repair work.
-
-## Current Design Rationale
-
-- The Windows entry point stays small because Windows-specific work is limited
-  to finding `wsl.exe`, selecting a distro/user, passing environment through
-  `WSLENV`, and preserving the Windows current directory.
-- The WSL runner owns Codex process startup because it can reliably normalize
-  `HOME`, `USER`, `CODEX_HOME`, and WSL `PATH`.
-- The Node proxy is split into runtime, path translation, and skills fallback
-  modules so path-policy changes and app-server lifecycle changes are testable
-  without exercising the Windows batch file.
-- Hook source lives in the repo because the active workstation copy must be
-  testable and repairable without turning `$CODEX_HOME` into the source of
-  truth.
 
 ## Safety Rules
 

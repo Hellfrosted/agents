@@ -7,11 +7,8 @@ repairable, and reproducible.
 
 Maintain the local source of truth for:
 
-- Windows-to-WSL Codex launch behavior;
-- T3code app-server proxy behavior;
 - repo-owned local skills;
-- repo-owned Codex hook source and focused verification docs;
-- promotion and wrapper checks for repo-owned workstation tooling.
+- repo-owned Codex hook source and focused verification docs.
 
 The repo should answer what is true now, how to verify it, and where to make the
 next source change. Historical notes belong only where they explain a current

@@ -12,8 +12,6 @@ for install or repair.
 | `hooks/wsl_command_guardrails.py` | Pre-tool-use shell guardrail for WSL Codex threads. It blocks command shapes that commonly mis-handle Windows shells, Windows paths, WSL mount temp dirs, and heredoc/script execution. |
 | `hooks/test_wsl_command_guardrails.py` | Focused unittest coverage for the guardrail parser and blocking decisions. |
 | `hooks/global-pretooluse-hooks.example.json` | Source-side example for wiring the guardrail into a global Codex hook matcher. |
-| `.codex/hooks.json` | Repo-local hook config. It runs the Impeccable post-edit adapter for `Edit`, `Write`, and `apply_patch` tool events. |
-| `bin/impeccable-hook.mjs` | Adapter that delegates to a local Impeccable skill hook only when that skill source exists in `.agents/skills/impeccable`. |
 
 ## WSL Command Guardrails
 
@@ -56,17 +54,6 @@ Keep the active global hook matcher aligned with the shell tool names used by
 the current Codex runtime. Do not edit `$CODEX_HOME/hooks/` as part of ordinary
 source changes unless the task is explicitly an install or repair.
 
-## Repo-Local Impeccable Hook
-
-`.codex/hooks.json` wires post-edit UI checks to `bin/impeccable-hook.mjs`. The
-adapter exits successfully when `.agents/skills/impeccable/scripts/hook.mjs` is
-not present, so the repo config is safe on machines that do not have that local
-skill source.
-
-This hook is source hygiene for UI changes in this repo; it is not a replacement
-for built-in Codex visualization or browser/visual QA when a generated artifact
-has meaningful visual surface area.
-
 ## Verification
 
 Run the hook regression from the repo root:
@@ -74,13 +61,6 @@ Run the hook regression from the repo root:
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest \
   hooks/test_wsl_command_guardrails.py
-```
-
-For hook config or adapter edits, also run:
-
-```bash
-node --check bin/impeccable-hook.mjs
-git diff --check
 ```
 
 When repairing the active global guardrail, verify the installed file path and
