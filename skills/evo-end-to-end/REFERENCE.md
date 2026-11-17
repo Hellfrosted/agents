@@ -12,9 +12,6 @@ For release-specific behavior, prefer the installed plugin bundle whose
   `plugins/evo/skills/discover/references/sizing-the-round.md`
 - CLI quick reference: `plugins/evo/skills/references/cli-quick-reference.md`
 
-The npm mirror lives under `plugins/evo/npm/skills/`; do not use historical
-`skills/` or `npm/skills/` repository-root paths for v0.7.
-
 ## Companion Skill Sources
 
 | Skill | Use in this workflow | GitHub source if missing |
@@ -31,11 +28,11 @@ universal skill lockfile. Resolve missing skills from its source repository,
 not from the Codex plugin cache. Do not invent or retain a companion skill name
 that the current source tree no longer contains.
 
-## Evo v0.7 Workflow Notes
+## Workflow Notes
 
-- Keep the CLI and host plugin bundle in lockstep. Report
-  `evo update <host> --version 0.7.0` when repair is needed; run it only after
-  explicit user approval. Verify with `evo doctor <host>`.
+- Keep the CLI and host plugin bundle in sync. Check `evo update --help`
+  for the supported update syntax and verify the installation with
+  `evo doctor <host>`.
 - Host invocation differs. Claude Code uses `/evo:discover`,
   `/evo:optimize`, `/evo:report`, and `/evo:ship`. Codex advertises the plugin
   through `$evo`; select the corresponding driving skill rather than copying
@@ -108,10 +105,6 @@ Keep one current recovery path instead of release-by-release hook archaeology:
    Use `--no-trust-hooks`, let the user review them through `/hooks`, and only
    accept automatic trust when the user explicitly authorizes it.
 4. Re-run `evo doctor <host>` and record the result.
-
-Do not preserve obsolete marketplace-removal recipes, `CLAUDE_PLUGIN_ROOT`
-diagnostics, or pre-0.5 hook cache layouts in the active workflow. Consult the
-matching historical tag only when repairing a deliberately pinned old install.
 
 ## Repository-Stricter Landing Override
 

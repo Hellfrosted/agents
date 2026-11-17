@@ -8,9 +8,7 @@ description: "Evo campaign planner for evo-hq/evo. Use when the user explicitly 
 Turn a fuzzy improvement request into an Evo-ready experiment, then run Evo only
 after approval.
 
-Target Evo release line: `evo-hq/evo` v0.7.x.
-
-For companion skill sources, round-sizing guidance, and release-specific notes, see
+For companion skills, round sizing, and CLI and hook diagnostics, see
 [REFERENCE.md](REFERENCE.md).
 
 Approval boundary: commands in this Skill or `REFERENCE.md` that update,
@@ -56,7 +54,7 @@ before continuing with the best available fallback or hardstop as needed.
    - `evo --version` must report `evo-hq-cli`, not the unrelated SLAM package.
    - The CLI version must match the loaded Evo plugin skill version.
    - If CLI and plugin drift, tell the user the lockstep updater command
-     (`evo update <host> --version <version>`). Do not install or upgrade unless
+     (see the installed CLI's `evo update --help`). Do not install or upgrade unless
      the user asks.
    Complete when the CLI identity/version and plugin skill version are recorded,
    or the missing check is a blocker.
@@ -79,8 +77,8 @@ before continuing with the best available fallback or hardstop as needed.
 6. Configure backend/runtime explicitly for pool, remote, or non-default
    runtimes. Keep benchmark variables in `evo env`, not in committed scripts or
    docs. Complete when backend, runtime, and env placement are recorded.
-7. Set and record a positive per-experiment timeout. Evo 0.7 requires
-   `--per-exp-timeout <seconds>` at `evo init`; existing workspaces use `evo
+7. Set and record a positive per-experiment timeout. Confirm the flags with
+   `evo init --help` before initializing. Existing workspaces use `evo
    config set per-exp-timeout <seconds>`. Time one complete benchmark locally
    when practical and use about twice that duration. Never omit this because a
    run seems short.
