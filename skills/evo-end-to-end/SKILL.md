@@ -74,6 +74,10 @@ before continuing with the best available fallback or hardstop as needed.
    records a baseline and the benchmark reviewer gate has passed. Complete
    when the discovery experiment id, baseline proof, and reviewer gate result
    are recorded.
+   As soon as Evo starts its dashboard, publish it automatically with
+   [Tailscale Serve](REFERENCE.md#dashboard-access) when the host is on a
+   tailnet. Share the verified HTTPS URL. Remove the campaign's Serve route
+   when monitoring ends, including after cancellation or terminal failure.
 6. Configure backend/runtime explicitly for pool, remote, or non-default
    runtimes. Keep benchmark variables in `evo env`, not in committed scripts or
    docs. Complete when backend, runtime, and env placement are recorded.

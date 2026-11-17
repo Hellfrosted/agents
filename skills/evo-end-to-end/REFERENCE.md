@@ -92,6 +92,21 @@ This is Evo worker sizing, not Codex subagent delegation.
 - `evo gc` mutates workspace state by cleaning worktrees, pool slots, and remote
   sandboxes; keep it behind explicit approval.
 
+## Dashboard Access
+
+1. On the dashboard host, confirm Evo responds on its reported loopback port.
+   Check `tailscale serve status` and choose an unused HTTPS port so the
+   dashboard has a dedicated listener.
+2. Run `tailscale serve --bg --https=<serve-port> http://127.0.0.1:<dashboard-port>`
+   with the host's authorized operator privileges. Use Tailscale Serve for
+   tailnet-only access. Verify the returned HTTPS URL and share it with the user.
+3. Record the host and Serve port for cleanup. Keep the route while the campaign
+   is still being monitored, including across waits for hosted CI. When monitoring
+   ends, run `tailscale serve --https=<serve-port> off` on that host and verify
+   the dashboard route is gone with `tailscale serve status`. Background Serve
+   routes persist when Evo exits. Other Serve listeners may serve unrelated
+   applications, so remove only the listener created for this campaign.
+
 ## Hook Repair
 
 Keep one current recovery path instead of release-by-release hook archaeology:
