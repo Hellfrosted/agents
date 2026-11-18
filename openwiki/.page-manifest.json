@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "pages": {
+    "/openwiki/operations/wsl-shell-guardrail.md": {
+      "pageVersion": "sha256:fd386333f4a7a126af6ae9c7eb691a9bf620bb1dfa6c28b065b9d9e975ca38fe",
+      "completedBy": "pi",
+      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd",
+      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
+      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5"
+    },
+    "/openwiki/quickstart.md": {
+      "pageVersion": "sha256:6eb8066b6e9f8796727970952653d97514acf470c549b7d04c3888c2bb7e65b2",
+      "completedBy": "pi",
+      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd",
+      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
+      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5"
+    },
+    "/openwiki/workflows/skills-and-lessons.md": {
+      "pageVersion": "sha256:19a4f110eea68d7b503aafdb81f97b0fb42e0b34b235143544db56a7487c7637",
+      "completedBy": "pi",
+      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd",
+      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
+      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5"
+    }
+  }
+}

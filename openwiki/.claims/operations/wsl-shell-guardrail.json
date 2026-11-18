@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:fd386333f4a7a126af6ae9c7eb691a9bf620bb1dfa6c28b065b9d9e975ca38fe",
+  "claims": [
+    {
+      "id": "claim_ede1811b92cd4c309d8b4dc67ceeee41",
+      "statement": "The hook checks original shell input before rewriting Windows paths and rechecks the rewritten input before returning an allow decision with updatedInput.",
+      "evidence": [
+        {
+          "resource": "repo://hooks/wsl_command_guardrails.py#L1398-L1425",
+          "version": "repo-lines-v1:sha256:75ea45666445469e73b70da9d99e6e92c6a10a2423539868f35b563babf69a30:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiMzk3OTMzYTI0YTgwMWVlOTIzMzI3YmQ2OWEwMTA0OWMwNzc5MTUwMjFjZjJlYzM5ZGRhNGY4MWFhODM3ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2MjMzYjNmZmVhMzJhMjNkZjUzMDY1MzQzNDhmMmRlZTc3NmE1YTZmNzRmYjUzMzE3NWRkYzUzOWE4ZmU0NjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a92671b3f3a2408a8283de8832d19bf3",
+      "statement": "Parallel rewrites preserve non-shell entries and replace parameters only for recognized shell entries whose input changed.",
+      "evidence": [
+        {
+          "resource": "repo://hooks/wsl_command_guardrails.py#L1220-L1250",
+          "version": "repo-lines-v1:sha256:12d408a98ebef013a616a6711c3d23ba37200b9b9173c167eb2e8e989ddb52eb:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMDg0ZDljN2JhNjA1NzUzZGM4ZGNlMTBiNmNkNjNlMmVmNDE4MDM2Njk5OTlhYTE4Mjg4NDU2ZWZjMDVkNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyYzAwZmM5NzEzODQ5ZjIyZmM1ZmZhYjQwNmFiODFlMmNiOWMwNDE3OTQ5NDQxNzcyOTIwMjNmOGQ3MWQxYTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MDYwMDA3OGM1NzhhNWU0YTAzZjVhNmU4YWY1YzJmODYyMjg0NDVhZjg0MTRhMjk2ODliZjI5ZTE4NTY2MGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1MjAyM2MzNGUxNzQ1NWZmNGY5NWExZmU5MTFkOTRlMjQ5ZjI1ZDY3OWEyMTNmMjUxMzg5N2YxMDlmMjdmMDAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0572ab1a9aaf44a0ad9b033b8d4d332a",
+      "statement": "The regression suite invokes the hook with PreToolUse JSON and distinguishes no-output allow, deny, and allow with rewritten input.",
+      "evidence": [
+        {
+          "resource": "repo://hooks/test_wsl_command_guardrails.py#L16-L24",
+          "version": "repo-lines-v1:sha256:fc9476bc9d28acb27691e636e6df55c1dd2651d2d0b79b817cb6c7a3d33caaf5:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGY2Yjc0MGZmNmVhZGQ4MTQzYzM4Y2Y3MGFjZTQ3ODkxZjVlODM4NGM0MzUwMjMwMWIyMGU4NDc1YmI4YzJhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc5NzM3MzNhMTBmZjU3ZDJlZGJiOTc4NDdlYmFkY2EzOTQ0NGVjMjk3ZjE4ZWFjYjk0NzA0ZWE1YzhmOTcwNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2YwODhiNDViZDRkMjVkY2ZhYWM2ZTU0MWZkN2JkODM5OGNhNTA1MjE2ZmFmOTkzYzFmNTFhMDkyMGQ5NTNjNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWE0OTY5OTllMzYwOGFhN2VhZGJmYzFiZDU1MDk5OTBlZGIwZTBhOWFlOGQwYjVhOWI3OGNjMzJhZWU5MGFjNCJ9"
+        },
+        {
+          "resource": "repo://hooks/test_wsl_command_guardrails.py#L63-L83",
+          "version": "repo-lines-v1:sha256:19a9ff506fe82d8e351fe314d2c341527864d1f408d3b4f009c1cae445b64eba:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MmFiMzFhMzY5ZDk1NGNkYTEzZmMwOTRjM2Q5MjY2NTcxZGE4M2M4MjA1MWNiMzg3ZWY2MDM3ZDlmNjIzYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiY2E4NTY2NjBhOGZhMzcyNGI2YjJiMjBlODIyZWEwMzc1ZmFmOWVhMjAzODY5ZWY3NTg1ZWEwMGE1NDcxNWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkYjM1YzFiZTY2ZjZhMWYxYWI5YzI0MTQxNjI4NmUxMzYxM2E2NTI5MzU2MjNmODgyODRjMzg4MzE2MmFiNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmOTg4YTE3OTQyYjY1YjY1MTIzNjA0YzQ1MDAzMWU5ZWUyNWY4N2ZkYTA3YjNhZTA5MTNjMGMwZGJiZTEzNmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_424b4f823aa04031ae34c52a47b97e37",
+      "statement": "Active hook repair is separate from source maintenance and requires verifying the installed file and runtime matcher.",
+      "evidence": [
+        {
+          "resource": "repo://docs/hook-guardrails.md",
+          "version": "repo-file-v1:sha256:6422aea0bd74a44451674f9f49405f64ce202b55544a9ab569a98fc00246a1bb"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-18T04:17:50.689Z"
+  }
+}

@@ -23,7 +23,9 @@ python3 -B -m unittest hooks/test_wsl_command_guardrails.py
 
 ## Documentation
 
-Start with [docs/README.md](docs/README.md) for the maintained docs index.
+Start with the [OpenWiki quickstart](openwiki/quickstart.md) to find the right
+source, workflow, or check. The [operator documentation index](docs/README.md)
+links to the detailed maintenance and repair notes.
 
 Common entry points:
 

@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:19a4f110eea68d7b503aafdb81f97b0fb42e0b34b235143544db56a7487c7637",
+  "claims": [
+    {
+      "id": "claim_c0a38314afc344138d0f3bb4e47a490e",
+      "statement": "Shared Agent Protocol is a reference for entrypoint skills that defines delegation, approval gates, and bounded loops.",
+      "evidence": [
+        {
+          "resource": "repo://skills/shared-agent-protocol/SKILL.md",
+          "version": "repo-file-v1:sha256:892fe1ed06980a9f220d0c9f32d9b00fa6b171a25f92ce9a7b897b8dcbb9f4b1"
+        }
+      ]
+    },
+    {
+      "id": "claim_2d705d9461494a09b47b0083a0a2ae4c",
+      "statement": "The interactive skill prompting lesson pairs decision exercises with a printable checklist covering placement and bounded repeated work.",
+      "evidence": [
+        {
+          "resource": "repo://lessons/0001-prompting-for-codex-skills.html#L100-L140",
+          "version": "repo-lines-v1:sha256:c80cd180ff2679bf0a73be2d88ed37afabd03db4092235fb0e008c04bcf40ec2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxYTUyMWY0NDYzYWU2OGQyOWIwZjg5MDE3NGMyOGYyYWUwZmE5ZDA4ZDBkYTM0MzdkMjA3ZDM5ZGE2MGZkZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzMDRiYjliYzM3YTQxYjQ0YTU3NGJkOWNkMzA3OWFlZDk5YzNmNmRhNjdjZDFiOTk5NDNhN2NhODhlYzI2MjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4MDdmN2VlMTQyMjA4ZGJiNmUzNTU3ZWQ2NDE5NGRlMGNmNjI0MzM2OWYwODBhMzY5OTA5MWE5NmMzZDc5MWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwOGMwODY1NjVlMjhiMmM2MTJkZWUyNTVjMTUzNjQ5YjY5Y2U2MjAxODZmYjRmMzZiYjk5YWI3OGNjMDc4ODEifQ"
+        },
+        {
+          "resource": "repo://reference/skill-prompting-checklist.html#L26-L52",
+          "version": "repo-lines-v1:sha256:6422d5ac643344d3a4ca4e6891cbc981bb114ea4b50a7e389ceeb4fa966f4d8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjM2EzZTRkMTI2M2IwODc0Y2NhYWQyNTMxZGNlMThhMWM5YTlmNzVjNzNhMmQ4MWJhNzI1ODNkMDJiODA0MDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZmM4YTM4NTA3MDczMTE2YmMzNDRkMGE2NjFlMTgyNDk5MzRmMDgxNjM2NGU5NDQ2ZDBjN2VjMzNjY2I4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhNzRlNzAyYTRjNGQxYWQwODg3YzQxYWNiMmE4NjNhYTdlNGQzMWVhMWM3OGVmNWJmZmNmZmFlOTQ4MGNjNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0YTNkY2U1N2IxNTAxYWNkZDJmZDIwYmU0YmZmZDM1NTkzYWU5MjlmODQwMDgzNmUxOWZjMWViYmZiNDA2YWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a75f603164114b90b96b0d9a9da73632",
+      "statement": "Conversational visualization belongs to Codex, while general visual plans and recaps belong to the installed Agent-Native skills rather than this repository.",
+      "evidence": [
+        {
+          "resource": "repo://docs/agent-native-boundary.md#L3-L27",
+          "version": "repo-lines-v1:sha256:bf467fa16b98bb7fadb32cb37fd3f5756083d9c2456cd71016c2cdadcdf25617:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNGIzNWUxY2UzYjE1Yzc0MzY4NjY2NzIwZWVjNTJkMjg5ZmMyMGRjNDYzNzk4NjFhNWRkZGRlZjFkOGJmZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5NGRlODRkMDNiMDUzYTViN2Q0MjdkMTRjZmQ4ZDQ4YzA3NTU1M2FiZWMwNDFkNzEwZDU1YzUyNDU3NTAwNGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYTJiYzVkZDcyYmRlZGQ4ZmM0NjA4NTI0OGQzNDgyN2QyMWU5ODQ1ZjVmM2NjNmQ0MjJmM2YwMjQyZjcyMWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkNDdlNzlhMDYzMGRlODM2YWIzNTI4NGJiNGFmNjNiOTM2NWE2Mjc0MWE2MTZhYTMwMDYyMDA4YmNjYTJmYWMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.9.0",
+    "at": "2026-11-18T04:17:50.689Z"
+  }
+}
