@@ -98,5 +98,3 @@ Use exact section links from entrypoint skills instead of copying these rules:
   evidence-backed loopholes, and bounded loops.
 - [`evo-end-to-end`](../evo-end-to-end/SKILL.md): approval gates,
   Codex-versus-tool worker boundaries, and bounded experiment loops.
-- [`discrawl`](../discrawl/SKILL.md): bounded private-archive discovery,
-  evidence, and delegated search lanes.

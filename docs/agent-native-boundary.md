@@ -30,8 +30,8 @@ repository just to customize routine behavior.
 
 This repository still owns:
 
-- repo-owned local skills under `skills/`, such as Discrawl,
-  Task Brief, Confidence Loop, and Evo End To End.
+- repo-owned local skills under `skills/`, such as Task Brief, Confidence Loop,
+  and Evo End To End.
 
 ## Change Rule
 

@@ -31,6 +31,5 @@ The root README stays intentionally short. Detailed local maintenance notes live
 in this directory so the public project entry point explains the repository
 without doubling as a workstation runbook.
 
-Workstation setup, shell configuration, Codex automation definitions, AgentsView
-notes, Discrawl wiretap notes, and restore archives now belong in
+Workstation setup and shell configuration belong in
 `/mnt/e/dev/dotfiles`.

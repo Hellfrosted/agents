@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:19a4f110eea68d7b503aafdb81f97b0fb42e0b34b235143544db56a7487c7637",
+  "pageVersion": "sha256:2635e6939b4d9c9ef26564ed0eab0842c33bd1b7b87cf74c84aaed8b7e13a82e",
   "claims": [
     {
       "id": "claim_c0a38314afc344138d0f3bb4e47a490e",
@@ -8,7 +8,7 @@
       "evidence": [
         {
           "resource": "repo://skills/shared-agent-protocol/SKILL.md",
-          "version": "repo-file-v1:sha256:892fe1ed06980a9f220d0c9f32d9b00fa6b171a25f92ce9a7b897b8dcbb9f4b1"
+          "version": "repo-file-v1:sha256:10e6c247747451f8ca4dde5a7f064c207be500502de64d93706d9857d862cae0"
         }
       ]
     },
@@ -39,6 +39,6 @@
   ],
   "verification": {
     "by": "openwiki/0.9.0",
-    "at": "2026-11-18T04:17:50.689Z"
+    "at": "2026-11-18T13:14:44.411Z"
   }
 }

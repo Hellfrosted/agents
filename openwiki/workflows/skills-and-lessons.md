@@ -5,7 +5,7 @@ description: Routes maintainers to repo-owned skill contracts, upstream workflow
 tags: [codex, skills, maintenance]
 verified:
   - by: openwiki/0.9.0
-    at: 2026-11-18T04:17:50.689Z
+    at: 2026-11-18T13:14:44.411Z
 sources:
   - id: openwiki-source-a9b55a65712732f6bcf808ba
     resource: repo://docs/agent-native-boundary.md
@@ -15,7 +15,7 @@ sources:
     resource: repo://reference/skill-prompting-checklist.html
   - id: openwiki-source-923b5f957ed14536b821b731
     resource: repo://skills/shared-agent-protocol/SKILL.md
-generated: { by: "pi", at: "2026-11-18T04:17:50.689Z" }
+generated: { by: "pi", at: "2026-11-18T13:14:44.411Z" }
 ---
 
 # Skill workflows and lessons
@@ -24,7 +24,6 @@ Start with the relevant `SKILL.md` for invocation rules and workflow limits:
 
 | Task | Source |
 | --- | --- |
-| Search or inspect a local Discord archive | [Discrawl](../../skills/discrawl/SKILL.md) and its [local setup and troubleshooting reference](../../skills/discrawl/REFERENCE.md) |
 | Turn rough intent into a Codex implementation ticket or handoff | [Task Brief](../../skills/task-brief/SKILL.md) |
 | Audit confidence or stress-test a proposed strategy on request | [Confidence Loop](../../skills/confidence-loop/SKILL.md) |
 | Review a diff for reuse, consistency, or unnecessary abstractions | [Code Refactor Review](../../skills/code-refactor-review/SKILL.md) |

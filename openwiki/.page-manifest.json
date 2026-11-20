@@ -2,25 +2,25 @@
   "schemaVersion": 1,
   "pages": {
     "/openwiki/operations/wsl-shell-guardrail.md": {
+      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
+      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5",
       "pageVersion": "sha256:fd386333f4a7a126af6ae9c7eb691a9bf620bb1dfa6c28b065b9d9e975ca38fe",
       "completedBy": "pi",
-      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd",
-      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
-      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5"
+      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd"
     },
     "/openwiki/quickstart.md": {
+      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
+      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5",
       "pageVersion": "sha256:6eb8066b6e9f8796727970952653d97514acf470c549b7d04c3888c2bb7e65b2",
       "completedBy": "pi",
-      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd",
-      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
-      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5"
+      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd"
     },
     "/openwiki/workflows/skills-and-lessons.md": {
-      "pageVersion": "sha256:19a4f110eea68d7b503aafdb81f97b0fb42e0b34b235143544db56a7487c7637",
+      "pageVersion": "sha256:2635e6939b4d9c9ef26564ed0eab0842c33bd1b7b87cf74c84aaed8b7e13a82e",
       "completedBy": "pi",
-      "completedRunId": "2b7e2bd9-7493-41b5-a056-f9fd5309a7fd",
-      "gitHead": "02969f4840b1724573b323b52658a8f4930b7afa",
-      "sourceFingerprint": "sha256:cab483470cafde5a540aa8eb0e300aa433268d69d30795a1fa63a934c98a1ce5"
+      "completedRunId": "a8cec4a2-cac5-4ec1-bd8a-e3c66a3c11ae",
+      "gitHead": "ea8d63fe4adc10d0f1f21008e440a2d867d82654",
+      "sourceFingerprint": "sha256:09ad2245f7688806d2a1b76e7a0347251b20deba4116b47f3caf495772f05d92"
     }
   }
 }
