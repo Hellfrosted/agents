@@ -8,6 +8,15 @@ description: "Evo campaign planner for evo-hq/evo. Use when the user explicitly 
 Turn an optimization request into a bounded Evo campaign. For a brief-only
 request, stop after drafting the brief.
 
+Outcome: a bounded campaign brief with a baseline and a qualifying finalist, or a
+shipped winner when the user approved landing it. Proof: the brief records the goal,
+metric, baseline command, pass/fail gate, editable scope, and campaign caps; the
+report records baseline and finalist IDs, scores, and gate results; the dashboard
+route is removed when monitoring ends.
+
+Guardrails: stay inside the approved scope and budget, and never widen a campaign
+to protected behavior, credentials, or deployment without explicit approval.
+
 ## Inspect and brief
 
 Inspect the repo, existing benchmarks, and validation entry points. Use
@@ -15,8 +24,11 @@ Inspect the repo, existing benchmarks, and validation entry points. Use
 Use the installed Evo skills for discovery, optimization, reporting, and shipping.
 Check that `evo --version` reports `evo-hq-cli` and matches their `evo_version`.
 For drift or missing hooks, see [installation diagnostics](REFERENCE.md#installation-diagnostics).
-On Codex, follow the [shared agent protocol](../shared-agent-protocol/SKILL.md)
-when delegating, reviewing evidence, or running bounded loops.
+When delegating or running repeated review passes, keep the loop bounded and
+self-contained: state the goal and attempt budget, record evidence for every
+attempt, define a stop condition and human gate, and finish with a short report of
+what was learned. Use the installed `council` skill when an independent cross-model
+review of a finalist is warranted.
 
 Record the brief before allocating experiments:
 

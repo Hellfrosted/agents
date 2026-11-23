@@ -7,6 +7,14 @@ description: Refactor/slop review for code changes. Use when asked whether a dif
 
 Review changed code for reuse, composition, codebase consistency, and slop.
 
+Outcome: a prioritized findings list that separates real reuse, composition, and
+consistency problems from style nits. Proof: every material finding cites changed
+code and either the existing pattern that should be reused or an explicit note that
+no such pattern exists. No findings means `clean`, with the searches recorded.
+
+Guardrails: review only unless the user asked for fixes. Do not invent architecture
+or propose structure the codebase does not already justify.
+
 ## Review Procedure
 
 1. Select and inspect the full change set:

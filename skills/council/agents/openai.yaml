@@ -1,0 +1,7 @@
+interface:
+  display_name: "Council"
+  short_description: "Multi-model independent review with verification and scoring"
+  default_prompt: "Use $council to review the current work with independent model families, then verify, repair, and score the result."
+
+policy:
+  allow_implicit_invocation: true

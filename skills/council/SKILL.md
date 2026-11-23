@@ -12,8 +12,18 @@ description: >-
 One magic word for the whole loop: scope the work, seat independent reviewers
 across model families, run bounded rounds, verify and repair, then score and hand off.
 
+Outcome: a scored, evidence-backed decision on whether the current change is ready,
+with one finding ledger and an explicit confidence score. Proof: every material
+finding has evidence, every risk has exactly one status, and each score comes from a
+seat that actually ran. When no seat can run, say so and report the single-family
+result rather than implying a council happened.
+
+Use this when independent cross-family judgement or a quantified confidence decision
+is needed. For a single-model reuse and slop pass, use `code-refactor-review` instead.
+
 Aliases: `sol loop` and `confidence loop` / `$confidence-loop` mean this skill.
-If the user names a single model, seat that model and label the run `single family`.
+If the user names a single model, or no multi-model route exists, run single-family
+mode and label the run `single family`.
 
 ## 0. Gates
 

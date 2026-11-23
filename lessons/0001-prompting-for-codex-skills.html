@@ -63,28 +63,10 @@
               <td data-label="Why">It already names the branches and their required evidence. A prompt change should follow a demonstrated gap, not duplicate existing routing.</td>
             </tr>
             <tr>
-              <td data-label="Priority"><span class="tag high">Keep</span></td>
-              <td data-label="File"><a href="../skills/shared-agent-protocol/SKILL.md"><code>shared-agent-protocol</code></a></td>
-              <td data-label="Change">Keep it reference-only; do not add per-section mini-workflows.</td>
-              <td data-label="Why">Entrypoint skills link to its shared sections. Its own scope forbids turning it into a general handbook.</td>
-            </tr>
-            <tr>
               <td data-label="Priority"><span class="tag medium">Keep</span></td>
               <td data-label="File"><a href="../skills/code-refactor-review/SKILL.md"><code>code-refactor-review</code></a></td>
               <td data-label="Change">Keep its repository-search, evidence, and verdict contract. Add detail only after a real review misses a measurable check.</td>
               <td data-label="Why">The existing completion criterion already requires each finding to cite changed code plus a searched pattern or no-pattern result.</td>
-            </tr>
-            <tr>
-              <td data-label="Priority"><span class="tag medium">Keep</span></td>
-              <td data-label="File"><a href="../skills/confidence-loop/SKILL.md"><code>confidence-loop</code></a></td>
-              <td data-label="Change">Keep the mode and alias table with its reviewer budget. Trim only measured duplicate prose.</td>
-              <td data-label="Why">The invocation contract chooses audit coverage before the workflow starts.</td>
-            </tr>
-            <tr>
-              <td data-label="Priority"><span class="tag medium">Keep</span></td>
-              <td data-label="File"><a href="../skills/discrawl/SKILL.md"><code>discrawl</code></a></td>
-              <td data-label="Change">Keep its Search, Channel Context, and Status branches; change them only after an observed routing failure.</td>
-              <td data-label="Why">Each branch already names when to use it, its bounded query shape, and its completion evidence.</td>
             </tr>
             <tr>
               <td data-label="Priority"><span class="tag medium">Keep</span></td>
@@ -98,7 +80,7 @@
 
       <section id="bounded-goals">
         <h2>Repository convention: bound repeated work</h2>
-        <p>For a genuinely repeated or persistent workflow, use the repository’s <a href="../skills/shared-agent-protocol/SKILL.md#bounded-loops">shared bounded-loop protocol</a>: define state, next action, stop condition, human gate, budget, and any applicable failure learning.</p>
+        <p>For a genuinely repeated or persistent workflow, state the bound in the workflow itself: define state, next action, stop condition, human gate, budget, and any applicable failure learning.</p>
         <p>Do not add this machinery to a one-shot review skill merely because it sounds rigorous.</p>
       </section>
 

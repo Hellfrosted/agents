@@ -41,7 +41,7 @@ Proof: What smallest check confirms the outcome?</pre>
 
       <section id="loops">
         <h2>Repository convention: bound repeated work</h2>
-        <p>For a genuinely repeated or persistent workflow, this repository uses a goal, an attempt budget, evidence per attempt, a stop condition, and a report of what was learned. Reuse the repository’s <a href="../skills/shared-agent-protocol/SKILL.md#bounded-loops">bounded-loop protocol</a> instead of repeating it in every one-shot skill.</p>
+        <p>For a genuinely repeated or persistent workflow, this repository uses a goal, an attempt budget, evidence per attempt, a stop condition, and a report of what was learned. State those fields in the workflow itself instead of repeating them in every one-shot skill.</p>
         <div class="callout">
           <h3>Repository default: avoid hard-coding model names</h3>
           <p>The <a href="https://developers.openai.com/api/docs/guides/latest-model">current model guide</a> recommends choosing a model and reasoning effort for the workload, then comparing representative tasks. Keep durable skills model-agnostic unless compatibility, evaluation, deployment, or a concrete workload constraint requires a pin.</p>

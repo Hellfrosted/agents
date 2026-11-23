@@ -9,6 +9,13 @@ Write a compact brief that fixes scope, boundaries, and proof. Ask only when
 missing detail materially changes outcome, risk, credentials, deployment,
 hardware, destructive actions, or ownership.
 
+Outcome: a brief another agent can execute without asking what is in scope, what is
+forbidden, or what proves done. Proof: every canonical field has a concrete value or
+`none`, and the named evidence can actually be run.
+
+Guardrails: do not pad the brief with background the executor already has, and do
+not turn one-off task constraints into permanent workflow policy.
+
 ## Flow
 
 1. Choose the branch: build/fix, research, review, operate, or future-work
@@ -53,9 +60,11 @@ Mode: <light or heavy, with trigger if heavy>
   available, before/after evidence, and explicit approval for destructive,
   credential, exposure, machine-wide, or production-risk actions.
 - Future-work handoff: include current state, exact next action, known blockers,
-  allowed write set, and resume evidence. Conversation-compaction handoffs
-  depend on the external `$handoff` skill. If it is unavailable, say so and use
-  this canonical shape as a compact fallback.
+  allowed write set, and resume evidence. For a conversation-compaction handoff,
+  write the summary to the OS temp directory, redact keys and personal data,
+  reference existing artifacts by path instead of copying them, and add the
+  canonical shape above as the resume contract. Do not depend on a separate
+  `$handoff` skill being installed.
 
 ## Mode
 
